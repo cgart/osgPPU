@@ -26,7 +26,8 @@ class PostProcessUnitOut : public PostProcessUnit {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitOut(osg::State* state, osg::StateSet* parentStateSet);
+        //PostProcessUnitOut(osg::State* state, osg::StateSet* parentStateSet);
+        PostProcessUnitOut(PostProcess* parent);
         
         //! Release it and used memory
         ~PostProcessUnitOut();
@@ -84,7 +85,8 @@ class PostProcessUnitInOut : public PostProcessUnit {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitInOut(osg::State* state, osg::StateSet* parentStateSet);
+        //PostProcessUnitInOut(osg::State* state, osg::StateSet* parentStateSet);
+        PostProcessUnitInOut(PostProcess* parent);
         
         //! Release it and used memory
         virtual ~PostProcessUnitInOut();
@@ -143,7 +145,8 @@ class PostProcessUnitInResampleOut : public PostProcessUnit {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitInResampleOut(osg::State* state, osg::StateSet* parentStateSet);
+        //PostProcessUnitInResampleOut(osg::State* state, osg::StateSet* parentStateSet);
+        PostProcessUnitInResampleOut(PostProcess* parent);
         
         //! Release it and used memory
         ~PostProcessUnitInResampleOut();

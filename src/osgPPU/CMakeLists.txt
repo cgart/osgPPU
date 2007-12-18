@@ -12,10 +12,6 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/PPUInOut.h
 )
 
-INCLUDE_DIRECTORIES(
-    /HPS/usr7/tevs/local/include
-)
-
 
 # FIXME: For OS X, need flag for Framework or dylib
 ADD_LIBRARY(${LIB_NAME}

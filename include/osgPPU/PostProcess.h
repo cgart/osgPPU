@@ -24,9 +24,9 @@
 class PostProcess : public osg::Object {
     public: 
     
-        //! Meta information
         META_Object(osgPPU, PostProcess)
-    
+        typedef std::list<osg::ref_ptr<PostProcessUnit> > FXPipeline;
+        
         //! Initialize the postprocessing system
         PostProcess();
     
@@ -37,14 +37,11 @@ class PostProcess : public osg::Object {
         virtual ~PostProcess();
         
         //! This should be called every frame to update the system
-        virtual void update();
+        virtual void update(float dTime = 0.0f);
         
         //! Add the camera object
         void setCamera(osg::Camera* camera);
         
-        //! List of multipass post rendering shaders
-        typedef std::list<osg::ref_ptr<PostProcessUnit> > FXPipeline;
-    
         //! Update the pipeline by retrieving all postprocessing effects and recombine them into the pipeline
         void setPipeline(const FXPipeline& pipeline);
         
@@ -57,6 +54,12 @@ class PostProcess : public osg::Object {
         //! Add new ppu to the pipeline
         void addPPUToPipeline(PostProcessUnit* ppu);
         
+        //! Get state of the post processing class 
+        osg::State* getState() { return mState.get(); }
+
+        //! Get stateset of this object
+        osg::StateSet* getOrCreateStateSet();
+
     private:
         
         //! Store here global state for all ppus

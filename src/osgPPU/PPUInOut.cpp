@@ -8,6 +8,8 @@
  ***************************************************************************/
 
 #include <osgPPU/PPUInOut.h>
+#include <osgPPU/PostProcess.h>
+
 #include <osg/Texture2D>
 #include <osgDB/WriteFile>
 #include <osgDB/Registry>
@@ -20,7 +22,8 @@
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-PostProcessUnitOut::PostProcessUnitOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
+PostProcessUnitOut::PostProcessUnitOut(PostProcess* parent) : PostProcessUnit(parent)
+//osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
 {
 
 }
@@ -145,7 +148,8 @@ void PostProcessUnitOutCapture::noticeFinishRendering()
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-PostProcessUnitInOut::PostProcessUnitInOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
+//PostProcessUnitInOut::PostProcessUnitInOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
+PostProcessUnitInOut::PostProcessUnitInOut(PostProcess* parent) : PostProcessUnit(parent)
 {
     // create FBO because we need it
     mFBO = new osg::FrameBufferObject();
@@ -418,7 +422,8 @@ void PostProcessUnitInOut::noticeChangeViewport()
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
+//PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
+PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(PostProcess* parent) : PostProcessUnit(parent)
 {
     // create FBO because we need it
     mFBO = new osg::FrameBufferObject();

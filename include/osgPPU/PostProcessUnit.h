@@ -7,8 +7,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _C_POST_PROCESS_FX_UNITS_H_
-#define _C_POST_PROCESS_FX_UNITS_H_
+#ifndef _C_POST_PROCESS_UNIT_H_
+#define _C_POST_PROCESS_UNIT_H_
 
 
 //-------------------------------------------------------------------------
@@ -24,6 +24,7 @@
 #include <osg/Material>
 #include <osg/Program>
 
+class PostProcess;
 
 /**
  * PostProcessing Effect. This is a postprocessing effect. The effects
@@ -40,55 +41,94 @@
 class PostProcessUnit : public osg::Object {
     public:
 
-        //! Meta object information
         META_Object(osgPPU,PostProcessUnit)
-
-        //! Create empty ppu
-        PostProcessUnit();
+        typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         
-        //! Create a postprocess effect 
-        PostProcessUnit(osg::State* parentState, osg::StateSet* parentStateSet);
+        /**
+         * Create empty ppu. If you use this ppu in your graph you will
+         * do not encounter anything, since this ppu do just copy the input 
+         * data to its output, by setting output textures equal to the input 
+         * @param parent Parent post processing class from where we borrow the state and stateset
+         **/
+        PostProcessUnit(PostProcess* parent);
 
-        //! Copy one ppu to another
+        /**
+         * Copy constructor.
+        **/
         PostProcessUnit(const PostProcessUnit&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
-        
-        //! Remove ppfx and release used memory
+
+        /**
+        * Release used memory by the ppu. 
+        **/        
         virtual ~PostProcessUnit();
         
-        //! Set state
+        //! Set state, which is used to apply the ppu on
         void setState(osg::State* state);
 
         //! Get framebuffer object 
         osg::FrameBufferObject* getFBO() { return mFBO.get(); }
-        
-        //! Set input texture as used for input from previous pass 
+
+        /**
+        * Set a texture as input texture.
+        * @param inTex Texture which is handled as input 
+        * @param inputIndex Index, will be used as texture unit to apply the input on
+        **/        
         void setInputTexture(osg::Texture* inTex, int inputIndex);
-        osg::Texture* getInputTexture(int inputIndex) { return mInputTex[inputIndex].get(); }
-        const std::map<int, osg::ref_ptr<osg::Texture> >& getInputTextureMap() const {return mInputTex;}
-        void setInputTextureMap(const std::map<int, osg::ref_ptr<osg::Texture> >& map) { mInputTex = map; }
         
-        //! Set output texture to specified mrt 
+        //! Return a texture of a certain index
+        osg::Texture* getInputTexture(int inputIndex) { return mInputTex[inputIndex].get(); }
+
+        //! Return complete index to texture mapping
+        const TextureMap& getInputTextureMap() const {return mInputTex;}
+
+        //! Assign input textures directly by a index to texture map
+        void setInputTextureMap(const TextureMap& map) { mInputTex = map; }
+        
+        /**
+        * Set an output texture.
+        * @param outTex Texture used as output of this ppu 
+        * @param mrt MRT (multiple rendering target) index of this output
+        **/
         void setOutputTexture(osg::Texture* outTex, int mrt = 0);
+        
+        //! Get output texture of certain MRT index
         osg::Texture* getOutputTexture(int mrt = 0);
-        const std::map<int, osg::ref_ptr<osg::Texture> >& getOutputTextureMap() const {return mOutputTex;}
+
+        //! Get mrt index to texture mapping
+        const TextureMap& getOutputTextureMap() const {return mOutputTex;}
                 
-        //! Set new input ppu 
+        /**
+        * Set new input ppu. The order of adding the ppus corresponds to their 
+        * input indicies.
+        * @param ppu PPU which will be used as input.
+        * @param bUsePPUsViewport Should we use the viewport of that ppu
+        **/
         inline void addInputPPU(PostProcessUnit* ppu, bool bUsePPUsViewport = false)
         {
             mInputPPU.push_back(ppu);
             if (bUsePPUsViewport) mUseInputPPUViewport = ppu;
         }
 
-        //! get index of this postprocessing unit
+        //! Return the index of this postprocessing unit
         int getIndex() const { return mIndex; }
         
-        //! Set index of this pp unit
+        //! Set index of this ppu
         void setIndex(int i) { mIndex = i; }
         
-        //! Initialze the postprocessing unit 
+        /**
+        * Initialze the postprocessing unit. This method should be overwritten by the 
+        * derived classes to support non-standard initialization routines.
+        **/
         virtual void init();
         
-        //! Apply the unit to the input data and store them at the resulting output 
+        /**
+        * Apply the unit to the input data and store them at the output.
+        * This will bind the ppu and apply the shader on its input.
+        * Shader parameter will be specified by the input textures.
+        * Shader output will be stored in the output textures.
+        * @param dTime Time difference between two calls of apply method. 
+        *               The current time will be derived from this value.
+        **/
         virtual void apply(float dTime = 0.0f);
         
         //! Comparison operator for sorting. Compare by index value
@@ -97,13 +137,13 @@ class PostProcessUnit : public osg::Object {
                return mIndex < b.mIndex;
         }
         
-        //! Set viewport of the camera to which one this PPU is applied 
+        //! Set viewport which is used for this PPU while rendering 
         void setViewport(osg::Viewport* vp);
 
         //! Get viewport of this unit
         osg::Viewport* getViewport() { return mViewport.get(); }
         
-        //! Set camera which is used for this ppu
+        //! Set camera which is used for this ppu. The camera attachments might be used as inputs
         void setCamera(osg::Camera* cam) { mCamera = cam; }
 
         // Set/get expire time of this ppu
@@ -139,7 +179,7 @@ class PostProcessUnit : public osg::Object {
 		/**
 		* Set this ppu in the mode, so that it is not combined into the rendering graph.
 		* This means its output will not be connected to input of the next ppu. Thus the 
-		* rendering is done offline
+		* rendering is done offline in the manner of ppu graph.
 		**/
 		inline void setOfflineMode(bool mode) {mbOfflinePPU = mode;}
 
@@ -152,9 +192,14 @@ class PostProcessUnit : public osg::Object {
         //! Get internal format which is used by the output textures
         GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
 
+        //! Utility function to derive source texture format from the internal format
         static GLenum createSourceTextureFormat(GLenum internalFormat);
 
     protected:
+        //! We do not want the user to use this method directly
+        PostProcessUnit();
+
+        //! it is good to have friends
         friend class PostProcess;
 
         //! Notice derived units about end of rendering
@@ -166,39 +211,50 @@ class PostProcessUnit : public osg::Object {
         //! Notice derived classes, when inpu ttexture was changed.
         virtual void noticeChangeInput() {}
 
+        //! Notice derived classes, that new shader is assigned
         virtual void noticeAssignShader() {}
+
+        //! Notice derived classes, that no shader is assigned now
         virtual void noticeRemoveShader() {}
+
+        //! Unit specific rendering function 
+        virtual void render(int mipmapLevel = -1);
+                    
+        //! Assign the input texture to the quad object 
+        virtual void assignInputTexture();
+
+        //! Assign output textures (is handled only in derived classes)
+		virtual void assignOutputTexture() {};
 
         //! Enable mipmap generation on all output textures
         void enableMipmapGeneration();
         
-        /**
-         * apply base parameters (should be called from derived render method ).
-         * if return true, so PPU can be rendered otherwise do not render
-         **/
+        //! Apply base parameters (should be called from derived render method ).
         bool applyBaseRenderParameters();
-        
-        //! Unit specific rendering function 
-        virtual void render(int mipmapLevel = -1);
-            
-        //! Assign the input texture to the quad object 
-        void assignInputTexture();
-		virtual void assignOutputTexture() {};
         
         //! Assign a shader to the input texture to the quad object 
         void assignShader();
         
         //! disable shader
         void removeShader();
+
+        //! Call this method to initilization the base class properties (i.e. in init() before return)
+        void initializeBase();
+        
+        //! Call this method after the apply method in derived classes
+        void applyBase();
+        
+        //! Generate mipmaps (for specified output texture)
+        void generateMipmaps(osg::Texture* output, int mrt);
         
         //! Each ppfx use its own framebuffer object where results are written
         osg::ref_ptr<osg::FrameBufferObject>    mFBO;
         
         //! Input texture
-        std::map<int, osg::ref_ptr<osg::Texture> >  mInputTex;
+        TextureMap  mInputTex;
         
         //! Output textures
-        std::map<int, osg::ref_ptr<osg::Texture> >  mOutputTex;
+        TextureMap  mOutputTex;
         
         //! Shader which will be used for rendering
         osg::ref_ptr<osg::Program>   mShader;
@@ -248,15 +304,6 @@ class PostProcessUnit : public osg::Object {
         //! Viewports for each mipmap level 
         std::vector<osg::ref_ptr<osg::Viewport> > mMipmapViewport;
         
-        //! Call this method to initilization the base class properties (i.e. in init() before return)
-        void initializeBase();
-        
-        //! Call this method after the apply method in derived classes
-        void applyBase();
-        
-        //! Generate mipmaps (for specified output texture)
-        void generateMipmaps(osg::Texture* output, int mrt);
-
         //! Camera which is used for this post process
         osg::ref_ptr<osg::Camera> mCamera;
 
@@ -277,6 +324,9 @@ class PostProcessUnit : public osg::Object {
 
         //! Internal format of the output texture
         GLenum mOutputInternalFormat;
+
+        //! Pointer to the parent post process 
+        osg::ref_ptr<PostProcess> mParent;
 
     private:
         //! Flag to setup if PPU is active or not 
@@ -302,310 +352,10 @@ class PostProcessUnit : public osg::Object {
         osg::ref_ptr<osg::BlendFunc> mBlendFunc;        
 
         // initialize default vairables
-        void initialize(osg::State* parentState, osg::StateSet* parentStateSet);
+        void initialize(PostProcess* parent);//osg::State* parentState, osg::StateSet* parentStateSet);
 
         //! current time
         float mTime;
 };
-
-#if 0
-/**
- * Empty postprocess effect. Pass input to the output. So do nothing.
- **/
-class PostProcessFXEmpty : public PostProcessFX {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXEmpty();
-        
-        //! Release it and used memory
-        ~PostProcessFXEmpty();
-                
-    
-};
-
-
-/**
- * Realyy bypass ppu. Pass input to the output. So do nothing.
- **/
-class PostProcessFXBypass : public PostProcessFXEmpty {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXBypass(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXBypass();
-
-        //! Initialze the default postprocessing unit 
-        void init();
-        
-    private:
-        //! Apply the defule unit 
-        void render(int mipmapLevel = 0);
-
-};
-
-/**
- * Camera DepthMap - Bypass. Do pass the camera depth map texture 
- * as output texture of this ppu. The ppu can be used
- * to access depthmap texture from other ppu's or shaders.
- **/
-class PostProcessFXDepthmapBypass : public PostProcessFX {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXDepthmapBypass(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXDepthmapBypass();
-
-        //! Initilize the ppu 
-        void init();
-        
-    private:
-        //! Apply the defule unit 
-        void render(int mipmapLevel = 0);
-
-};
-
-/**
- * Default postprocess effect. Pass input texture to the frame buffer. Use this ppu 
- * to render results of the previous ppus into the framebuffer. So it is usual that
- * this ppu is applied at the end of the pipeline
- **/
-class PostProcessFXOut : public PostProcessFX {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXOut(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXOut();
-        
-        //! Initialze the default postprocessing unit 
-        virtual void init();
-        
-        //! Check for settings for this PPU
-        virtual bool parseXmlSettings(TiXmlElement* root) { return PostProcessFX::parseXmlSettings(root); }
-
-    private:
-        //! Apply the defule unit 
-        virtual void render(int mipmapLevel = 0);
-        
-        //! Notice about end of rendering
-        virtual void noticeFinishRendering() {}
-    
-        //! Viewport changed
-        virtual void noticeChangeViewport() {}
-};
-
-/**
- * Screen capturing ppu. The input texture is captured into a file.
- * This ppu allows to render out in higher resolution than your
- * monitor supports. This can be only achieved if your rendering
- * is going completely through ppu pipeline, so renderer in offscreen mode.
- **/
-class PostProcessFXOutCapture : public PostProcessFXOut {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXOutCapture(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXOutCapture();
-        
-        //! Initialze the default postprocessing unit 
-        void init();
-        
-    private:
-        //! Do not do anything 
-        void render(int mipmapLevel = 0);
-        
-        //! Here we are capturing the input to file
-        void noticeFinishRendering();
-    
-};
-
-
-
-/**
- * InOut PPU, does render the content of input image with applied shader 
- * to the output texture. Renderign is done in background, so no information
- * will leack to the frame buffer
- **/
-class PostProcessFXInOut : public PostProcessFX {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXInOut(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        virtual ~PostProcessFXInOut();
-        
-        //! Initialze the default postprocessing unit 
-        virtual void init();
-        
-        //! Check for settings for this PPU
-        virtual bool parseXmlSettings(TiXmlElement* root);
-
-		//! Set to true if in/out shoudl also be done for mipmap levels
-		virtual void setMipmappedIO(bool b);
-	
-		//! Are we using IO also for mipmap-levels
-		virtual bool getMipmappedIO() const { return mbMipmappedIO; }
-
-    protected:
-    
-        //! Apply the defule unit 
-        virtual void render(int mipmapLevel = -1);
-        virtual void doRender(int mipmapLevel);
-    
-        //! Notice about end of rendering
-        virtual void noticeFinishRendering() {}
-        
-        //! Viewport changed
-        virtual void noticeChangeViewport();
-
-		//! Reassign fbo if output textures changes
-		virtual void assignOutputTexture();
-
-        virtual void noticeAssignShader() {}
-        virtual void noticeRemoveShader() {}
-
-		//! regenerate io mapmapped data structures
-		void checkIOMipmappedData();
-
-		//! Should we do in/out also on mipmap levels
-		bool mbMipmappedIO;
-        
-        //! Viewports for each mipmap level 
-        std::vector<osg::ref_ptr<osg::Viewport> > mIOMipmapViewport;
-		
-        //! Fbos for each mipmap level 
-        std::vector<osg::ref_ptr<osg::FrameBufferObject> > mIOMipmapFBO;
-
-		//! Store number of mipmap levels
-		int mNumLevels;
-};
-
-/**
- * Same as PostProcessFXInOut but can copy values from the resulting texture to
- * variables or another textures
- **/
-class PostProcessFXInOutCopy : public PostProcessFXInOut {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXInOutCopy(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXInOutCopy();
-        
-        //! Initialze the default postprocessing unit 
-        void init();
-        
-    private:
-        //! Notice about end of rendering
-        void noticeFinishRendering();
-
-        //! Apply the defule unit
-        void render(int mipmapLevel = 0);
-        
-        //! Check for settings for this PPU
-        bool parseXmlSettings(TiXmlElement* root);
-
-        //! Name of the variable where to copy the result of last mipmap level
-        std::string mCopyLastMipmapTo;
-
-        //! Level of the mipmap to copy from
-        int mMipmapLevel;
-
-        //! Image holding our data
-        osg::ref_ptr<osg::Image> mMipmapImage;
-        
-};
-
-/**
- * Same as PostProcessFXOut but shows some text on the screen.
- * The shown text could be bound to a property
- **/
-class PostProcessFXText : public PostProcessFXInOut {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXText(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXText();
-        
-        //! Initialze the default postprocessing unit 
-        void init();
-        
-        //! Check for settings for this PPU
-        bool parseXmlSettings(TiXmlElement* root);
-
-    private:
-        //! Apply the defule unit 
-        void render(int mipmapLevel = 0);
-
-        //! Text holding our statistics
-        SharedPtr<Text> mText;
-        
-        //! Notice about end of rendering
-        void noticeFinishRendering();
-        
-        //! Property name where to get the text from
-        std::string mPropertyName;
-        
-        //! Sizes of the ppu 
-        float mX, mY, mWidth, mHeight, mSize;
-
-        ScriptFunctionDef(setText);
-        ScriptFunctionDef(setProperty);
-        ScriptFunctionDef(setSize);
-        ScriptFunctionDef(setPosition);
-        ScriptFunctionDef(setColor);
-
-};
-
-/**
- * Resample the input and output it to resultings image. This PPU will 
- * render the image resampled to an offscreenbuffer. Next PPU will work 
- * on the resampled one. NOTE: You loose information in your data after 
- * appling this PPU.
- **/
-class PostProcessFXInResampleOut : public PostProcessFX {
-    public:
-    
-        //! Create default ppfx 
-        PostProcessFXInResampleOut(osg::State* state, osg::StateSet* parentStateSet);
-        
-        //! Release it and used memory
-        ~PostProcessFXInResampleOut();
-        
-        //! Initialze the default postprocessing unit 
-        void init();
-        
-        //! Check for settings for this PPU
-        bool parseXmlSettings(TiXmlElement* root);
-    
-        //! Set resampling factor
-        void setFactor(float x, float h);
-
-    private:
-        float mWidthFactor, mHeightFactor;
-        int mOrigWidth, mOrigHeight;
-        bool mDirtyFactor;
-
-        void render(int mipmapLevel = 0);
-        
-        //! Viewport changed
-        void noticeChangeViewport();
-
-        ScriptFunctionDef(setResamplingFactor);
-
-};
-#endif
 
 #endif

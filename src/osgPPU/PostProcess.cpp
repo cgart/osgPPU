@@ -37,11 +37,15 @@ PostProcess::PostProcess()
 }
 
 //------------------------------------------------------------------------------
-void PostProcess::setState(osg::State* state)
+PostProcess::PostProcess(const PostProcess& pp, const osg::CopyOp& copyop) : 
+    osg::Object(pp, copyop),
+    mState(pp.mState),
+    mStateSet(copyop(pp.mStateSet.get())),
+    mCamera(pp.mCamera),
+    mFXPipeline(pp.mFXPipeline)
 {
-    mState = state;
-}
 
+}
 
 //------------------------------------------------------------------------------
 PostProcess::~PostProcess(){
@@ -49,10 +53,23 @@ PostProcess::~PostProcess(){
 }
 
 //------------------------------------------------------------------------------
+void PostProcess::setState(osg::State* state)
+{
+    mState = state;
+}
+
+//------------------------------------------------------------------------------
 void PostProcess::setCamera(osg::Camera* camera)
 {
     mCamera = camera;
     mStateSet->setAttribute(const_cast<osg::Viewport*>(mCamera->getViewport()), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+}
+
+//------------------------------------------------------------------------------
+osg::StateSet* PostProcess::getOrCreateStateSet()
+{
+    if (!mStateSet.valid()) mStateSet = new osg::StateSet();
+    return mStateSet.get();
 }
 
 //------------------------------------------------------------------------------
@@ -117,8 +134,6 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
 			input = (*jt)->getOutputTexture(0);
 			vp = (*jt)->getViewport();
         }
-        // some debug info
-        //printf("fx: %s %d\n", (*jt)->getResourceName().c_str(), (*jt)->getIndex());
     }
     
     // add now offline ppus
@@ -136,7 +151,6 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
 //------------------------------------------------------------------------------
 PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::string& ppuName)
 {
-
     // iterate through pipeline
     FXPipeline::iterator jt = mFXPipeline.begin();
     for (; jt != mFXPipeline.end(); jt++ )
@@ -193,8 +207,6 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
     // offscreen ppus are inserted from the end
     if (ppu->getOfflineMode())
     {
-        //mFXPipeline.push_back(ppu);
-        //return;
         FXPipeline::reverse_iterator jt = mFXPipeline.rbegin();
         for (int i=0; jt != mFXPipeline.rend(); jt++, i++)
         {
@@ -245,12 +257,11 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
     ppu->setViewport((*it)->getViewport());
     
     // add the new ppu 
-    mFXPipeline.push_back(ppu);
-    
+    mFXPipeline.push_back(ppu);   
 }
 
 //------------------------------------------------------------------------------
-void PostProcess::update()
+void PostProcess::update(float dTime)
 {
     float texmat[16];
     float projmat[16];
@@ -300,10 +311,8 @@ void PostProcess::update()
             printf("\n");
 			#endif
 
-            // run an update
-            //(*it)->
-            // render
-            (*it)->apply();
+            // apply the post processing unit
+            (*it)->apply(dTime);
     
             // restore the matricies 
             glMatrixMode(GL_TEXTURE); glLoadMatrixf(texmat);
