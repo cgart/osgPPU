@@ -17,6 +17,9 @@
 #include <osgPPU/PostProcessUnit.h>
 #include <osg/Camera>
 
+namespace osgPPU
+{
+
 /**
  * PostProcess should be called as a last step in your rendering pipeline.
  * This class manages the post processing units which do form a graph.
@@ -42,6 +45,9 @@ class PostProcess : public osg::Object {
         //! Add the camera object
         void setCamera(osg::Camera* camera);
         
+        //! Get camera
+        osg::Camera* getCamera() { return mCamera.get(); }
+
         //! Update the pipeline by retrieving all postprocessing effects and recombine them into the pipeline
         void setPipeline(const FXPipeline& pipeline);
         
@@ -73,6 +79,8 @@ class PostProcess : public osg::Object {
         
         //! FX pipeline used for post processing
         FXPipeline  mFXPipeline;
+};
+
 };
 
 #endif

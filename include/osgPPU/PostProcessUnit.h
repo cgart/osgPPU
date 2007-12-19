@@ -24,6 +24,9 @@
 #include <osg/Material>
 #include <osg/Program>
 
+namespace osgPPU
+{
+
 class PostProcess;
 
 /**
@@ -145,6 +148,7 @@ class PostProcessUnit : public osg::Object {
         
         //! Set camera which is used for this ppu. The camera attachments might be used as inputs
         void setCamera(osg::Camera* cam) { mCamera = cam; }
+        osg::Camera* getCamera() { return mCamera.get(); }
 
         // Set/get expire time of this ppu
         inline void setExpireTime(float time) { mExpireTime = time; }
@@ -195,6 +199,12 @@ class PostProcessUnit : public osg::Object {
         //! Utility function to derive source texture format from the internal format
         static GLenum createSourceTextureFormat(GLenum internalFormat);
 
+        //! Set new shader 
+        void setShader(osg::Program* sh) { mShader = sh; }
+
+        //! Set mipmap shader 
+        void setMipmapShader(osg::Program* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+
     protected:
         //! We do not want the user to use this method directly
         PostProcessUnit();
@@ -239,7 +249,7 @@ class PostProcessUnit : public osg::Object {
         void removeShader();
 
         //! Call this method to initilization the base class properties (i.e. in init() before return)
-        void initializeBase();
+        virtual void initializeBase();
         
         //! Call this method after the apply method in derived classes
         void applyBase();
@@ -356,6 +366,8 @@ class PostProcessUnit : public osg::Object {
 
         //! current time
         float mTime;
+};
+
 };
 
 #endif

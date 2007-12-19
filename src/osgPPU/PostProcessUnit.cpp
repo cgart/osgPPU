@@ -16,6 +16,9 @@
 #include <osg/Image>
 #include <assert.h>
 
+namespace osgPPU
+{
+
 //------------------------------------------------------------------------------
 PostProcessUnit::PostProcessUnit()
 {
@@ -591,4 +594,6 @@ GLenum PostProcessUnit::createSourceTextureFormat(GLenum internalFormat)
         default: return internalFormat;
     }
 }
+
+}; // end namespace
 

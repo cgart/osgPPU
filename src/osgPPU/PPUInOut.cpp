@@ -17,6 +17,11 @@
 #include <assert.h>
 #include <osgUtil/UpdateVisitor>
 
+#include <iostream>
+
+namespace osgPPU
+{
+
 //--------------------------------------------------------------------------
 // PostProcessUnitOut Implementation
 //--------------------------------------------------------------------------
@@ -72,10 +77,12 @@ void PostProcessUnitOut::render(int mipmapLevel)
 //--------------------------------------------------------------------------
 // PostProcessUnitOutCapture Implementation
 //--------------------------------------------------------------------------
-#if 0
 //------------------------------------------------------------------------------
-PostProcessUnitOutCapture::PostProcessUnitOutCapture(osg::State* s, osg::StateSet* ss) : PostProcessUnitOut(s,ss)
+PostProcessUnitOutCapture::PostProcessUnitOutCapture(PostProcess* parent) : PostProcessUnitOut(parent)
 {
+    mPath = ".";
+    mCaptureNumber = 0;
+    mExtension = "png";
 }
 
 //------------------------------------------------------------------------------
@@ -83,40 +90,25 @@ PostProcessUnitOutCapture::~PostProcessUnitOutCapture()
 {
 }
 
-//------------------------------------------------------------------------------
-void PostProcessUnitOutCapture::init()
-{
-    // do initialization in the base
-    PostProcessUnitOut::init();
-}
-
-
-//------------------------------------------------------------------------------
-void PostProcessUnitOutCapture::render(int mipmapLevel)
-{
-}
 
 //------------------------------------------------------------------------------
 void PostProcessUnitOutCapture::noticeFinishRendering()
 {
     if (isActive() && sState.getState())
     {
-        // get properties and calculate size
-        int w = glfw::Package::instance()->getWindowWidth();
-        int h = glfw::Package::instance()->getWindowHeight();
-        
         // if we want to capture the framebuffer
-        static int captureFileNumber = 0;
         char filename[256];
         
         // for each input texture do
         for (unsigned int i=0; i < mInputTex.size(); i++)
         {
             // create file name
-            sprintf( filename, "tmp/%d_%04d.png", i, captureFileNumber);
-            printf("Capture %d frame (%dx%d) to %s (time %f)...", captureFileNumber,w,h,filename, Engine::sClock()->getTime());
-            captureFileNumber++;
-            
+            sprintf( filename, "%s/%d_%04d.%s", mPath.c_str(), i, mCaptureNumber, mExtension.c_str());
+            std::cout << "Capture " << mCaptureNumber << " frame to " << filename << " ...";
+            std::cout.flush();
+           
+            mCaptureNumber++;
+
             // input texture 
             osg::Texture* input = getInputTexture(i);
 
@@ -127,20 +119,19 @@ void PostProcessUnitOutCapture::noticeFinishRendering()
             osg::ref_ptr<osg::Image> img = new osg::Image();
             img->readImageFromCurrentTexture(sState.getContextID(), false); 
             //img->readPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE);
-            //osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename);
-            write_png(filename, img->data(), w, h, 4, 8, PNG_COLOR_TYPE_RGBA, 1);
-            //if (res.success())
-                printf(" OK\n");
-            //else
-            //    printf(" failed! (%s)\n", res.message().c_str());
-            
+            osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
+            //write_png(filename, img->data(), w, h, 4, 8, PNG_COLOR_TYPE_RGBA, 1);
+            if (res.success())
+                std::cout << " OK" << std::endl;
+            else
+                std::cout << " failed! (" << res.message() << ")" << std::endl;
+                        
             // unbind the texture back 
             if (input != NULL)
                 sState.getState()->applyTextureMode(0, input->getTextureTarget(), false);
         }
     }
 }
-#endif
 
 
 //--------------------------------------------------------------------------
@@ -570,4 +561,4 @@ void PostProcessUnitInResampleOut::render(int mipmapLevel)
 
 }
 
-
+}; // end namespace

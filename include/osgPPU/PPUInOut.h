@@ -16,6 +16,8 @@
 //-------------------------------------------------------------------------
 #include <osgPPU/PostProcessUnit.h>
 
+namespace osgPPU
+{
 
 /**
  * Default postprocess effect. Pass input texture to the frame buffer. Use this ppu 
@@ -26,16 +28,15 @@ class PostProcessUnitOut : public PostProcessUnit {
     public:
     
         //! Create default ppfx 
-        //PostProcessUnitOut(osg::State* state, osg::StateSet* parentStateSet);
         PostProcessUnitOut(PostProcess* parent);
         
         //! Release it and used memory
-        ~PostProcessUnitOut();
+        virtual ~PostProcessUnitOut();
         
         //! Initialze the default postprocessing unit 
         virtual void init();
         
-    private:
+    protected:
         //! Apply the defule unit 
         virtual void render(int mipmapLevel = 0);
         
@@ -46,7 +47,6 @@ class PostProcessUnitOut : public PostProcessUnit {
         virtual void noticeChangeViewport() {}
 };
 
-#if 0
 /**
  * Screen capturing ppu. The input texture is captured into a file.
  * This ppu allows to render out in higher resolution than your
@@ -57,23 +57,31 @@ class PostProcessUnitOutCapture : public PostProcessUnitOut {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitOutCapture(osg::State* state, osg::StateSet* parentStateSet);
+        PostProcessUnitOutCapture(PostProcess* parent);
         
         //! Release it and used memory
-        ~PostProcessUnitOutCapture();
+        virtual ~PostProcessUnitOutCapture();
         
-        //! Initialze the default postprocessing unit 
-        void init();
-        
-    private:
-        //! Do not do anything 
-        void render(int mipmapLevel = 0);
+        //! Set path were to store the screenshots
+        void setPath(const std::string& path) { mPath = path; }
+
+        //! set extension   
+        void setFileExtensions(const std::string& ext) { mExtension = ext; }
+
+    protected:
         
         //! Here we are capturing the input to file
         void noticeFinishRendering();
     
+        //! path were to store the files
+        std::string mPath;
+
+        //! Current number of the capture file 
+        int mCaptureNumber;
+
+        //! file extensions
+        std::string mExtension;
 };
-#endif
 
 
 /**
@@ -85,7 +93,6 @@ class PostProcessUnitInOut : public PostProcessUnit {
     public:
     
         //! Create default ppfx 
-        //PostProcessUnitInOut(osg::State* state, osg::StateSet* parentStateSet);
         PostProcessUnitInOut(PostProcess* parent);
         
         //! Release it and used memory
@@ -145,11 +152,10 @@ class PostProcessUnitInResampleOut : public PostProcessUnit {
     public:
     
         //! Create default ppfx 
-        //PostProcessUnitInResampleOut(osg::State* state, osg::StateSet* parentStateSet);
         PostProcessUnitInResampleOut(PostProcess* parent);
         
         //! Release it and used memory
-        ~PostProcessUnitInResampleOut();
+        virtual ~PostProcessUnitInResampleOut();
         
         //! Initialze the default postprocessing unit 
         void init();
@@ -157,7 +163,7 @@ class PostProcessUnitInResampleOut : public PostProcessUnit {
         //! Set resampling factor
         void setFactor(float x, float h);
 
-    private:
+    protected:
         float mWidthFactor, mHeightFactor;
         int mOrigWidth, mOrigHeight;
         bool mDirtyFactor;
@@ -166,6 +172,8 @@ class PostProcessUnitInResampleOut : public PostProcessUnit {
         
         //! Viewport changed
         void noticeChangeViewport();
+
+};
 
 };
 

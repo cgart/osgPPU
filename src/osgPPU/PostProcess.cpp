@@ -17,6 +17,9 @@
 
 #define DEBUG_PPU 0
 
+namespace osgPPU
+{
+
 //------------------------------------------------------------------------------
 PostProcess::PostProcess() 
 {
@@ -329,7 +332,7 @@ void PostProcess::update(float dTime)
     glPopAttrib();
 }
 
-
+}; //end namespace
 
 
 
