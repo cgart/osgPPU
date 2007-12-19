@@ -1,0 +1,167 @@
+#-----------------------------------------------
+# Makefile rules for building or installing
+#-----------------------------------------------
+all: default
+default: __info build
+build: __preparebuild depend $(TARGET)
+        
+__info:
+	@echo 'Used flags for compilation are: '
+	@echo 'CFLAGS = $(CFLAGS)'
+	@echo 'LDFLAGS = $(LDFLAGS)'
+	
+$(TARGET): $(OBJECTS) 
+	@ echo -n 'Create $@ ...'
+	@ $(CC) $(CFLAGS) $(addprefix $(BUILDPATH)/,$(OBJECTS) ) -o $@ $(LDFLAGS)
+	@ mv $@ $(TOPDIR)/lib
+	@ echo 'OK'
+
+	
+$(OBJECTS): %.o: %.cpp
+	@ echo -n 'Compile $< ...'
+	@ $(CC) $(CFLAGS) -c $< -o $(BUILDPATH)/$@ && echo ' OK'
+	
+	
+$(DEPENDS): %.d: %.cpp
+	@ echo -n 'Create dependency list for $@ ...'
+	@ $(SHELL) -ec '$(CC) $(DEPARG) $(CFLAGS) $< > $(BUILDPATH)/$@'
+	@ echo ' OK'
+	@ echo "AUTOMAGICALY GENERATED FILE" > $(BUILDPATH)/.deps.exists
+	
+depend: $(DEPENDS)
+	@ $(SHELL) -c 'if [ -f $(BUILDPATH)/.deps.exists ] ; then \
+		echo -n "Combine dependencies list into make.dep ..."; \
+		cat $(BUILDPATH)/*.d | sed -e s/\\.cpp\\.o/.o/g > make.dep; \
+		echo " OK"; \
+	fi; '
+	
+#-----------------------------------------------
+# Prepare the building directory for writing
+#-----------------------------------------------
+__preparebuild:
+	@ if [ ! -d $(BUILDPATH) ]; then \
+		$(MKDIR) $(BUILDPATH); \
+	fi;
+
+#-----------------------------------------------
+# Install rules for parts of the package
+#-----------------------------------------------
+install: build __installdirs __installinc __installlib
+
+__installdirs:
+	@ $(SHELL) -c ' \
+		dirs="$(INSTALL_DIRS) $(INSTALL_DST_INC) $(INSTALL_DST_LIB)"; \
+		for d in $$dirs; do \
+			if [ ! -d $$d ]; then \
+				echo -n "Creating directory $$d ..."; \
+				$(INSTALL_DIR) $$d; \
+				echo " OK"; \
+			fi; \
+		done; '
+	
+__installlib:
+	@ $(MAKE) INSTALL_SRC="$(INSTALL_SRC_LIB)" INSTALL_DST="$(INSTALL_DST_LIB)" INSTALL_CMD?="$(INSTALL_LIB)" __installlib_
+
+__installinc:
+	@ $(MAKE) INSTALL_SRC="$(INSTALL_SRC_INC)" INSTALL_DST="$(INSTALL_DST_INC)" INSTALL_CMD?="$(INSTALL_INC)" __install
+
+__installlib_:
+	@ $(SHELL) -c ' \
+		src="$(INSTALL_SRC)"; \
+		for f in $$src; \
+		do \
+			if [ -f "$(TOPDIR)/lib/$$f" ]; \
+			then \
+				$(INSTALL_CMD) $(TOPDIR)/lib/$$f $(INSTALL_DST); \
+				echo "Installing $$f in $(INSTALL_DST)"; \
+			fi; \
+		done; '
+
+__install:
+	@ $(SHELL) -c ' \
+		src="$(INSTALL_SRC)"; \
+		for f in $$src; \
+		do \
+			if [ -f $$f ]; \
+			then \
+				$(INSTALL_CMD) $$f $(INSTALL_DST); \
+				echo "Installing $$f in $(INSTALL_DST)"; \
+			fi; \
+		done; '
+
+#-----------------------------------------------
+# Uninstall rules for removing the package
+#-----------------------------------------------
+uninstall: __uninstalllib __uninstallinc __uninstalldirs
+
+__uninstalllib:
+	@ $(MAKE) INSTALL_SRC="$(INSTALL_SRC_LIB)" INSTALL_DST="$(INSTALL_DST_LIB)" __uninstalllib_
+
+__uninstallinc:
+	@ $(MAKE) INSTALL_SRC="$(INSTALL_SRC_INC)" INSTALL_DST="$(INSTALL_DST_INC)" __uninstall
+
+# Check for UNINSTALL_DIR entries and remove them
+__uninstalldirs:
+	@ $(SHELL) -c ' \
+		dirs="$(UNINSTALL_DIR)"; \
+		for d in $$dirs; do \
+			if [ -d $$d ]; then \
+				echo -n "Removing directory $$d ..."; \
+				rm -rf $$d; \
+				echo " OK"; \
+			fi; \
+		done; '
+	
+__uninstalllib_:
+	@ $(SHELL) -c ' \
+		src="$(INSTALL_SRC)"; \
+		for f in $$src; \
+		do \
+			if [ -f "$(TOPDIR)/lib/$$f" ]; \
+			then \
+				echo "Remove $$f from $(INSTALL_DST)"; \
+				rm -f $(INSTALL_DST)/$$f; \
+			fi; \
+		done; \
+		empty="ls $(INSTALL_DST)"; \
+		if [ -z "$$empty" ]; then \
+			echo "$(INSTALL_DST) is empty, so remove it"; \
+			rm -rf $(INSTALL_DST); \
+		fi; '
+
+__uninstall:
+	@ $(SHELL) -c ' \
+		src="$(INSTALL_SRC)"; \
+		for f in $$src; \
+		do \
+			if [ -f $$f ]; \
+			then \
+				echo "Remove $$f from $(INSTALL_DST)"; \
+				rm -f $(INSTALL_DST)/$$f; \
+			fi; \
+		done; \
+		empty="ls $(INSTALL_DST)"; \
+		if [ -z "$$empty" ]; then \
+			echo "$(INSTALL_DST) is empty, so remove it"; \
+			rm -rf $(INSTALL_DST); \
+		fi; '
+
+#-----------------------------------------------
+# Make test suite
+#-----------------------------------------------
+check: test
+test:
+	(cd $(TOPDIR)/Test && make all)
+		
+#-----------------------------------------------
+# Clean all files
+#-----------------------------------------------
+.PHONY : clean
+clean:
+	@ echo -n "Clean building directory ..."
+	@ rm -rf $(BUILDPATH)
+	@ rm -rf *~
+	@ rm -rf *.d
+	@ rm -rf make.dep	
+	@ echo "OK"
+

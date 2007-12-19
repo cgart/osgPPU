@@ -1,0 +1,31 @@
+#-----------------------------------------------
+# Define variables for simpler creating
+# makefiles in subdirectories
+#-----------------------------------------------
+MAKE_TARGET_BEGIN =\
+	@ $(SHELL) -c 'subd="$(SUBDIRS)";\
+	for f in $$subd; do\
+		(cd $$f && make 
+		
+MAKE_TARGET_END = ); done;'
+
+all:
+	$(MAKE_TARGET_BEGIN) all $(MAKE_TARGET_END)
+
+clean:
+	$(MAKE_TARGET_BEGIN) clean $(MAKE_TARGET_END)
+	
+depend:
+	$(MAKE_TARGET_BEGIN) depend $(MAKE_TARGET_END)
+	
+installdirs:
+	$(MAKE_TARGET_BEGIN) installdirs $(MAKE_TARGET_END)
+
+install:
+	$(MAKE_TARGET_BEGIN) install $(MAKE_TARGET_END)
+
+uninstall:
+	$(MAKE_TARGET_BEGIN) uninstall $(MAKE_TARGET_END)
+
+test:
+	(cd $(TOPDIR)/Test && make all)

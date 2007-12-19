@@ -106,9 +106,8 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     sModelviewMatrix(ppu.sModelviewMatrix),
     sState(ppu.sState),
     mViewport(ppu.mViewport),
-    mOutputPPU(ppu.mOutputPPU),
     mInputPPU(ppu.mInputPPU),
-    mOutputInternalFormat(ppu.mOutputInternalFormat),
+    mOutputPPU(ppu.mOutputPPU),
     mUseInputPPUViewport(ppu.mUseInputPPUViewport),
     mbUseMipmaps(ppu.mbUseMipmaps),
     mbUseMipmapShader(ppu.mbUseMipmapShader),
@@ -116,19 +115,20 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mMipmapFBO(ppu.mMipmapFBO),
     mMipmapViewport(ppu.mMipmapViewport),
     mCamera(ppu.mCamera),
+    mbDirtyViewport(ppu.mbDirtyViewport),
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
     mbDirtyOutputTextures(ppu.mbDirtyOutputTextures),
-    mbDirtyViewport(ppu.mbDirtyViewport),
     mScreenQuadColor(ppu.mScreenQuadColor),
     mbOfflinePPU(ppu.mbOfflinePPU),
+    mOutputInternalFormat(ppu.mOutputInternalFormat),
+    mParent(ppu.mParent),
     mbActive(ppu.mbActive),
     mExpireTime(ppu.mExpireTime),
     mStartTime(ppu.mStartTime),
     mStartBlendValue(ppu.mStartBlendValue),
     mEndBlendValue(ppu.mEndBlendValue),
     mCurrentBlendValue(ppu.mCurrentBlendValue),
-    mBlendFunc(ppu.mBlendFunc),
-    mParent(ppu.mParent)
+    mBlendFunc(ppu.mBlendFunc)
 {
     
 }
