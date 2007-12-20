@@ -102,10 +102,10 @@ class PostProcessUnitInOut : public PostProcessUnit {
         virtual void init();
         
         //! Set to true if in/out shoudl also be done for mipmap levels
-        virtual void setMipmappedIO(bool b);
+        void setMipmappedIO(bool b);
     
         //! Are we using IO also for mipmap-levels
-        virtual bool getMipmappedIO() const { return mbMipmappedIO; }
+        bool getMipmappedIO() const { return mbMipmappedIO; }
 
     protected:
     
@@ -118,6 +118,9 @@ class PostProcessUnitInOut : public PostProcessUnit {
         
         //! Viewport changed
         virtual void noticeChangeViewport();
+
+        //! called when input textures are changed
+        virtual void noticeChangeInput() {}
 
         //! Reassign fbo if output textures changes
         virtual void assignOutputTexture();
@@ -148,7 +151,7 @@ class PostProcessUnitInOut : public PostProcessUnit {
  * on the resampled one. NOTE: You loose information in your data after 
  * appling this PPU.
  **/
-class PostProcessUnitInResampleOut : public PostProcessUnit {
+class PostProcessUnitInResampleOut : public PostProcessUnitInOut {
     public:
     
         //! Create default ppfx 
@@ -157,21 +160,23 @@ class PostProcessUnitInResampleOut : public PostProcessUnit {
         //! Release it and used memory
         virtual ~PostProcessUnitInResampleOut();
         
-        //! Initialze the default postprocessing unit 
-        void init();
-            
         //! Set resampling factor
         void setFactor(float x, float h);
+
+        //! Set index of input texture which size to be used as reference
+        void setInputReferenceTextureIndex(unsigned int i);
 
     protected:
         float mWidthFactor, mHeightFactor;
         int mOrigWidth, mOrigHeight;
         bool mDirtyFactor;
+        int mInputTexIndex;
 
+        //! Overwritten render method
         void render(int mipmapLevel = 0);
-        
-        //! Viewport changed
-        void noticeChangeViewport();
+
+        //! Input textures were changed
+        void noticeChangeInput();
 
 };
 

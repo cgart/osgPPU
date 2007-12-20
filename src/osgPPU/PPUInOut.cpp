@@ -190,8 +190,6 @@ void PostProcessUnitInOut::assignOutputTexture()
                 mTex->setInternalFormat(getOutputInternalFormat());
                 mTex->setSourceFormat(PostProcessUnit::createSourceTextureFormat(getOutputInternalFormat()));
 
-                //}
-                
                 //mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_BORDER);
                 //mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_BORDER);
                 //mTex->setBorderColor(osg::Vec4(0,0,0,0));
@@ -215,8 +213,8 @@ void PostProcessUnitInOut::assignOutputTexture()
             mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
 
             // setup viewport
-            //osg::Viewport* vp = new osg::Viewport(*mViewport);
-            //setViewport(vp);
+            osg::Viewport* vp = new osg::Viewport(*mViewport);
+            setViewport(vp);
         }
         sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
@@ -316,13 +314,13 @@ void PostProcessUnitInOut::render(int mipmapLevel)
         for (int i=0; i < mNumLevels; i++)
         {
             // set mipmap level
-            if (mShaderMipmapLevelUniform.valid()) mShaderMipmapLevelUniform->set("g_MipmapLevel",float(i));
+            if (mShaderMipmapLevelUniform.valid()) mShaderMipmapLevelUniform->set(float(i));
     
             // assign new viewport and fbo
             mViewport = mIOMipmapViewport[i];
             mFBO = mIOMipmapFBO[i];
     
-            //printf("io-mipmap %s %d, (%dx%d) \n", getResourceName().c_str(), i, (int)mViewport->width(), (int)mViewport->height());
+            //printf("io-mipmap %s %d, (%dx%d) \n", getName().c_str(), i, (int)mViewport->width(), (int)mViewport->height());
     
             // render the content
             doRender(i);
@@ -383,8 +381,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
             sScreenQuad->draw(sState);
             glColor4f(1,1,1,1);
         }
-    }
-    
+    }    
 }
 
 
@@ -392,7 +389,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
 void PostProcessUnitInOut::noticeChangeViewport()
 {
     // change size of the result texture according to the viewport
-    std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
+    TextureMap::iterator it = mOutputTex.begin();
     for (; it != mOutputTex.end(); it++)
     {
         if (it->second.valid())
@@ -408,25 +405,19 @@ void PostProcessUnitInOut::noticeChangeViewport()
 }
 
 
+
 //--------------------------------------------------------------------------
 // PostProcessUnitInResampleOut Implementation
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-//PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
-PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(PostProcess* parent) : PostProcessUnit(parent)
+PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(PostProcess* parent) : PostProcessUnitInOut(parent)
 {
-    // create FBO because we need it
-    mFBO = new osg::FrameBufferObject();
-    
     // setup default values 
-    //mWidth = 0;
-    //mHeight = 0;
-    //mX = 0;
-    //mY = 0;
     mWidthFactor = 1.0;
     mHeightFactor = 1.0;
     mDirtyFactor = false;
+    mInputTexIndex = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -443,77 +434,30 @@ void PostProcessUnitInResampleOut::setFactor(float w, float h)
     mDirtyFactor = true;
 }
 
-
 //------------------------------------------------------------------------------
-void PostProcessUnitInResampleOut::init()
+void PostProcessUnitInResampleOut::setInputReferenceTextureIndex(unsigned int i)
 {
-    // assign shader
-    assignInputTexture(); 
-    assignShader();
-    
-    // if FBO is initialized, so assign the output texture to it
-    if (mFBO.valid())
+    // get input texture 
+    osg::Texture* tex = getInputTexture(i);
+
+    // work only on valid input textures
+    if (tex)
     {
-        // a viewport has to be bound
-        assert(mViewport.valid());
-        mOrigWidth = int(mViewport->x() + mViewport->width());
-        mOrigHeight = int(mViewport->y() + mViewport->height());
+        mInputTexIndex = i;
         
-        // now setup output textures
-        std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-        for (int i = 0; it != mOutputTex.end(); it++, i++)
-        {
-            // initialze the resulting texture
-            osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
-            if (mTex == NULL)
-            {
-                mTex = new osg::Texture2D();
-            
-                // setup texture
-                mTex->setTextureSize(int(float(mOrigWidth) * mWidthFactor), int(float(mOrigHeight) * mHeightFactor));
-                mTex->setResizeNonPowerOfTwoHint(false);
-                mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
-                mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
-                mTex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR);
-                mTex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-                mTex->setInternalFormat(getOutputInternalFormat());
-                mTex->setSourceFormat(PostProcessUnit::createSourceTextureFormat(getOutputInternalFormat()));
-                it->second = mTex;
-            }
-            
-            // setup viewport
-            osg::Viewport* vp = new osg::Viewport(*mViewport);
-            setViewport(vp);
-            
-            // attach the texture to the fbo
-            mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
-        }
+        // set new original sizes
+        mOrigWidth = tex->getTextureWidth();
+        mOrigHeight = tex->getTextureHeight();
+
+        // mark factor as dirty
+        mDirtyFactor = true;
     }
-    
-    initializeBase();
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInResampleOut::noticeChangeViewport()
+void PostProcessUnitInResampleOut::noticeChangeInput()
 {
-    // setup new sizes
-    mOrigWidth = int(mViewport->x() + mViewport->width());
-    mOrigHeight = int(mViewport->y() + mViewport->height());
-
-    // change size of the result texture according to the viewport
-    std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-    for (; it != mOutputTex.end(); it++)
-    {
-        if (it->second.valid())
-        {
-            // currently we are working only with 2D textures
-            assert (dynamic_cast<osg::Texture2D*>(it->second.get()) != NULL);
-            
-            // change size
-            osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
-            mTex->setTextureSize(mOrigWidth, mOrigHeight);
-        }
-    }
+    setInputReferenceTextureIndex(mInputTexIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -528,37 +472,12 @@ void PostProcessUnitInResampleOut::render(int mipmapLevel)
         // setup new viewport size
         mViewport->width() = mOrigWidth * mWidthFactor;
         mViewport->height() = mOrigHeight * mHeightFactor;
-        noticeChangeViewport();
         mDirtyFactor = false;
+        mbDirtyViewport = true;
     }
 
-        // return if we do not get valid state
-        if (!sState.getState()) return;
-    
-        // can only be done on valid data 
-        if (mFBO.valid() && mViewport.valid())
-        {
-            // setup shader global properties
-            //if (mShader.valid()) mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
-            //if (mShader.valid()) mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
-            
-            // update shaders manually, because they are do not updated from scene graph
-            //if (mShader.valid()) mShader->update();
-            
-            // aplly stateset
-            sState.getState()->apply(sScreenQuad->getStateSet());
-                
-            // apply framebuffer object, this will bind it, so we can use it
-            mFBO->apply(*sState.getState());
-    
-            // apply viewport
-            mViewport->apply(*sState.getState());
-    
-            // render the content of the input texture into the frame buffer
-            glColor4f(1,1,1,1);
-            sScreenQuad->draw(sState);      
-        }
-
+    // do rendering as usual
+    PostProcessUnitInOut::render();
 }
 
 }; // end namespace

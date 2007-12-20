@@ -36,6 +36,7 @@ PostProcessUnit::PostProcessUnit(PostProcess* parent)
 void PostProcessUnit::initialize(PostProcess* parent)
 {
     mParent = parent;
+    mUserData = NULL;
 
     // we do steup defaults
     setStartTime(0);
@@ -91,7 +92,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
         sState.setState(mParent->getState());
     
     // setup uniform variable
-    mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0);
+    mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0.0f);
     sScreenQuad->getOrCreateStateSet()->addUniform(mShaderMipmapLevelUniform.get());
 }
 
@@ -131,7 +132,8 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mStartBlendValue(ppu.mStartBlendValue),
     mEndBlendValue(ppu.mEndBlendValue),
     mCurrentBlendValue(ppu.mCurrentBlendValue),
-    mBlendFunc(ppu.mBlendFunc)
+    mBlendFunc(ppu.mBlendFunc),
+    mUserData(ppu.mUserData)
 {
     
 }
@@ -258,6 +260,9 @@ void PostProcessUnit::apply(float dTime)
 
 	// check if we have to recreate output textures
 	if (mbDirtyOutputTextures) assignOutputTexture();
+
+    // call on apply method 
+    noticeOnApply();
 
     // check if any valid input texture exists
     TextureMap::const_iterator it = mInputTex.begin();

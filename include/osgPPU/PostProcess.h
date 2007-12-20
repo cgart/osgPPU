@@ -79,6 +79,13 @@ class PostProcess : public osg::Object {
         
         //! FX pipeline used for post processing
         FXPipeline  mFXPipeline;
+
+        /**
+         * Callback function for derived classes, which if ppu was applied.
+         * @param ppu Pointer to the ppu, which was applied 
+         **/
+        virtual void onPPUApply(PostProcessUnit* ppu) {}
+
 };
 
 };

@@ -15,7 +15,7 @@
 #include <osg/Depth>
 
 
-#define DEBUG_PPU 0
+#define DEBUG_PPU 1
 
 namespace osgPPU
 {
@@ -230,21 +230,31 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
             }
         }
     }
+
+    //printf("add ppu %s (%d)\n", ppu->getName().c_str(), ppu->getIndex());
+
     // add it based on index
     // iterate through the whole pipeline
     FXPipeline::iterator jt = mFXPipeline.begin();
-    for (; jt != mFXPipeline.end(); jt++)
+    FXPipeline::iterator it = mFXPipeline.begin();
+    for (++jt; jt != mFXPipeline.end(); jt++, it++)
     {
-        // jt is the ppu after ours
+        //printf("%s (%d) ", (*it)->getName().c_str(), (*it)->getIndex());
+        //printf("  -- %s (%d)\n", (*jt)->getName().c_str(), (*jt)->getIndex());
+
+        // jt is the ppu after ours, it is the one before
         if ((*jt)->getIndex() > ppu->getIndex())
         {
             // get ppu before
-            FXPipeline::iterator it = jt;
+            //FXPipeline::iterator it = jt;
            
             // input to this ppu is the output of the one before
             ppu->setInputTexture((*it)->getOutputTexture(0), 0);
             ppu->setViewport((*it)->getViewport());
             
+            printf("add ppu: %s --- %s --- %s\n", (*it)->getName().c_str(), ppu->getName().c_str(), (*jt)->getName().c_str());
+            printf("%fx%f\n", ppu->getViewport()->width(), ppu->getViewport()->height());
+
             // add the new ppu 
             mFXPipeline.insert(jt, ppu);
             
@@ -253,11 +263,11 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
     }
     
     // we are here, so no such place were found, so add at the end
-    FXPipeline::reverse_iterator it = mFXPipeline.rbegin();
+    FXPipeline::reverse_iterator rit = mFXPipeline.rbegin();
     
     // input to this ppu is the output of the one before
-    ppu->setInputTexture((*it)->getOutputTexture(0), 0);
-    ppu->setViewport((*it)->getViewport());
+    ppu->setInputTexture((*rit)->getOutputTexture(0), 0);
+    ppu->setViewport((*rit)->getViewport());
     
     // add the new ppu 
     mFXPipeline.push_back(ppu);   
@@ -292,10 +302,10 @@ void PostProcess::update(float dTime)
         if ((*it)->isActive())
         {
             #if DEBUG_PPU
-            printf("%s (%d):\n", (*it)->getResourceName().c_str(), (*it)->getIndex());
+            printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
             printf("\t vp: %d %d %d %d\n", (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
             printf("\t alpha: %f (%f %f)\n", (*it)->getCurrentBlendValue(), (*it)->getStartBlendValue(), (*it)->getEndBlendValue());
-            printf("\t time: %f-%f (%f)\n", (*it)->getStartTime(), (*it)->getExpireTime(), Engine::sClock()->getTime());
+            printf("\t time: %f-%f\n", (*it)->getStartTime(), (*it)->getExpireTime());//, Engine::sClock()->getTime());
             
 			printf("\t input: ");
 			for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
@@ -316,7 +326,8 @@ void PostProcess::update(float dTime)
 
             // apply the post processing unit
             (*it)->apply(dTime);
-    
+            onPPUApply(it->get());
+
             // restore the matricies 
             glMatrixMode(GL_TEXTURE); glLoadMatrixf(texmat);
             glMatrixMode(GL_PROJECTION); glLoadMatrixf(projmat);

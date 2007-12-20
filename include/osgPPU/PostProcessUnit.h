@@ -200,10 +200,29 @@ class PostProcessUnit : public osg::Object {
         static GLenum createSourceTextureFormat(GLenum internalFormat);
 
         //! Set new shader 
-        void setShader(osg::Program* sh) { mShader = sh; }
+        void setShader(osg::Program* sh)
+        { 
+            mShader = sh; 
+            assignShader(); 
+        }
 
         //! Set mipmap shader 
         void setMipmapShader(osg::Program* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+
+        //! Shall we use mipmap shader
+        void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
+
+        //! Shall we use mipmaps
+        void setUseMipmaps(bool b) { mbUseMipmaps = b; }
+
+        //! Enable mipmap generation on all output textures
+        void enableMipmapGeneration();
+
+        //! Set user data
+        void setUserData(void* data) { mUserData = data; }
+
+        //! get user data
+        void* getUserData() { return mUserData; }
 
     protected:
         //! We do not want the user to use this method directly
@@ -235,10 +254,10 @@ class PostProcessUnit : public osg::Object {
 
         //! Assign output textures (is handled only in derived classes)
 		virtual void assignOutputTexture() {};
-
-        //! Enable mipmap generation on all output textures
-        void enableMipmapGeneration();
         
+        //! Callback when ppu is applied (can be used to update the ppu)
+        virtual void noticeOnApply() {};
+
         //! Apply base parameters (should be called from derived render method ).
         bool applyBaseRenderParameters();
         
@@ -249,7 +268,7 @@ class PostProcessUnit : public osg::Object {
         void removeShader();
 
         //! Call this method to initilization the base class properties (i.e. in init() before return)
-        virtual void initializeBase();
+        void initializeBase();
         
         //! Call this method after the apply method in derived classes
         void applyBase();
@@ -366,6 +385,9 @@ class PostProcessUnit : public osg::Object {
 
         //! current time
         float mTime;
+
+        //! user data 
+        void* mUserData;
 };
 
 };
