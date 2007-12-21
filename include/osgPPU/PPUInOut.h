@@ -163,20 +163,12 @@ class PostProcessUnitInResampleOut : public PostProcessUnitInOut {
         //! Set resampling factor
         void setFactor(float x, float h);
 
-        //! Set index of input texture which size to be used as reference
-        void setInputReferenceTextureIndex(unsigned int i);
-
     protected:
         float mWidthFactor, mHeightFactor;
-        int mOrigWidth, mOrigHeight;
         bool mDirtyFactor;
-        int mInputTexIndex;
 
         //! Overwritten render method
         void render(int mipmapLevel = 0);
-
-        //! Input textures were changed
-        void noticeChangeInput();
 
 };
 

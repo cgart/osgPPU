@@ -83,8 +83,15 @@ class PostProcess : public osg::Object {
         /**
          * Callback function for derived classes, which if ppu was applied.
          * @param ppu Pointer to the ppu, which was applied 
+         * @return The caller should return true if to apply the ppu or false if not
          **/
-        virtual void onPPUApply(PostProcessUnit* ppu) {}
+        virtual bool onPPUApply(PostProcessUnit* ppu) {return true;}
+
+        /**
+        * Callback function which will be called, if ppu is initialized
+        * @return The caller should return true if to continue to initialize the ppu or false if not
+        **/
+        virtual bool onPPUInit(PostProcessUnit* ppu) {return true;};
 
 };
 

@@ -23,6 +23,7 @@
 #include <osg/BlendColor>
 #include <osg/Material>
 #include <osg/Program>
+#include <osg/Uniform>
 
 namespace osgPPU
 {
@@ -46,6 +47,7 @@ class PostProcessUnit : public osg::Object {
 
         META_Object(osgPPU,PostProcessUnit)
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
+        typedef std::map<int, std::string > UniformMap;
         
         /**
          * Create empty ppu. If you use this ppu in your graph you will
@@ -86,7 +88,26 @@ class PostProcessUnit : public osg::Object {
 
         //! Assign input textures directly by a index to texture map
         void setInputTextureMap(const TextureMap& map) { mInputTex = map; }
-        
+
+        /**
+        * Input textures for a ppu can be used in a shader program. To accomplish
+        * that we have to specify the uniforms which are set to the input texture index value.
+        * This method allows you to specify uniform name in the program to which  
+        * the input texture from the given index is associated.
+        * @param name Unique name of the uniform of the input texture 
+        * @param index Index which will be set as a value to this uniform. The index
+        *        value must be the same as the index of your input texture.
+        **/
+        void setInputTextureUniformName(const std::string& name, int index);
+
+        /**
+        * Instead of adding uniforms you can set the complete list of uniforms.
+        * The list should contain the uniforms for the texture samples with correct values.
+        * If you call afterwards setInputTextureUniformName() the list will be cleared
+        * and setted up again.
+        **/
+        void setUniformList(const osg::StateSet::UniformList& list);
+
         /**
         * Set an output texture.
         * @param outTex Texture used as output of this ppu 
@@ -224,6 +245,19 @@ class PostProcessUnit : public osg::Object {
         //! get user data
         void* getUserData() { return mUserData; }
 
+        /**
+        * Set index of an input texture which size is used as reference 
+        * for the viewport size. The viewport size will be changed according
+        * to the texture size. If you change the input texture the size will
+        * be also changed. Specify -1 if you do not want to have this behaviour.
+        * If -1, then by next change of the input texture the viewport size 
+        * will not be changed.
+        **/
+        void setInputTextureIndexForViewportReference(int index);
+
+        //! get index of the viewport reference texture 
+        int getInputTextureIndexForViewportReference() const { return mInputTexIndexForViewportReference; }
+
     protected:
         //! We do not want the user to use this method directly
         PostProcessUnit();
@@ -284,6 +318,12 @@ class PostProcessUnit : public osg::Object {
         
         //! Output textures
         TextureMap  mOutputTex;
+
+        //! Uniform map which maps uniform to texture index
+        UniformMap mUniformMap;
+
+        //! List of all uniforms
+        osg::StateSet::UniformList mUniforms;
         
         //! Shader which will be used for rendering
         osg::ref_ptr<osg::Program>   mShader;
@@ -345,6 +385,9 @@ class PostProcessUnit : public osg::Object {
 		//! Mark if output textures are dirty
 		bool mbDirtyOutputTextures;
 
+        //! Uniform mapping is dirty 
+        bool mbDirtyUniforms;
+
         //! Current color fo the geometry quad
         osg::ref_ptr<osg::Vec4Array> mScreenQuadColor;
 
@@ -356,6 +399,9 @@ class PostProcessUnit : public osg::Object {
 
         //! Pointer to the parent post process 
         osg::ref_ptr<PostProcess> mParent;
+
+        //! Index of the input texture which size is used as viewport
+        int mInputTexIndexForViewportReference;
 
     private:
         //! Flag to setup if PPU is active or not 

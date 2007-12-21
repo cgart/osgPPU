@@ -160,9 +160,17 @@ PostProcessUnitInOut::~PostProcessUnitInOut()
 //------------------------------------------------------------------------------
 void PostProcessUnitInOut::init()
 {
+    // initialize all parts of the ppu
     initializeBase();
-
     assignShader();
+
+    // assigne input textures
+    assignInputTexture();
+
+    // now force to reset the viewport, since input should be ok now
+    setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
+
+    // setup output textures, which will change the size
     assignOutputTexture();
 }
 
@@ -416,8 +424,7 @@ PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(PostProcess* parent) 
     // setup default values 
     mWidthFactor = 1.0;
     mHeightFactor = 1.0;
-    mDirtyFactor = false;
-    mInputTexIndex = 0;
+    mDirtyFactor = true;
 }
 
 //------------------------------------------------------------------------------
@@ -435,32 +442,6 @@ void PostProcessUnitInResampleOut::setFactor(float w, float h)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInResampleOut::setInputReferenceTextureIndex(unsigned int i)
-{
-    // get input texture 
-    osg::Texture* tex = getInputTexture(i);
-
-    // work only on valid input textures
-    if (tex)
-    {
-        mInputTexIndex = i;
-        
-        // set new original sizes
-        mOrigWidth = tex->getTextureWidth();
-        mOrigHeight = tex->getTextureHeight();
-
-        // mark factor as dirty
-        mDirtyFactor = true;
-    }
-}
-
-//------------------------------------------------------------------------------
-void PostProcessUnitInResampleOut::noticeChangeInput()
-{
-    setInputReferenceTextureIndex(mInputTexIndex);
-}
-
-//------------------------------------------------------------------------------
 void PostProcessUnitInResampleOut::render(int mipmapLevel)
 {
     // if we have to reset the resampling factor
@@ -469,11 +450,16 @@ void PostProcessUnitInResampleOut::render(int mipmapLevel)
         // there must be an viewport
         assert(mViewport.valid());
 
+        // force to reset the input referrence size 
+        setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
+
         // setup new viewport size
-        mViewport->width() = mOrigWidth * mWidthFactor;
-        mViewport->height() = mOrigHeight * mHeightFactor;
+        mViewport->width() *= mWidthFactor;
+        mViewport->height() *= mHeightFactor;
         mDirtyFactor = false;
-        mbDirtyViewport = true;
+
+        // notice that we changed the viewport
+        noticeChangeViewport();
     }
 
     // do rendering as usual

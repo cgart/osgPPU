@@ -37,6 +37,8 @@ void PostProcessUnit::initialize(PostProcess* parent)
 {
     mParent = parent;
     mUserData = NULL;
+    mInputTexIndexForViewportReference = 0;
+    mbDirtyUniforms = false;
 
     // we do steup defaults
     setStartTime(0);
@@ -102,6 +104,8 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mFBO(ppu.mFBO),
     mInputTex(ppu.mInputTex),
     mOutputTex(ppu.mOutputTex),
+    mUniformMap(ppu.mUniformMap),
+    mUniforms(ppu.mUniforms),
     mShader(ppu.mShader),
     mShaderMipmapLevelUniform(ppu.mShaderMipmapLevelUniform),
     mIndex(ppu.mIndex),
@@ -122,10 +126,12 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mbDirtyViewport(ppu.mbDirtyViewport),
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
     mbDirtyOutputTextures(ppu.mbDirtyOutputTextures),
+    mbDirtyUniforms(ppu.mbDirtyUniforms),
     mScreenQuadColor(ppu.mScreenQuadColor),
     mbOfflinePPU(ppu.mbOfflinePPU),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
     mParent(ppu.mParent),
+    mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
     mExpireTime(ppu.mExpireTime),
     mStartTime(ppu.mStartTime),
@@ -157,6 +163,33 @@ void PostProcessUnit::setRenderingPosAndSize(float left, float top, float right,
 }
 
 //------------------------------------------------------------------------------
+void PostProcessUnit::setInputTextureIndexForViewportReference(int index)
+{
+    if (index < 0)
+    {
+        mInputTexIndexForViewportReference = -1;
+        return;
+    }
+
+    // get input texture 
+    osg::Texture* tex = getInputTexture(index);
+
+    // work only on valid input textures
+    if (tex)
+    {
+        mInputTexIndexForViewportReference = index;
+        
+        // change viewport sizes
+        mViewport->width() = tex->getTextureWidth();
+        mViewport->height() = tex->getTextureHeight();
+
+        // just notice that the viewport size is changed
+        //mbDirtyViewport = true;
+        noticeChangeViewport();
+    }
+}
+
+//------------------------------------------------------------------------------
 void PostProcessUnit::setInputTexture(osg::Texture* inTex, int inputIndex)
 {
     if (inTex)
@@ -165,6 +198,22 @@ void PostProcessUnit::setInputTexture(osg::Texture* inTex, int inputIndex)
 		mbDirtyInputTextures = true;
         noticeChangeInput();
 	}
+}
+
+//------------------------------------------------------------------------------
+void PostProcessUnit::setInputTextureUniformName(const std::string& name, int index)
+{
+    mUniformMap[index] = name;
+    mbDirtyUniforms = true;
+}
+
+//------------------------------------------------------------------------------
+void PostProcessUnit::setUniformList(const osg::StateSet::UniformList& list)
+{
+    mUniforms = list;
+    osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
+    ss->setUniformList(mUniforms);
+    mbDirtyUniforms = false;    
 }
 
 //------------------------------------------------------------------------------
@@ -190,7 +239,7 @@ osg::Texture* PostProcessUnit::getOutputTexture(int mrt)
 //--------------------------------------------------------------------------
 void PostProcessUnit::initializeBase()
 {    
-    // check if input PPU name is specified
+    // check if input PPU is specified
     for (int i=0; i < (int)mInputPPU.size(); i++)
     {
         if (mInputPPU[i] != NULL)
@@ -205,6 +254,9 @@ void PostProcessUnit::initializeBase()
     {
         setViewport(mUseInputPPUViewport->getViewport());
     }
+
+    // check if we have input reference size 
+    setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
 
     // check if mipmapping is enabled, then enable mipmapping on output textures
     if (mbUseMipmaps) enableMipmapGeneration();    
@@ -243,20 +295,55 @@ void PostProcessUnit::apply(float dTime)
     // update time value 
     mTime += dTime;
 
+    // if uniforms are dirty
+    if (mbDirtyUniforms)
+    {
+        mUniforms.clear();
+
+        // iterate through all uniforms
+        UniformMap::const_iterator it = mUniformMap.begin();
+        for (; it != mUniformMap.end(); it++)
+        {
+            // add new uniform into the map
+            osg::Uniform* uniform = new osg::Uniform(it->second.c_str(), it->first);
+            mUniforms[it->second] = osg::StateSet::RefUniformPair(uniform, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);         
+        }
+
+        // assign new uniform map to the stateset
+        osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
+        ss->setUniformList(mUniforms);
+
+        // not dirty anymore
+        mbDirtyUniforms = false;
+    }
+
+
     // if viewport is dirty, so resetup it
     if (mbDirtyViewport)
     {
-        // update viewport if such one is specified
-        if (mUseInputPPUViewport != NULL)
+        // do only change the viewport if there is no reference input texture 
+        if (getInputTextureIndexForViewportReference() < 0)
         {
-            setViewport(mUseInputPPUViewport->getViewport());
+            // update viewport if such one is specified
+            if (mUseInputPPUViewport != NULL)
+            {
+                setViewport(mUseInputPPUViewport->getViewport());
+            }
+            noticeChangeViewport();
         }
-        noticeChangeViewport();
         mbDirtyViewport = false;
     }
 
 	// check if input textures are dirty
-	if (mbDirtyInputTextures) assignInputTexture();
+	if (mbDirtyInputTextures)
+    {
+        // reassign them
+        assignInputTexture();
+
+        // if we have to check for size, hence do
+        if (mInputTexIndexForViewportReference >= 0)
+            setInputTextureIndexForViewportReference(mInputTexIndexForViewportReference);
+    }
 
 	// check if we have to recreate output textures
 	if (mbDirtyOutputTextures) assignOutputTexture();
@@ -493,7 +580,10 @@ void PostProcessUnit::assignShader()
     // set shader if it is valid
     if (mShader.valid())
     {
+        // enable shader 
         ss->setAttributeAndModes(mShader.get(), osg::StateAttribute::ON);
+
+        // notice about changes in the shader assignment
         noticeAssignShader();
     }
 }
@@ -514,7 +604,12 @@ void PostProcessUnit::removeShader()
 //--------------------------------------------------------------------------
 void PostProcessUnit::setViewport(osg::Viewport* vp)
 {
-    mViewport = vp;
+    // if viewport is valid and we have to ignore new settings
+    if (mViewport.valid() && getInputTextureIndexForViewportReference() >=0)
+        return;
+
+    // otherwise setup new viewport
+    mViewport = new osg::Viewport(*vp);
     sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
     mbDirtyViewport = true;
 }

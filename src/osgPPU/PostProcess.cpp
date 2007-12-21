@@ -131,8 +131,9 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
 			
 			// setup default settings
 			(*jt)->setViewport(vp);
-			(*jt)->init();
-			
+            if (onPPUInit((*jt).get()))
+    			(*jt)->init();
+	
 			// set now the input texture for the next from the output tex of the current one
 			input = (*jt)->getOutputTexture(0);
 			vp = (*jt)->getViewport();
@@ -145,7 +146,8 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
         // check if we have an online ppu, then do connect it 
         if ((*jt)->getOfflineMode() == true)
         {
-            (*jt)->init();
+            if (onPPUInit((*jt).get()))
+                (*jt)->init();            
             addPPUToPipeline((*jt).get());
         }
     }
@@ -182,7 +184,8 @@ PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::
                 // set input for the next from input of the current
                 (*it)->setInputTextureMap((*jt)->getInputTextureMap());
                 (*it)->setViewport((*jt)->getViewport());
-                (*it)->init();
+                //(*it)->init();
+                //onPPUInit((*it).get());
 
             // this is the last ppu, so just remove it
             }else{
@@ -191,7 +194,8 @@ PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::
 
                 // remove outputs
                 (*it)->setOutputTexture(NULL, 0);
-                (*it)->init();
+                //(*it)->init();
+                //onPPUInit((*it).get());
             }
 
             // remove ppu from pipeline
@@ -252,8 +256,8 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
             ppu->setInputTexture((*it)->getOutputTexture(0), 0);
             ppu->setViewport((*it)->getViewport());
             
-            printf("add ppu: %s --- %s --- %s\n", (*it)->getName().c_str(), ppu->getName().c_str(), (*jt)->getName().c_str());
-            printf("%fx%f\n", ppu->getViewport()->width(), ppu->getViewport()->height());
+            //printf("add ppu: %s --- %s --- %s\n", (*it)->getName().c_str(), ppu->getName().c_str(), (*jt)->getName().c_str());
+            //printf("%fx%f\n", ppu->getViewport()->width(), ppu->getViewport()->height());
 
             // add the new ppu 
             mFXPipeline.insert(jt, ppu);
@@ -325,8 +329,8 @@ void PostProcess::update(float dTime)
 			#endif
 
             // apply the post processing unit
-            (*it)->apply(dTime);
-            onPPUApply(it->get());
+            if (onPPUApply(it->get()))
+                (*it)->apply(dTime);
 
             // restore the matricies 
             glMatrixMode(GL_TEXTURE); glLoadMatrixf(texmat);
