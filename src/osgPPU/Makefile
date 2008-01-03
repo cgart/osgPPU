@@ -15,7 +15,8 @@ include $(TOPDIR)/Make/Makedefs
 #-----------------------------------------------
 CPPFILES= PostProcess.cpp \
 	  PostProcessUnit.cpp \
-	  PPUInOut.cpp
+	  PPUInOut.cpp \
+	  Shader.cpp
 
 # define used vairables
 TARGET = libosgPPU.so

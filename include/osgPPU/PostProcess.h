@@ -66,7 +66,7 @@ class PostProcess : public osg::Object {
         //! Get stateset of this object
         osg::StateSet* getOrCreateStateSet();
 
-    private:
+    protected:
         
         //! Store here global state for all ppus
         osg::ref_ptr<osg::State>    mState;
@@ -79,6 +79,9 @@ class PostProcess : public osg::Object {
         
         //! FX pipeline used for post processing
         FXPipeline  mFXPipeline;
+
+        //! here we store our current time 
+        float mTime;
 
         /**
          * Callback function for derived classes, which if ppu was applied.

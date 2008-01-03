@@ -43,8 +43,8 @@ PostProcessUnitOut::~PostProcessUnitOut()
 void PostProcessUnitOut::init()
 {
     // assign the input texture and shader if they are valid
-    assignInputTexture();
-    assignShader();
+    //assignInputTexture();
+    //assignShader();
     
     initializeBase();
 }
@@ -55,7 +55,19 @@ void PostProcessUnitOut::render(int mipmapLevel)
 {
     // return if we do not get valid state
     if (!sState.getState()) return;
-        
+
+    // setup shader values
+    if (mShader.valid()) 
+    {
+        mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
+        mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
+        mShader->set("g_MipmapLevel", mipmapLevel);
+        mShader->update();
+    }
+
+    // aplly stateset
+    sState.getState()->apply(sScreenQuad->getStateSet());
+
     // apply viewport if such is valid
     if (mViewport.valid()) mViewport->apply(*sState.getState());
         
@@ -160,18 +172,19 @@ PostProcessUnitInOut::~PostProcessUnitInOut()
 //------------------------------------------------------------------------------
 void PostProcessUnitInOut::init()
 {
-    // initialize all parts of the ppu
-    initializeBase();
-    assignShader();
+    //assignShader();
 
     // assigne input textures
-    assignInputTexture();
+    //assignInputTexture();
 
     // now force to reset the viewport, since input should be ok now
-    setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
+    //setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
 
     // setup output textures, which will change the size
     assignOutputTexture();
+
+    // initialize all parts of the ppu
+    initializeBase();
 }
 
 //------------------------------------------------------------------------------
@@ -322,8 +335,9 @@ void PostProcessUnitInOut::render(int mipmapLevel)
         for (int i=0; i < mNumLevels; i++)
         {
             // set mipmap level
-            if (mShaderMipmapLevelUniform.valid()) mShaderMipmapLevelUniform->set(float(i));
-    
+            //if (mShaderMipmapLevelUniform.valid()) mShaderMipmapLevelUniform->set(float(i));
+            //if (mShader.valid()) mShader->set("g_MipmapLevel", i);
+
             // assign new viewport and fbo
             mViewport = mIOMipmapViewport[i];
             mFBO = mIOMipmapFBO[i];
@@ -360,10 +374,19 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
     // can only be done on valid data 
     if (mFBO.valid() && mViewport.valid())
     {
+        if (mipmapLevel < 0) mipmapLevel = 0;
         // update shaders manually, because they are do not updated from scene graph
-        if (mShaderMipmapLevelUniform.valid() && mShaderMipmapLevelUniform->getUpdateCallback())
+        /*if (mShaderMipmapLevelUniform.valid() && mShaderMipmapLevelUniform->getUpdateCallback())
         {
             (*mShaderMipmapLevelUniform->getUpdateCallback())(mShaderMipmapLevelUniform.get(), new osgUtil::UpdateVisitor());
+        }*/
+        // setup shader values
+        if (mShader.valid()) 
+        {
+            mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
+            mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
+            mShader->set("g_MipmapLevel", mipmapLevel);
+            mShader->update();
         }
 
         // aplly stateset
@@ -374,6 +397,8 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
         
         // apply viewport
         mViewport->apply(*sState.getState());
+
+        //printf("render: %s (level=%d, %dx%d)\n", getName().c_str(), mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
 
         // render the content of the input texture into the frame buffer
         if (useBlendMode() && getOfflineMode() == false)

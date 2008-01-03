@@ -25,6 +25,8 @@
 #include <osg/Program>
 #include <osg/Uniform>
 
+#include <osgPPU/Shader.h>
+
 namespace osgPPU
 {
 
@@ -106,7 +108,8 @@ class PostProcessUnit : public osg::Object {
         * If you call afterwards setInputTextureUniformName() the list will be cleared
         * and setted up again.
         **/
-        void setUniformList(const osg::StateSet::UniformList& list);
+        //void setUniformList(const osg::StateSet::UniformList& list);
+        //const osg::StateSet::UniformList& getUniformList() { return mUniforms; }
 
         /**
         * Set an output texture.
@@ -155,6 +158,9 @@ class PostProcessUnit : public osg::Object {
         **/
         virtual void apply(float dTime = 0.0f);
         
+        //! Set the current time directly
+        void setTime(float f) { mTime = f; }
+
         //! Comparison operator for sorting. Compare by index value
         bool operator < (const PostProcessUnit& b)
         {
@@ -221,14 +227,20 @@ class PostProcessUnit : public osg::Object {
         static GLenum createSourceTextureFormat(GLenum internalFormat);
 
         //! Set new shader 
-        void setShader(osg::Program* sh)
+        void setShader(Shader* sh)
+        //void setShader(osg::Program* sh)
         { 
             mShader = sh; 
             assignShader(); 
         }
 
+        //! Get currently bounded shader program
+        Shader* getShader() { return mShader.get(); }
+        //osg::Program* getShader() { return mShader.get(); }
+
         //! Set mipmap shader 
-        void setMipmapShader(osg::Program* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+        void setMipmapShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+        //void setMipmapShader(osg::Program* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
 
         //! Shall we use mipmap shader
         void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
@@ -257,6 +269,9 @@ class PostProcessUnit : public osg::Object {
 
         //! get index of the viewport reference texture 
         int getInputTextureIndexForViewportReference() const { return mInputTexIndexForViewportReference; }
+
+        //! Get stateset of the ppu 
+        osg::StateSet* getStateSet() { return sScreenQuad->getOrCreateStateSet(); }
 
     protected:
         //! We do not want the user to use this method directly
@@ -320,16 +335,16 @@ class PostProcessUnit : public osg::Object {
         TextureMap  mOutputTex;
 
         //! Uniform map which maps uniform to texture index
-        UniformMap mUniformMap;
+        //UniformMap mUniformMap;
 
         //! List of all uniforms
-        osg::StateSet::UniformList mUniforms;
+        //osg::StateSet::UniformList mUniforms;
         
         //! Shader which will be used for rendering
-        osg::ref_ptr<osg::Program>   mShader;
+        osg::ref_ptr<Shader>   mShader;
         
         //! Uniform to set the mipmap level 
-        osg::ref_ptr<osg::Uniform> mShaderMipmapLevelUniform;
+        //osg::ref_ptr<osg::Uniform> mShaderMipmapLevelUniform;
 
         //! Index of this postprocessing unit in the pipeline
         int mIndex;
@@ -365,7 +380,7 @@ class PostProcessUnit : public osg::Object {
         bool mbUseMipmapShader;
         
         //! Pointer to the shader which is used to generate mipmaps
-        osg::ref_ptr<osg::Program> mMipmapShader;
+        osg::ref_ptr<Shader> mMipmapShader;
         
         //! FBOs for different mipmap levels
         std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
@@ -386,7 +401,7 @@ class PostProcessUnit : public osg::Object {
 		bool mbDirtyOutputTextures;
 
         //! Uniform mapping is dirty 
-        bool mbDirtyUniforms;
+        //bool mbDirtyUniforms;
 
         //! Current color fo the geometry quad
         osg::ref_ptr<osg::Vec4Array> mScreenQuadColor;

@@ -15,7 +15,7 @@
 #include <osg/Depth>
 
 
-#define DEBUG_PPU 1
+#define DEBUG_PPU 0
 
 namespace osgPPU
 {
@@ -23,6 +23,8 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 PostProcess::PostProcess() 
 {
+    mTime = 0.0f;
+
     // create default state for post processing effects
     mState = new osg::State();
     mStateSet = new osg::StateSet();
@@ -45,7 +47,8 @@ PostProcess::PostProcess(const PostProcess& pp, const osg::CopyOp& copyop) :
     mState(pp.mState),
     mStateSet(copyop(pp.mStateSet.get())),
     mCamera(pp.mCamera),
-    mFXPipeline(pp.mFXPipeline)
+    mFXPipeline(pp.mFXPipeline),
+    mTime(pp.mTime)
 {
 
 }
@@ -280,6 +283,8 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
 //------------------------------------------------------------------------------
 void PostProcess::update(float dTime)
 {
+    mTime += dTime;
+
     float texmat[16];
     float projmat[16];
     float mvmat[16];
@@ -293,12 +298,14 @@ void PostProcess::update(float dTime)
     glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
     glDepthMask(GL_FALSE);
-    
+
     // apply state set 
     mState->apply(mStateSet.get());
-    
+
     #if DEBUG_PPU    
+    printf("--------------------------------------------------------------------\n");
     printf("Start pipeline\n");
+    printf("--------------------------------------------------------------------\n");
     #endif
     // iterate through postprocessing units
     for (FXPipeline::iterator it = mFXPipeline.begin(); it != mFXPipeline.end(); it ++)
@@ -307,10 +314,29 @@ void PostProcess::update(float dTime)
         {
             #if DEBUG_PPU
             printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
-            printf("\t vp: %d %d %d %d\n", (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
+            printf("\t vp (ref %d): %d %d %d %d\n", (*it)->getInputTextureIndexForViewportReference(), (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
             printf("\t alpha: %f (%f %f)\n", (*it)->getCurrentBlendValue(), (*it)->getStartBlendValue(), (*it)->getEndBlendValue());
-            printf("\t time: %f-%f\n", (*it)->getStartTime(), (*it)->getExpireTime());//, Engine::sClock()->getTime());
-            
+            printf("\t time: %f-%f (%f)\n", (*it)->getStartTime(), (*it)->getExpireTime(), mTime);//, Engine::sClock()->getTime());
+            printf("\t shader: %p\n", (*it)->getShader());
+
+            if ((*it)->getShader() != NULL)
+            {
+                osg::StateSet::UniformList::const_iterator jt = (*it)->getShader()->getUniformList().begin();
+                for (; jt != (*it)->getShader()->getUniformList().end(); jt++)
+                {
+                    float fval = -1.0;
+                    int ival = -1;
+                    if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
+                    {
+                        jt->second.first->get(ival);
+                        printf("\t\t%s : %d (%d)\n", jt->first.c_str(), ival, (jt->second.second & osg::StateAttribute::ON) != 0);
+                    }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
+                        jt->second.first->get(fval);
+                        printf("\t\t%s : %f (%d)\n", jt->first.c_str(), fval, (jt->second.second & osg::StateAttribute::ON) != 0);
+                    }
+                }
+            }
+
 			printf("\t input: ");
 			for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
 			{
@@ -325,12 +351,16 @@ void PostProcess::update(float dTime)
 				printf(" %p ", tex);
                 if (tex) printf("(%dx%d)", tex->getTextureWidth(), tex->getTextureHeight());
             }
+
             printf("\n");
 			#endif
 
             // apply the post processing unit
             if (onPPUApply(it->get()))
-                (*it)->apply(dTime);
+            {
+                (*it)->setTime(mTime);
+                (*it)->apply(0.0f);
+            }
 
             // restore the matricies 
             glMatrixMode(GL_TEXTURE); glLoadMatrixf(texmat);

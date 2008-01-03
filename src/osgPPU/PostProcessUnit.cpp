@@ -38,7 +38,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
     mParent = parent;
     mUserData = NULL;
     mInputTexIndexForViewportReference = 0;
-    mbDirtyUniforms = false;
+    //mbDirtyUniforms = false;
 
     // we do steup defaults
     setStartTime(0);
@@ -94,8 +94,8 @@ void PostProcessUnit::initialize(PostProcess* parent)
         sState.setState(mParent->getState());
     
     // setup uniform variable
-    mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0.0f);
-    sScreenQuad->getOrCreateStateSet()->addUniform(mShaderMipmapLevelUniform.get());
+    //mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0.0f);
+    //sScreenQuad->getOrCreateStateSet()->addUniform(mShaderMipmapLevelUniform.get());
 }
 
 //------------------------------------------------------------------------------
@@ -104,10 +104,10 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mFBO(ppu.mFBO),
     mInputTex(ppu.mInputTex),
     mOutputTex(ppu.mOutputTex),
-    mUniformMap(ppu.mUniformMap),
-    mUniforms(ppu.mUniforms),
+    //mUniformMap(ppu.mUniformMap),
+    //mUniforms(ppu.mUniforms),
     mShader(ppu.mShader),
-    mShaderMipmapLevelUniform(ppu.mShaderMipmapLevelUniform),
+    //mShaderMipmapLevelUniform(ppu.mShaderMipmapLevelUniform),
     mIndex(ppu.mIndex),
     sScreenQuad(ppu.sScreenQuad),
     sProjectionMatrix(ppu.sProjectionMatrix),
@@ -126,7 +126,7 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mbDirtyViewport(ppu.mbDirtyViewport),
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
     mbDirtyOutputTextures(ppu.mbDirtyOutputTextures),
-    mbDirtyUniforms(ppu.mbDirtyUniforms),
+    //mbDirtyUniforms(ppu.mbDirtyUniforms),
     mScreenQuadColor(ppu.mScreenQuadColor),
     mbOfflinePPU(ppu.mbOfflinePPU),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
@@ -203,18 +203,19 @@ void PostProcessUnit::setInputTexture(osg::Texture* inTex, int inputIndex)
 //------------------------------------------------------------------------------
 void PostProcessUnit::setInputTextureUniformName(const std::string& name, int index)
 {
-    mUniformMap[index] = name;
-    mbDirtyUniforms = true;
+    //mUniformMap[index] = name;
+    //mbDirtyUniforms = true;
+    mShader->set(name, index);
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setUniformList(const osg::StateSet::UniformList& list)
+/*void PostProcessUnit::setUniformList(const osg::StateSet::UniformList& list)
 {
     mUniforms = list;
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
     ss->setUniformList(mUniforms);
     mbDirtyUniforms = false;    
-}
+}*/
 
 //------------------------------------------------------------------------------
 void PostProcessUnit::setOutputTexture(osg::Texture* outTex, int mrt)
@@ -247,7 +248,7 @@ void PostProcessUnit::initializeBase()
             setInputTexture(mInputPPU[i]->getOutputTexture(0), i);
         }
     }
-    assignInputTexture();
+    //assignInputTexture();
     
     // update viewport if we have one bound
     if (mUseInputPPUViewport != NULL)
@@ -260,6 +261,10 @@ void PostProcessUnit::initializeBase()
 
     // check if mipmapping is enabled, then enable mipmapping on output textures
     if (mbUseMipmaps) enableMipmapGeneration();    
+
+    // mark all textures as dirty, so that they get reassigned later
+    mbDirtyInputTextures = true;
+    mbDirtyOutputTextures = true;
 }
 
 //--------------------------------------------------------------------------
@@ -296,7 +301,7 @@ void PostProcessUnit::apply(float dTime)
     mTime += dTime;
 
     // if uniforms are dirty
-    if (mbDirtyUniforms)
+    /*if (mbDirtyUniforms)
     {
         mUniforms.clear();
 
@@ -315,7 +320,7 @@ void PostProcessUnit::apply(float dTime)
 
         // not dirty anymore
         mbDirtyUniforms = false;
-    }
+    }*/
 
 
     // if viewport is dirty, so resetup it
@@ -333,6 +338,10 @@ void PostProcessUnit::apply(float dTime)
         }
         mbDirtyViewport = false;
     }
+
+    // in case input or output textures changes
+    //if (mbDirtyInputTextures || mbDirtyOutputTextures)
+    //    assignShader();
 
 	// check if input textures are dirty
 	if (mbDirtyInputTextures)
@@ -424,6 +433,9 @@ bool PostProcessUnit::applyBaseRenderParameters()
         // setup new alpha value 
         mCurrentBlendValue = alpha;
         
+        // if alpha value is 0, then disable this ppu
+        if (mCurrentBlendValue < 0.0001) mbActive = false;
+
     }else
         return false;
     
@@ -478,7 +490,7 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
     osg::ref_ptr<osg::FrameBufferObject> currentFBO = mFBO;
     osg::ref_ptr<osg::Viewport> currentViewport = mViewport;
     osg::ref_ptr<osg::Texture> currentInputTex = mInputTex[0];
-    osg::ref_ptr<osg::Program> currentShader = mShader;
+    osg::ref_ptr<Shader> currentShader = mShader;
 
     // generate fbo for each mipmap level 
     if ((int)mMipmapFBO.size() != numLevels)
@@ -504,22 +516,23 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
         // reallocate mipmap levels
         enableMipmapGeneration();
     }
-        
-    // now we assign input texture as our result texture, so we can generate mipmaps
-    mInputTex[0] = output;
-    assignInputTexture();
 
     // also we assign special shader which will generate mipmaps
     removeShader();
     mShader = mMipmapShader;
     assignShader();
+        
+    // now we assign input texture as our result texture, so we can generate mipmaps
+    mInputTex[0] = output;
+    assignInputTexture();
     
     // now we render the result in a loop to generate mipmaps 
     for (int i=1; i < numLevels; i++)
     {
         // set mipmap level
-        if (mShaderMipmapLevelUniform != NULL) 
-            mShaderMipmapLevelUniform->set(float(i));
+        //if (mShaderMipmapLevelUniform != NULL) 
+        //    mShaderMipmapLevelUniform->set(float(i));
+        if (mShader.valid()) mShader->set("g_MipmapLevel", i);
 
         // assign new viewport 
         mViewport = mMipmapViewport[i];
@@ -581,7 +594,8 @@ void PostProcessUnit::assignShader()
     if (mShader.valid())
     {
         // enable shader 
-        ss->setAttributeAndModes(mShader.get(), osg::StateAttribute::ON);
+        //ss->setAttributeAndModes(mShader.get(), osg::StateAttribute::ON);
+        mShader->enable(ss);
 
         // notice about changes in the shader assignment
         noticeAssignShader();
@@ -596,7 +610,8 @@ void PostProcessUnit::removeShader()
     // set shader if it is valid
     if (mShader.valid())
     {
-        ss->setAttributeAndModes(mShader.get(), osg::StateAttribute::OFF);
+        //ss->setAttributeAndModes(mShader.get(), osg::StateAttribute::OFF);
+        mShader->disable(ss);
         noticeRemoveShader();
     }
 }
