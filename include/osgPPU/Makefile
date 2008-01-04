@@ -11,7 +11,9 @@ include $(TOPDIR)/Make/Makedefs
 INCFILES=   PostProcess.h \
 		PostProcessUnit.h \
 		PPUInOut.h \
-		Shader.h
+		Shader.h \
+		PPUText.h \
+		Text.h
 		
 # define files for installation
 INSTALL_DST_INC = $(INST_LOCATION_INC)/osgPPU

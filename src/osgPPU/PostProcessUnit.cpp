@@ -434,7 +434,7 @@ bool PostProcessUnit::applyBaseRenderParameters()
         mCurrentBlendValue = alpha;
         
         // if alpha value is 0, then disable this ppu
-        if (mCurrentBlendValue < 0.0001) mbActive = false;
+        //if (mCurrentBlendValue < 0.0001) mbActive = false;
 
     }else
         return false;

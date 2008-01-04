@@ -16,13 +16,15 @@ include $(TOPDIR)/Make/Makedefs
 CPPFILES= PostProcess.cpp \
 	  PostProcessUnit.cpp \
 	  PPUInOut.cpp \
-	  Shader.cpp
+	  Shader.cpp \
+	  PPUText.cpp \
+	  Text.cpp
 
 # define used vairables
 TARGET = libosgPPU.so
 INCPATH += -I$(TOPDIR)/include
 CFLAGS += -fPIC
-LIBS += -losg -losgUtil -losgDB
+LIBS += -losg -losgUtil -losgDB -losgText
 
 # define files for installation
 INSTALL_DST_LIB = $(INST_LOCATION_LIB)
