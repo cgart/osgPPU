@@ -83,6 +83,7 @@ void PostProcessUnitOut::render(int mipmapLevel)
         //glDisable(GL_BLEND);
         glColor4f(1,1,1,1);
     }   
+
 }
 
 

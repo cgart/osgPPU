@@ -35,24 +35,8 @@ namespace osgPPU
             
             //! Initialze the default postprocessing unit 
             virtual void init();
-    
-            //! Set x position
-            void setX(float x) { mX = x;}
-            float getX() const { return mX; }
-    
-            //! Set y position
-            void setY(float y) { mY = y;}
-            float getY() const { return mY; }
         
-            //! Set width
-            void setWidth(float width) { mWidth= width;}
-            float getWidth() const { return mWidth; }
-    
-            //! Set height
-            void setHeight(float height) { mHeight= height;}
-            float getHeight() const { return mHeight; }
-    
-            //! Set size
+            //! Set size of the characters (relative to viewport.width / 640)
             void setSize(float size) { mSize= size;}
             float getSize() const { return mSize; }
     
@@ -67,8 +51,8 @@ namespace osgPPU
             //! Text holding our statistics
             osg::ref_ptr<Text> mText;
             
-            //! Sizes of the ppu 
-            float mX, mY, mWidth, mHeight, mSize;
+            //! Size of the font
+            float mSize;
     };
 
 }; // end namespace

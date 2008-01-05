@@ -13,7 +13,7 @@ __info:
 $(TARGET): $(OBJECTS) 
 	@ echo -n 'Create $@ ...'
 	@ $(CC) $(CFLAGS) $(addprefix $(BUILDPATH)/,$(OBJECTS) ) -o $@ $(LDFLAGS)
-	@ mv $@ $(TOPDIR)/lib
+	@ mv $@ $(TOPDIR)/$(MAKE_DST)
 	@ echo 'OK'
 
 	

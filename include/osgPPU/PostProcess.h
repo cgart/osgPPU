@@ -23,6 +23,12 @@ namespace osgPPU
 /**
  * PostProcess should be called as a last step in your rendering pipeline.
  * This class manages the post processing units which do form a graph.
+ * To the PostProcess object a camera is attached. The camera's subgraph
+ * should contain the scene to apply the post processing on. Also
+ * the camera must provide a valid viewport and color attachment (texture).
+ * The update of the post processing is done by using post draw callback
+ * of the attached camera, hence you have to take care before using
+ * your own post draw callbacks on the attached camera.
  **/
 class PostProcess : public osg::Object {
     public: 
@@ -46,7 +52,7 @@ class PostProcess : public osg::Object {
         void setCamera(osg::Camera* camera);
         
         //! Get camera
-        osg::Camera* getCamera() { return mCamera.get(); }
+        inline osg::Camera* getCamera() { return mCamera.get(); }
 
         //! Update the pipeline by retrieving all postprocessing effects and recombine them into the pipeline
         void setPipeline(const FXPipeline& pipeline);
@@ -61,10 +67,26 @@ class PostProcess : public osg::Object {
         void addPPUToPipeline(PostProcessUnit* ppu);
         
         //! Get state of the post processing class 
-        osg::State* getState() { return mState.get(); }
+        inline osg::State* getState() { return mState.get(); }
 
         //! Get stateset of this object
         osg::StateSet* getOrCreateStateSet();
+
+        //! Set current time. Use this to setup reference time
+        inline void setTime(float t) { mTime = t; }
+
+        //! This is the callback class to update the post process
+        struct Callback : osg::Camera::DrawCallback
+        {
+            Callback(PostProcess* parent) : mParent(parent) {}
+            
+            void operator () (const osg::Camera&) const
+            {
+                mParent->update();
+            }
+
+            PostProcess* mParent;
+        };
 
     protected:
         

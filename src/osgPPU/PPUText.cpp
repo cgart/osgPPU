@@ -17,10 +17,6 @@ namespace osgPPU
     {
         // Create text for statistics
         mText = new Text();
-        mX = 0;
-        mY = 0;
-        mWidth = 1;
-        mHeight = 1;
         mSize = 26.0;
     }
     

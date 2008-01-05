@@ -15,7 +15,7 @@
 #include <osg/Depth>
 
 
-#define DEBUG_PPU 0
+#define DEBUG_PPU 1
 
 namespace osgPPU
 {
@@ -67,8 +67,12 @@ void PostProcess::setState(osg::State* state)
 //------------------------------------------------------------------------------
 void PostProcess::setCamera(osg::Camera* camera)
 {
+    // setup camera
     mCamera = camera;
     mStateSet->setAttribute(const_cast<osg::Viewport*>(mCamera->getViewport()), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+
+    // we have to setup a post draw callback to get all things updated
+    //mCamera->setPostDrawCallback(new Callback(this));
 }
 
 //------------------------------------------------------------------------------
@@ -108,7 +112,7 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
     
     // sort the pipeline
     mFXPipeline.sort(less_comparisonFX());
-    
+
     // now combine the output and inputs of the pipeline
     // This is done by set camera texture as input for the first unit 
     // and combining hte output texture of ppu_i with the input texture
@@ -120,18 +124,18 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
     // save pointer to the previous texture
     osg::Texture* input = map[osg::Camera::COLOR_BUFFER]._texture.get();
     osg::Viewport* vp = const_cast<osg::Viewport*>(mCamera->getViewport());
-    
+        
     // iterate through the whole pipeline
     FXPipeline::iterator jt = mFXPipeline.begin();
     for (; jt != mFXPipeline.end(); jt++)
     {
-		// check if we have an online ppu, then do connect it 
+		// check if we have an online ppu, then do connect it
 		if ((*jt)->getOfflineMode() == false)
 		{
 			// set input texture
 			(*jt)->setInputTexture(input, 0);
 			(*jt)->setCamera(mCamera.get());
-			
+
 			// setup default settings
 			(*jt)->setViewport(vp);
             if (onPPUInit((*jt).get()))
@@ -293,18 +297,19 @@ void PostProcess::update(float dTime)
     glGetFloatv(GL_TEXTURE_MATRIX, texmat);
     glGetFloatv(GL_PROJECTION_MATRIX, projmat);
     glGetFloatv(GL_MODELVIEW_MATRIX, mvmat);
-    
+
+    // push some attributes, TODO: should be avoided since we are using StateSet's
     glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_VIEWPORT_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT);
-    glClearColor(0,0,0,0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDepthMask(GL_FALSE);
+    //glClearColor(0,1,0,0);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glDepthMask(GL_FALSE);
 
     // apply state set 
     mState->apply(mStateSet.get());
 
     #if DEBUG_PPU    
     printf("--------------------------------------------------------------------\n");
-    printf("Start pipeline\n");
+    printf("Start pipeline (%f)\n", mTime);
     printf("--------------------------------------------------------------------\n");
     #endif
     // iterate through postprocessing units
@@ -316,7 +321,7 @@ void PostProcess::update(float dTime)
             printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
             printf("\t vp (ref %d): %d %d %d %d\n", (*it)->getInputTextureIndexForViewportReference(), (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
             printf("\t alpha: %f (%f %f)\n", (*it)->getCurrentBlendValue(), (*it)->getStartBlendValue(), (*it)->getEndBlendValue());
-            printf("\t time: %f-%f (%f)\n", (*it)->getStartTime(), (*it)->getExpireTime(), mTime);//, Engine::sClock()->getTime());
+            printf("\t time: %f-%f\n", (*it)->getStartTime(), (*it)->getExpireTime());//, Engine::sClock()->getTime());
             printf("\t shader: %p\n", (*it)->getShader());
 
             if ((*it)->getShader() != NULL)
@@ -376,6 +381,7 @@ void PostProcess::update(float dTime)
     // give me all things back
     glPopAttrib();
 }
+
 
 }; //end namespace
 

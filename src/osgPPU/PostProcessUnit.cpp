@@ -29,6 +29,7 @@ PostProcessUnit::PostProcessUnit()
 PostProcessUnit::PostProcessUnit(PostProcess* parent)
 {
     initialize(parent);
+    setName("__Nameless_PPU_");
 }
 
 
@@ -84,7 +85,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
     mbDirtyViewport = true;
         
     // initialze projection matrix
-    sProjectionMatrix = osg::Matrix::ortho2D(0,1,0,1);
+    sProjectionMatrix = osg::Matrix::ortho(0,1,0,1,0,1);
     
     // setup default modelview matrix
     sModelviewMatrix = osg::Matrixf::identity();

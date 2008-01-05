@@ -1,7 +1,7 @@
 #-----------------------------------------------
 # Global definitions
 #-----------------------------------------------
-VERSION = 0.0.8
+VERSION = 0.1
 
 #-----------------------------------------------
 # Find out the platform
@@ -49,7 +49,7 @@ INST_LOCATION_INC = $(INST_LOCATION)/include
 # Define macros with compiler options
 #-----------------------------------------------
 CC = g++
-CFLAGS = -m32 -pthread -g -Wall -Werror $(INCPATH)
+CFLAGS = -m32 -pthread -g -Wall $(INCPATH)
 LIBS = 
 LDFLAGS = -shared $(LIBPATH) $(LIBS)
 DEPARG = -MM
@@ -64,6 +64,7 @@ MAKE = make
 LN = ln -s
 
 INSTALL_DIRS = $(INST_LOCATION_LIB) $(INST_LOCATION_INC)
+MAKE_DST = lib
 
 #-----------------------------------------------
 # Defining macros for building
