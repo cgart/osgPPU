@@ -39,7 +39,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
     mParent = parent;
     mUserData = NULL;
     mInputTexIndexForViewportReference = 0;
-    //mbDirtyUniforms = false;
+    mbDirtyShader = false;
 
     // we do steup defaults
     setStartTime(0);
@@ -127,7 +127,7 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mbDirtyViewport(ppu.mbDirtyViewport),
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
     mbDirtyOutputTextures(ppu.mbDirtyOutputTextures),
-    //mbDirtyUniforms(ppu.mbDirtyUniforms),
+    mbDirtyShader(ppu.mbDirtyShader),
     mScreenQuadColor(ppu.mScreenQuadColor),
     mbOfflinePPU(ppu.mbOfflinePPU),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
@@ -202,11 +202,13 @@ void PostProcessUnit::setInputTexture(osg::Texture* inTex, int inputIndex)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setInputTextureUniformName(const std::string& name, int index)
+void PostProcessUnit::bindInputTextureToUniform(int index, const std::string& name)
 {
-    //mUniformMap[index] = name;
-    //mbDirtyUniforms = true;
-    mShader->set(name, index);
+    osg::Texture* tex = getInputTexture(index);
+    if (mShader.valid() && tex)
+    {
+        mShader->bind(name, tex, index);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -358,6 +360,9 @@ void PostProcessUnit::apply(float dTime)
 	// check if we have to recreate output textures
 	if (mbDirtyOutputTextures) assignOutputTexture();
 
+    // check if shader is dirty
+    if (mbDirtyShader) assignShader();
+    
     // call on apply method 
     noticeOnApply();
 
@@ -373,7 +378,7 @@ void PostProcessUnit::apply(float dTime)
             // apply current opengl matrix
             glMatrixMode( GL_PROJECTION ); glLoadMatrixf(sProjectionMatrix.ptr());
             glMatrixMode( GL_MODELVIEW );  glLoadMatrixf(sModelviewMatrix.ptr());
-            
+
             // call rendering method if apply was successfull
             if (applyBaseRenderParameters()) render();
     
@@ -600,6 +605,8 @@ void PostProcessUnit::assignShader()
 
         // notice about changes in the shader assignment
         noticeAssignShader();
+
+        mbDirtyShader = false;
     }
 }
 

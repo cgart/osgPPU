@@ -23,6 +23,7 @@
 #include <osgDB/ReadFile>
 
 #include <osgViewer/Viewer>
+#include <osg/ClampColor>
 
 
 // The classic OpenGL teapot... taken form glut-3.7/lib/glut/glut_teapot.c
@@ -233,14 +234,24 @@ class Teapot : public osg::Drawable
 
         // the draw immediate mode method is where the OSG wraps up the drawing of
         // of OpenGL primitives.
-        virtual void drawImplementation(osg::RenderInfo&) const
+        virtual void drawImplementation(osg::RenderInfo& ri) const
         {
             // teapot(..) doens't use vertex arrays at all so we don't need to toggle their state
             // if we did we'd need to something like following call
             // state.disableAllVertexArrays(), see src/osg/Geometry.cpp for the low down.
-        
+
+            /*const unsigned int contextID = ri.getState()->getContextID();
+            const osg::ClampColor::Extensions* extensions = osg::ClampColor::getExtensions(contextID,true);
+            extensions->glClampColor(GL_CLAMP_VERTEX_COLOR, false);
+            */
+            
+            glColor3f(50.0, 30.0, 20.0);
+            
             // just call the OpenGL code.
             teapot(14,GL_FILL);
+
+            glColor3f(1.0, 1.0, 1.0);
+            
         }
         
         
@@ -307,11 +318,14 @@ osg::Geode* createTeapot()
 {
     osg::Geode* geode = new osg::Geode();
 
+    osg::Drawable* teapot = new Teapot();
+    teapot->setUseDisplayList (false);
+    
     // add the teapot to the geode.
-    geode->addDrawable( new Teapot );
-
+    geode->addDrawable( teapot );
+        
     // add a reflection map to the teapot.     
-    /*osg::Image* image = osgDB::readImageFile("Images/reflect.rgb");
+    osg::Image* image = osgDB::readImageFile("Images/reflect.rgb");
     if (image)
     {
         osg::Texture2D* texture = new osg::Texture2D;
@@ -323,9 +337,19 @@ osg::Geode* createTeapot()
         osg::StateSet* stateset = new osg::StateSet;
         stateset->setTextureAttributeAndModes(0,texture,osg::StateAttribute::ON);
         stateset->setTextureAttributeAndModes(0,texgen,osg::StateAttribute::ON);
+
+        // disable color clamping, because we want to work on real hdr values
+        osg::ClampColor* clamp = new osg::ClampColor();
+        clamp->setClampVertexColor(false);
+
+        stateset->setAttribute(clamp, osg::StateAttribute::ON);
+
         
         geode->setStateSet(stateset);
-    }*/
-   
+
+    }
+
+    // add some more objects
+    
     return geode;
 }

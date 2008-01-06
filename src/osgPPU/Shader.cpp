@@ -174,7 +174,7 @@ void  Shader::addShader(osg::Shader* sh)
 void Shader::addParameter(const std::string& name, osg::Uniform* param)
 {
     if (param){
-        mUniforms[name] = osg::StateSet::RefUniformPair(param, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+        mUniforms[name] = osg::StateSet::RefUniformPair(param, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
         onAddUniform(param);
     }
 }
@@ -338,15 +338,15 @@ bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, 
 {   
     // check whenever such an uniform already exists, if not so add it
     if (!isUniformExists(name)) add(name, osg::Uniform::INT, 1);
-    /*else{
+    else{
         // non valid texture, so remove it
-        if (!t.valid()){
+        if (!t)
+        {
             TexUnitDb::iterator it = mTexUnits.find(name);
             if (it != mTexUnits.end()) mTexUnits.erase(it);
-            printf("REMOVE TEXTURE UNIFORM %s\n", name.c_str());
             return false;
         }
-    }*/
+    }
 
     // check if index is valid
     if (index > get(name)->getNumElements() )
@@ -388,7 +388,7 @@ bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, 
     mDirtyBoundings = true;
     
     // just set value if predefined
-    if (unit >= 0) set(0, name, (int)unit);
+    if (unit >= 0) set(index, name, (int)unit);
 
     // inform derived classes  about this 
     onBindTexture(tu);
@@ -438,6 +438,25 @@ void Shader::enable(osg::StateSet* ss, bool updateBindings)
     
     // inform abotu enable state changing
     onEnable(ss);
+
+    #if DEBUG_SH
+    printf("Enable Shader %s\n", getName().c_str());
+    osg::StateSet::UniformList::const_iterator jt = getUniformList().begin();
+    for (; jt != getUniformList().end(); jt++)
+    {
+        float fval = -1.0;
+        int ival = -1;
+        if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
+        {
+            jt->second.first->get(ival);
+            printf("\t%s : %d \n", jt->first.c_str(), ival);//, (jt->second.second & osg::StateAttribute::ON) != 0);
+        }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
+            jt->second.first->get(fval);
+            printf("\t%s : %f \n", jt->first.c_str(), fval);//, (jt->second.second & osg::StateAttribute::ON) != 0);
+        }
+    }
+    printf("\n");
+    #endif
 }
 
 //--------------------------------------------------------------------------

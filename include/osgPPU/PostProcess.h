@@ -88,6 +88,9 @@ class PostProcess : public osg::Object {
             PostProcess* mParent;
         };
 
+        //! Get ppu based on its name
+        PostProcessUnit* getPPU(const std::string& name);
+        
     protected:
         
         //! Store here global state for all ppus

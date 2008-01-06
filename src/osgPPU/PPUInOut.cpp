@@ -392,15 +392,26 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
 
         // aplly stateset
         sState.getState()->apply(sScreenQuad->getStateSet());
-        
+
         // apply framebuffer object, this will bind it, so we can use it
         mFBO->apply(*sState.getState());
         
         // apply viewport
         mViewport->apply(*sState.getState());
 
-        //printf("render: %s (level=%d, %dx%d)\n", getName().c_str(), mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
+        // bind all input texture
+        TextureMap::const_iterator it = mInputTex.begin();
+        for (int unit=0; it != mInputTex.end(); it++, unit++)
+        {
+            sState.getState()->applyTextureMode(unit, it->second->getTextureTarget(), true);
+            sState.getState()->applyTextureAttribute(unit, it->second.get());
+        }
 
+        if (mShader.valid())
+            printf("render: %s - %s (level=%d, %dx%d)\n", getName().c_str(), mShader->getName().c_str(), mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
+        else
+            printf("render: %s (level=%d, %dx%d)\n", getName().c_str(),mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
+        
         // render the content of the input texture into the frame buffer
         if (useBlendMode() && getOfflineMode() == false)
         {

@@ -96,11 +96,11 @@ class PostProcessUnit : public osg::Object {
         * that we have to specify the uniforms which are set to the input texture index value.
         * This method allows you to specify uniform name in the program to which  
         * the input texture from the given index is associated.
-        * @param name Unique name of the uniform of the input texture 
         * @param index Index which will be set as a value to this uniform. The index
         *        value must be the same as the index of your input texture.
+        * @param name Unique name of the uniform of the input texture 
         **/
-        void setInputTextureUniformName(const std::string& name, int index);
+        void bindInputTextureToUniform(int index, const std::string& name);
 
         /**
         * Instead of adding uniforms you can set the complete list of uniforms.
@@ -133,7 +133,11 @@ class PostProcessUnit : public osg::Object {
         inline void addInputPPU(PostProcessUnit* ppu, bool bUsePPUsViewport = false)
         {
             mInputPPU.push_back(ppu);
-            if (bUsePPUsViewport) mUseInputPPUViewport = ppu;
+            if (bUsePPUsViewport)
+            {
+                mUseInputPPUViewport = ppu;
+                setInputTextureIndexForViewportReference(-1);
+            }
         }
 
         //! Return the index of this postprocessing unit
@@ -230,8 +234,9 @@ class PostProcessUnit : public osg::Object {
         void setShader(Shader* sh)
         //void setShader(osg::Program* sh)
         { 
-            mShader = sh; 
-            assignShader(); 
+            mShader = sh;
+            mbDirtyShader = true;
+            //assignShader(); 
         }
 
         //! Get currently bounded shader program
@@ -240,8 +245,8 @@ class PostProcessUnit : public osg::Object {
 
         //! Set mipmap shader 
         void setMipmapShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
-        //void setMipmapShader(osg::Program* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
-
+        inline Shader* getMipmapShader() { return mMipmapShader.get(); }
+        
         //! Shall we use mipmap shader
         void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
 
@@ -400,8 +405,8 @@ class PostProcessUnit : public osg::Object {
 		//! Mark if output textures are dirty
 		bool mbDirtyOutputTextures;
 
-        //! Uniform mapping is dirty 
-        //bool mbDirtyUniforms;
+        //! Dirty Shader
+        bool mbDirtyShader;
 
         //! Current color fo the geometry quad
         osg::ref_ptr<osg::Vec4Array> mScreenQuadColor;

@@ -161,6 +161,18 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
 }
 
 //------------------------------------------------------------------------------
+PostProcessUnit* PostProcess::getPPU(const std::string& ppuName)
+{
+    // iterate through pipeline
+    FXPipeline::iterator jt = mFXPipeline.begin();
+    for (; jt != mFXPipeline.end(); jt++ )
+        if ((*jt)->getName() == ppuName)
+            return (*jt).get();
+
+    return NULL;
+}
+
+//------------------------------------------------------------------------------
 PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::string& ppuName)
 {
     // iterate through pipeline
@@ -309,7 +321,7 @@ void PostProcess::update(float dTime)
 
     #if DEBUG_PPU    
     printf("--------------------------------------------------------------------\n");
-    printf("Start pipeline (%f)\n", mTime);
+    printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
     printf("--------------------------------------------------------------------\n");
     #endif
     // iterate through postprocessing units
@@ -334,10 +346,10 @@ void PostProcess::update(float dTime)
                     if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
                     {
                         jt->second.first->get(ival);
-                        printf("\t\t%s : %d (%d)\n", jt->first.c_str(), ival, (jt->second.second & osg::StateAttribute::ON) != 0);
+                        printf("\t\t%s : %d \n", jt->first.c_str(), ival);//, (jt->second.second & osg::StateAttribute::ON) != 0);
                     }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
                         jt->second.first->get(fval);
-                        printf("\t\t%s : %f (%d)\n", jt->first.c_str(), fval, (jt->second.second & osg::StateAttribute::ON) != 0);
+                        printf("\t\t%s : %f \n", jt->first.c_str(), fval);//, (jt->second.second & osg::StateAttribute::ON) != 0);
                     }
                 }
             }
