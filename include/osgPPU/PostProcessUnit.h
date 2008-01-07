@@ -180,16 +180,6 @@ class PostProcessUnit : public osg::Object {
         //! Get viewport of this unit
         inline osg::Viewport* getViewport() { return mViewport.get(); }
         
-        /**
-         * Set camera which is used for this ppu. The camera attachments might be used as inputs.
-         * However it is up to the definition of the ppu to use camera inputs or not.
-         * @param camera Camera for a potential use of inputs from.
-        **/
-        inline void setCamera(osg::Camera* camera) { mCamera = camera; }
-
-        //! Return camera associated with this ppu.
-        inline osg::Camera* getCamera() { return mCamera.get(); }
-
         inline void setExpireBlendTime(float time) { mExpireTime = time; }
         inline void setBlendDuration(float time) { mExpireTime = mStartTime + time; }
         inline float getExpireBlendTime() const { return mExpireTime; }
@@ -250,12 +240,6 @@ class PostProcessUnit : public osg::Object {
 
         //! Get internal format which is used by the output textures
         inline GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
-
-        /**
-         * Utility function to derive source texture format from the internal format.
-         * For example GL_RGB16F_ARB corresponds to GL_FLOAT
-        **/
-        static GLenum createSourceTextureFormat(GLenum internalFormat);
 
         /**
          * Assign a shader used when computing the output data of the ppu.
@@ -365,6 +349,16 @@ class PostProcessUnit : public osg::Object {
         
         //! Enable mipmap generation on all output textures
         void enableMipmapGeneration();
+
+        /**
+         * Set camera which is used for this ppu. The camera attachments might be used as inputs.
+         * However it is up to the definition of the ppu to use camera inputs or not.
+         * @param camera Camera for a potential use of inputs from.
+        **/
+        inline void setCamera(osg::Camera* camera) { mCamera = camera; }
+
+        //! Return camera associated with this ppu.
+        inline osg::Camera* getCamera() { return mCamera.get(); }
 
         //! Each ppfx use its own framebuffer object where results are written
         osg::ref_ptr<osg::FrameBufferObject>    mFBO;

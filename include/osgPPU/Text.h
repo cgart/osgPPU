@@ -57,10 +57,10 @@ namespace osgPPU
             void setPosition(float x, float y);
     
             /**
-            * Specify the text which sould be shown
+            * Specify the text which sould be shown.
             **/
-            void setText(const std::string& text);
-            const std::string& getText() const { return mString; }
+            void setString(const std::string& text);
+            inline const std::string& getString() const { return mString; }
     
             /**
             * Specify the file name containing the true type font to load
@@ -69,12 +69,15 @@ namespace osgPPU
             bool setFont(const std::string& fontFile);
     
             /**
-            * Set text color
+            * Set text color.
             **/
-            void setColor (float r, float g, float b, float a) {setColor(osg::Vec4(r,g,b,a));}
+            inline void setColor (float r, float g, float b, float a) {setColor(osg::Vec4(r,g,b,a));}
             void setColor (const osg::Vec4& color);
     
-            const osg::Vec4& getColor() const { return mColor; }
+            /**
+             * Get currently used text
+            **/            
+            inline const osg::Vec4& getColor() const { return mColor; }
     
             /**
             * Set the size of the text
@@ -82,7 +85,7 @@ namespace osgPPU
             void setSize(float s, float aspectRatio = 1.0);
     
             /**
-            * Get the node of this text. SO it can be added to the scene graph
+            * Get the node of this text. So that it can be added to the scene graph.
             **/
             osg::Node* getNode() {return mGroup.get();}
     

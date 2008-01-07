@@ -102,7 +102,7 @@ namespace osgPPU
     }
     
     //-------------------------------------------------------------------------
-    void Text::setText(const std::string& str)
+    void Text::setString(const std::string& str)
     {
         mString = str;
         mText->setText(str);

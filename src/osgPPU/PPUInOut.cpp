@@ -218,7 +218,7 @@ void PostProcessUnitInOut::assignOutputTexture()
                 mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
                 mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);               
                 mTex->setInternalFormat(getOutputInternalFormat());
-                mTex->setSourceFormat(PostProcessUnit::createSourceTextureFormat(getOutputInternalFormat()));
+                mTex->setSourceFormat(PostProcess::createSourceTextureFormat(getOutputInternalFormat()));
 
                 //mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_BORDER);
                 //mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_BORDER);

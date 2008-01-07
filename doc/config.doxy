@@ -106,7 +106,7 @@ HTML_OUTPUT            = doxy
 HTML_FILE_EXTENSION    = .html
 HTML_HEADER            = 
 #TracHeader.html
-HTML_FOOTER            = 
+HTML_FOOTER            = footer.html
 #TracFooter.html
 HTML_STYLESHEET        = 
 HTML_ALIGN_MEMBERS     = YES

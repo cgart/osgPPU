@@ -139,6 +139,12 @@ class PostProcess : public osg::Object {
         **/
         void initPostDrawCallback(osg::Camera* camera);
         
+        /**
+         * Utility function to derive source texture format from the internal format.
+         * For example GL_RGB16F_ARB corresponds to GL_FLOAT
+        **/
+        static GLenum createSourceTextureFormat(GLenum internalFormat);
+
     protected:
 
         friend class PostProcessUnit;

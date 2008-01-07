@@ -7,7 +7,7 @@
 
 //--------------------------------------------------------------------------
 // Event handler to react on user input
-// You can switch with the keys F1, F2, F3, F4 to specified states of the HDR pipeline
+// You can switch with some keys to specified states of the HDR pipeline
 //--------------------------------------------------------------------------
 class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
@@ -31,19 +31,19 @@ public:
                     if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("CameraBypass")->getOutputTexture(0), 0);
-                        textppu->getText()->setText("Original Input");
+                        textppu->getText()->setString("Original Input");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("ComputeLuminance")->getOutputTexture(0), 0);
-                        textppu->getText()->setText("Per Pixel Luminance");
+                        textppu->getText()->setString("Per Pixel Luminance");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F3)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("Brightpass")->getOutputTexture(0), 0);
-                        textppu->getText()->setText("Brightpass");
+                        textppu->getText()->setString("Brightpass");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F4)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("BlurVertical")->getOutputTexture(0), 0);
-                        textppu->getText()->setText("Gauss Blur on Brightpass");
+                        textppu->getText()->setString("Gauss Blur on Brightpass");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F5)
                     {
                         ppu->setStartBlendValue(1.0);
@@ -76,13 +76,13 @@ class Viewer : public osgViewer::Viewer
     private:
         osg::ref_ptr<osgPPU::PostProcess> mPostProcess;
         osg::ref_ptr<osg::Camera> mCamera;
-        HDRRendering mHDRSetup;
         osg::ref_ptr<osg::State> mState;
+        osg::ref_ptr<osg::Node> mSceneData;
 
         bool mbInitialized;
-        
         float mOldTime;
-        osg::ref_ptr<osg::Node> mSceneData;
+        HDRRendering mHDRSetup;
+
                 
     public:
         Viewer(osg::ArgumentParser& args) : osgViewer::Viewer(args)
@@ -90,7 +90,6 @@ class Viewer : public osgViewer::Viewer
             mbInitialized = false;
             mOldTime = 0.0f;
             mCamera = new osg::Camera();
-            //osgViewer::Viewer::setSceneData(createTeapot());
         }
     
         //! Create camera resulting texture
@@ -164,6 +163,7 @@ class Viewer : public osgViewer::Viewer
         //! Setup osgppu for rendering
         void initialize()
         {
+            // if already initialized then just do nothing
             if (mbInitialized == false)
                 mbInitialized = true;
             else
@@ -178,10 +178,11 @@ class Viewer : public osgViewer::Viewer
             mPostProcess->setName("PostProcess");
             
             // disable color clamping, because we want to work on real hdr values
-            osg::ClampColor* clamp = new osg::ClampColor();
+            /*osg::ClampColor* clamp = new osg::ClampColor();
             clamp->setClampVertexColor(false);
             clamp->setClampFragmentColor(false);
             mPostProcess->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON);
+            */
 
             // we want to simulate hdr rendering, hence setup the pipeline
             // for the hdr rendering
@@ -197,9 +198,9 @@ class Viewer : public osgViewer::Viewer
             pipeline.push_back(bypass);
 
 
-            // next we setup a ppu which do render the conten of the whole pipeline
+            // next we setup a ppu which do render the content of the result
             // on the screenbuffer. This ppu MUST be as one of the last, otherwise you
-            // will not able to get results from the ppu pipeline
+            // will not be able to get results from the ppu pipeline
             osg::ref_ptr<osgPPU::PostProcessUnit> ppuout = new osgPPU::PostProcessUnitOut(mPostProcess.get());
             ppuout->setIndex(1000);
             ppuout->setName("PipelineResult");
@@ -211,8 +212,8 @@ class Viewer : public osgViewer::Viewer
             pputext->setIndex(999);
             pputext->setName("TextPPU");
             pputext->setSize(26);
-            pputext->getText()->setText("osgPPU rocks!");
-            pputext->getText()->setPosition(0.005, 0.4);
+            pputext->getText()->setString("osgPPU rocks!");
+            pputext->getText()->setPosition(0.0, 0.4);
             pipeline.push_back(osg::ref_ptr<osgPPU::PostProcessUnit>(pputext));
 
             // finally we add the list of the ppus to the pipeline
@@ -221,11 +222,13 @@ class Viewer : public osgViewer::Viewer
             // This ppu just render a texture over the screen.
             // We do this after we have setted up the pipeline, so that we can
             // seamless include this into the pipeline.
+            // This ppu could be setted up before, but in this way we just 
+            // demonstrate how to include ppus after pipeline setup
             {
                 osg::ref_ptr<osgPPU::PostProcessUnit> bgppu = new osgPPU::PostProcessUnitInOut(mPostProcess.get());
                 bgppu->setName("PictureInPicturePPU");
 
-                // set index two 1, so that this ppu does get updated right after the bypass
+                // set index two 200, so that this ppu does get updated after the hdr pipeline
                 bgppu->setIndex(200);
 
                 // now we have to include this ppu into the pipeline
@@ -235,17 +238,14 @@ class Viewer : public osgViewer::Viewer
                 // according to the pipeline. Hence we have to change this how we
                 // we want to have it
                 
-                // input texture is an image
-                //bgppu->setInputTexture(new osg::Texture2D(osgDB::readImageFile("Images/Sky.jpg")), 0);
+                // input texture is output of the camera bypass, so that we see original scene view
                 bgppu->setInputTexture(bypass->getOutputTexture(0), 0);
 
-                // output texture will be the same as the output of the hdr ppu
+                // output texture will be the same as the output of the text ppu,
+                // which is the same as the output of the hdr ppu.
                 bgppu->setOutputTexture(pputext->getOutputTexture(0), 0);
 
-                // we also have to change the viewport to the viewport of the pipeline
-                bgppu->setViewport(bypass->getViewport());
-
-                // we do not want to use any ppu for viewport reference
+                // we do not want to use any ppu for viewport reference because we setted up our own viewport
                 bgppu->setInputTextureIndexForViewportReference(-1);
 
                 // we also disable viewport reference on the textppu, so that
@@ -262,6 +262,7 @@ class Viewer : public osgViewer::Viewer
                 vp->width() = bypass->getViewport()->width() * 0.4;
                 vp->height() = bypass->getViewport()->height() * 0.4;
                 bgppu->setViewport(vp);
+
             }
 
             // add a text ppu after the pipeline is setted up
@@ -270,7 +271,7 @@ class Viewer : public osgViewer::Viewer
                 fpstext->setIndex(999);
                 fpstext->setName("FPSTextPPU");
                 fpstext->setSize(12);
-                fpstext->getText()->setText("FPS: ");
+                fpstext->getText()->setString("FPS: ");
                 fpstext->getText()->setPosition(0.0, 0.95);
 
                 mPostProcess->addPPUToPipeline(fpstext);
@@ -329,7 +330,7 @@ class Viewer : public osgViewer::Viewer
                 {
                     char txt[64];
                     sprintf(txt, "FPS:%4.2f", 1.0 / frameTime);
-                    ppu->getText()->setText(txt);
+                    ppu->getText()->setString(txt);
                 }
             }
             
@@ -341,27 +342,32 @@ class Viewer : public osgViewer::Viewer
 //--------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+    // parse arguments
     osg::ArgumentParser arguments(&argc,argv);
 
     // construct the viewer.
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
+    // just make it singlethreaded since I get some problems if not in this mode
+    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+
     // setup scene
     osg::Group* node = new osg::Group();
     osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
-    if (!loadedModel) loadedModel = createTeapot();//osgDB::readNodeFile("Data/cessnafire.osg");
+    if (!loadedModel) loadedModel = createTeapot();
     if (!loadedModel) return 1;
     node->addChild(loadedModel);
     
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
     clamp->setClampVertexColor(false);
-    node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON);
+    clamp->setClampFragmentColor(false);
 
+    // make it protected and override, so that it is done for the whole rendering pipeline
+    node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
 
     // add model to viewer.
     viewer->setSceneData( node );
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     
     // give some info in the console
     printf("osgppu [filename]\n");
