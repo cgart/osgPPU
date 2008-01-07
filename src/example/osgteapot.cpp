@@ -24,7 +24,7 @@
 
 #include <osgViewer/Viewer>
 #include <osg/ClampColor>
-
+#include <osg/Material>
 
 // The classic OpenGL teapot... taken form glut-3.7/lib/glut/glut_teapot.c
 
@@ -245,12 +245,12 @@ class Teapot : public osg::Drawable
             extensions->glClampColor(GL_CLAMP_VERTEX_COLOR, false);
             */
             
-            glColor3f(15.0, 9.0, 6.0);
+            //glColor3f(15.0, 9.0, 6.0);
             
             // just call the OpenGL code.
             teapot(14,GL_FILL);
 
-            glColor3f(1.0, 1.0, 1.0);
+            //glColor3f(1.0, 1.0, 1.0);
             
         }
         
@@ -334,19 +334,21 @@ osg::Geode* createTeapot()
         osg::TexGen* texgen = new osg::TexGen;
         texgen->setMode(osg::TexGen::SPHERE_MAP);
 
-        osg::StateSet* stateset = new osg::StateSet;
+        osg::StateSet* stateset = geode->getOrCreateStateSet();
         stateset->setTextureAttributeAndModes(0,texture,osg::StateAttribute::ON);
         stateset->setTextureAttributeAndModes(0,texgen,osg::StateAttribute::ON);
 
         // disable color clamping, because we want to work on real hdr values
         osg::ClampColor* clamp = new osg::ClampColor();
         clamp->setClampVertexColor(false);
-
         stateset->setAttribute(clamp, osg::StateAttribute::ON);
 
+        // setup hdr color for the 
+        osg::Material* mat = new osg::Material();
+        mat->setColorMode(osg::Material::DIFFUSE);
+        mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(15.0, 9.0, 6.0, 1.0));
         
-        geode->setStateSet(stateset);
-
+        stateset->setAttribute(mat, osg::StateAttribute::ON);
     }
 
     // add some more objects
