@@ -20,6 +20,7 @@ TARGET = osgppu
 INCPATH += -I$(TOPDIR)/include
 LIBS += -losgPPU -losgViewer
 LDFLAGS = $(LIBPATH) $(LIBS)
+#CFLAGS= -g -Wall -m32 $(INCPATH)
 
 # directory where to put result in
 MAKE_DST = bin

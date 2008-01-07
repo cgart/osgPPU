@@ -349,7 +349,7 @@ void PostProcess::update(float dTime)
             printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
             printf("\t vp (ref %d): %d %d %d %d\n", (*it)->getInputTextureIndexForViewportReference(), (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
             printf("\t alpha: %f (%f %f)\n", (*it)->getCurrentBlendValue(), (*it)->getStartBlendValue(), (*it)->getEndBlendValue());
-            printf("\t time: %f-%f\n", (*it)->getStartTime(), (*it)->getExpireTime());//, Engine::sClock()->getTime());
+            printf("\t time: %f-%f\n", (*it)->getStartBlendTime(), (*it)->getEndBlendTime());//, Engine::sClock()->getTime());
             printf("\t shader: %p\n", (*it)->getShader());
 
             if ((*it)->getShader() != NULL)
@@ -374,9 +374,15 @@ void PostProcess::update(float dTime)
 			for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
 			{
                 osg::Texture* tex = (*it)->getInputTexture(i);
-                printf(" %p ", tex);
-                if (tex) printf("(%dx%d)", tex->getTextureWidth(), tex->getTextureHeight());
+                printf(" %p", tex);
+                if (tex)
+                {
+                    if ((*it)->getStateSet()->getTextureAttribute(i, osg::StateAttribute::TEXTURE))
+                        printf("-attr");
+                    printf(" (%dx%d), ", tex->getTextureWidth(), tex->getTextureHeight());
+                }
             }
+
 			printf("\n\t output: ");
 			for (unsigned int i=0; i < (*it)->getOutputTextureMap().size(); i++)
 			{

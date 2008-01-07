@@ -65,8 +65,6 @@ void PostProcessUnitOut::render(int mipmapLevel)
     // setup shader values
     if (mShader.valid()) 
     {
-        //mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
-        //mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
         mShader->set("g_ViewportWidth", (float)mViewport->width());
         mShader->set("g_ViewportHeight", (float)mViewport->height());
         mShader->set("g_MipmapLevel", mipmapLevel);
@@ -78,17 +76,17 @@ void PostProcessUnitOut::render(int mipmapLevel)
 
     // apply viewport if such is valid
     if (mViewport.valid()) mViewport->apply(*sState.getState());
-        
+
     // render the content of the input texture into the frame buffer
     if (useBlendMode())
     {
-        //glEnable(GL_BLEND);
+        glEnable(GL_BLEND);
         glColor4f(1,1,1, getCurrentBlendValue());
     }
     sScreenQuad->draw(sState);
     if (useBlendMode())
     {
-        //glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
         glColor4f(1,1,1,1);
     }   
 
@@ -243,10 +241,10 @@ void PostProcessUnitInOut::assignOutputTexture()
             mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
 
             // setup viewport
-            osg::Viewport* vp = new osg::Viewport(*mViewport);
-            setViewport(vp);
+            //osg::Viewport* vp = new osg::Viewport(*mViewport);
+            //setViewport(*mViewport);
         }
-        sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+        //sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
         // clean mipmap data for output
         mMipmapFBO.clear();
@@ -312,8 +310,6 @@ void PostProcessUnitInOut::checkIOMipmappedData()
     
                 // set fbo of current level with to this output         
                 fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT + mrt, osg::FrameBufferAttachment(output.get(), level));
-
-                //printf("fbo %s: %d (%d) = %p, fmt=0x%x\n", getResourceName().c_str(), mrt, level, output.get(), output->getInternalFormat());
             }
 
             // store fbo
@@ -343,15 +339,9 @@ void PostProcessUnitInOut::render(int mipmapLevel)
         // otherwise we want to bypass mipmaps, thus do following for each mipmap level
         for (int i=0; i < mNumLevels; i++)
         {
-            // set mipmap level
-            //if (mShaderMipmapLevelUniform.valid()) mShaderMipmapLevelUniform->set(float(i));
-            //if (mShader.valid()) mShader->set("g_MipmapLevel", i);
-
             // assign new viewport and fbo
             mViewport = mIOMipmapViewport[i];
             mFBO = mIOMipmapFBO[i];
-    
-            //printf("io-mipmap %s %d, (%dx%d) \n", getName().c_str(), i, (int)mViewport->width(), (int)mViewport->height());
     
             // render the content
             doRender(i);
@@ -372,6 +362,7 @@ void PostProcessUnitInOut::setMipmappedIO(bool b)
 {
     mbDirtyOutputTextures = b;
     mbMipmappedIO = b;
+    if (b) enableMipmapGeneration();
 }
 
 //------------------------------------------------------------------------------
@@ -385,15 +376,10 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
     {
         if (mipmapLevel < 0) mipmapLevel = 0;
         // update shaders manually, because they are do not updated from scene graph
-        /*if (mShaderMipmapLevelUniform.valid() && mShaderMipmapLevelUniform->getUpdateCallback())
-        {
-            (*mShaderMipmapLevelUniform->getUpdateCallback())(mShaderMipmapLevelUniform.get(), new osgUtil::UpdateVisitor());
-        }*/
-        // setup shader values
         if (mShader.valid()) 
         {
-            mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
-            mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
+            mShader->set("g_ViewportWidth", (float)mViewport->width());
+            mShader->set("g_ViewportHeight", (float)mViewport->height());
             mShader->set("g_MipmapLevel", mipmapLevel);
             mShader->update();
         }
@@ -407,21 +393,6 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
         // apply viewport
         mViewport->apply(*sState.getState());
 
-        // bind all input texture
-        TextureMap::const_iterator it = mInputTex.begin();
-        for (int unit=0; it != mInputTex.end(); it++, unit++)
-        {
-            sState.getState()->applyTextureMode(unit, it->second->getTextureTarget(), true);
-            sState.getState()->applyTextureAttribute(unit, it->second.get());
-        }
-
-        #if 0
-        if (mShader.valid())
-            printf("render: %s - %s (level=%d, %dx%d)\n", getName().c_str(), mShader->getName().c_str(), mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
-        else
-            printf("render: %s (level=%d, %dx%d)\n", getName().c_str(),mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
-        #endif
-        
         // render the content of the input texture into the frame buffer
         if (useBlendMode() && getOfflineMode() == false)
         {

@@ -180,9 +180,9 @@ class PostProcessUnit : public osg::Object {
         //! Get viewport of this unit
         inline osg::Viewport* getViewport() { return mViewport.get(); }
         
-        inline void setExpireBlendTime(float time) { mExpireTime = time; }
+        inline void setEndBlendTime(float time) { mExpireTime = time; }
         inline void setBlendDuration(float time) { mExpireTime = mStartTime + time; }
-        inline float getExpireBlendTime() const { return mExpireTime; }
+        inline float getEndBlendTime() const { return mExpireTime; }
 
         inline void setStartBlendTime(float time) { mStartTime = time; }
         inline void setStartBlendTimeToCurrent() { mStartTime = mTime; }
@@ -270,7 +270,7 @@ class PostProcessUnit : public osg::Object {
         inline void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
 
         //! Shall we use mipmaps at all 
-        inline void setUseMipmaps(bool b) { mbUseMipmaps = b; }
+        inline void setUseMipmaps(bool b) { mbUseMipmaps = b; if (b) enableMipmapGeneration(); }
 
         //! Set user data
         inline void setUserData(void* data) { mUserData = data; }
@@ -428,9 +428,6 @@ class PostProcessUnit : public osg::Object {
 
         //! Dirty Shader
         bool mbDirtyShader;
-
-        //! Current color fo the geometry quad
-        osg::ref_ptr<osg::Vec4Array> mScreenQuadColor;
 
 		//! This ppu is marked as not to be included into the rendering graph 
 		bool mbOfflinePPU;

@@ -68,11 +68,17 @@ class HDRRendering
                     osgPPU::Shader* lumShader = new osgPPU::Shader();
                     lumShader->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/luminance_fp.glsl"));
                     lumShader->setName("LuminanceShader");
-                    
+                    lumShader->add("texUnit0", osg::Uniform::SAMPLER_2D);
+                    lumShader->set("texUnit0", 0);
+
                     // create shader which do compute the scene's luminance in mipmap levels
                     osgPPU::Shader* lumShaderMipmap = new osgPPU::Shader();
                     lumShaderMipmap->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/luminance_mipmap_fp.glsl"));
                     lumShaderMipmap->setName("LuminanceShaderMipmap");
+
+                    // setup input texture
+                    lumShader->add("texUnit0", osg::Uniform::SAMPLER_2D);
+                    lumShader->set("texUnit0", 0);
                     
                     // setup shader parameters
                     // samplers are bounded automagically
@@ -179,6 +185,9 @@ class HDRRendering
                     gaussx->set("sigma", mHDRBlurSigma);
                     gaussx->set("radius", mHDRBlurRadius);
 
+                    gaussx->add("texUnit0", osg::Uniform::SAMPLER_2D);
+                    gaussx->set("texUnit0", 0);
+
                     blurx->setShader(gaussx);
                     
                     // setup vertical blur shaders
@@ -192,6 +201,9 @@ class HDRRendering
 
                     gaussy->set("sigma", mHDRBlurSigma);
                     gaussy->set("radius", mHDRBlurRadius);
+
+                    gaussy->add("texUnit0", osg::Uniform::SAMPLER_2D);
+                    gaussy->set("texUnit0", 0);
 
                     blury->setShader(gaussy);                    
                 }

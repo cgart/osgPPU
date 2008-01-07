@@ -182,6 +182,7 @@ void Shader::addParameter(const std::string& name, osg::Uniform* param)
     if (param){
         mUniforms[name] = osg::StateSet::RefUniformPair(param, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
         onAddUniform(param);
+        //printf("%s add uniform %s\n", getName().c_str(), param->getName().c_str());
     }
 }
 
@@ -344,15 +345,15 @@ bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, 
 {   
     // check whenever such an uniform already exists, if not so add it
     if (!isUniformExists(name)) add(name, osg::Uniform::INT, 1);
-    else{
+    /*else{
         // non valid texture, so remove it
-        if (!t)
+        if (t == NULL)
         {
             TexUnitDb::iterator it = mTexUnits.find(name);
             if (it != mTexUnits.end()) mTexUnits.erase(it);
             return false;
         }
-    }
+    }*/
 
     // check if index is valid
     if (index > get(name)->getNumElements() )
@@ -392,9 +393,14 @@ bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, 
     
     // texture boundings are dirty now    
     mDirtyBoundings = true;
+
+    //printf("%s bind %s-%d\n", getName().c_str(), name.c_str(), unit);
     
     // just set value if predefined
-    if (unit >= 0) set(index, name, (int)unit);
+    if (unit >= 0)
+    {
+        set(index, name, (int)unit);
+    }
 
     // inform derived classes  about this 
     onBindTexture(tu);
@@ -536,10 +542,10 @@ void Shader::resetBindings(osg::StateSet* ss)
     }
     
     // remove all previous texture attributes
-    for (int i=0; i < mMaxTextureUnits; i++)
-    {
-        ss->removeTextureAttribute(i, osg::StateAttribute::TEXTURE);
-    }
+    //for (int i=0; i < mMaxTextureUnits; i++)
+    //{
+    //    ss->removeTextureAttribute(i, osg::StateAttribute::TEXTURE);
+    //}
     
     #if DEBUG_SH    
     printf("%s-%s set:\n", getName().c_str(), mProgram->getName().c_str());

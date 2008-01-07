@@ -49,7 +49,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
 
     // we do steup defaults
     setStartBlendTime(0);
-    setExpireBlendTime(0);
+    setEndBlendTime(0);
     setStartBlendValue(1);
     setEndBlendValue(1);
     setActive(true);
@@ -76,9 +76,9 @@ void PostProcessUnit::initialize(PostProcess* parent)
             0.0f,0.0f, 1.0f,1.0f);
             
     // remove colors form geometry
-    mScreenQuadColor = new osg::Vec4Array(1);
-    (*mScreenQuadColor)[0].set(1.0f,1.0f,1.0,1.0f);
-    sScreenQuad->setColorArray(NULL);
+    osg::Vec4Array* screenQuadColor = new osg::Vec4Array(1);
+    (*screenQuadColor)[0].set(1.0f,1.0f,1.0,1.0f);
+    sScreenQuad->setColorArray(screenQuadColor);
     sScreenQuad->setColorBinding(osg::Geometry::BIND_OFF);
 
     // assign empty state set
@@ -97,7 +97,8 @@ void PostProcessUnit::initialize(PostProcess* parent)
     sModelviewMatrix = osg::Matrixf::identity();
     
     // setup per default local state equal to the parent state 
-    sState.setState(mParent->getState());
+    if (mParent.valid())
+        sState.setState(mParent->getState());
 
     // setup uniform variable
     //mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0.0f);
@@ -133,7 +134,6 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
     mbDirtyOutputTextures(ppu.mbDirtyOutputTextures),
     mbDirtyShader(ppu.mbDirtyShader),
-    mScreenQuadColor(ppu.mScreenQuadColor),
     mbOfflinePPU(ppu.mbOfflinePPU),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
     mParent(ppu.mParent),
@@ -344,7 +344,7 @@ void PostProcessUnit::apply(float dTime)
     //    assignShader();
 
 	// check if input textures are dirty
-	if (mbDirtyInputTextures)
+	if (mbDirtyInputTextures || mbDirtyShader)
     {
         // reassign them
         assignInputTexture();
@@ -423,15 +423,15 @@ bool PostProcessUnit::applyBaseRenderParameters()
         float factor = 1.0;
         
         // if we get 0 as expire time, so the factor is the start value 
-        if (getExpireBlendTime() < 0.0001)
+        if (getEndBlendTime() < 0.0001)
             factor = 0;
         else
-            factor = (mTime - getStartBlendTime()) / (getExpireBlendTime() - getStartBlendTime());
+            factor = (mTime - getStartBlendTime()) / (getEndBlendTime() - getStartBlendTime());
         
         // compute blend value for the ppu
         float alpha = getStartBlendValue()*(1-factor) + factor*getEndBlendValue();
-        if (alpha > 1.0 ) { alpha = 1.0; setExpireBlendTime(0); setStartBlendValue(1.0); }
-        if (alpha < 0.0 ) { alpha = 0.0; setExpireBlendTime(0); setStartBlendValue(0.0); }
+        if (alpha > 1.0 ) { alpha = 1.0; setEndBlendTime(0); setStartBlendValue(1.0); }
+        if (alpha < 0.0 ) { alpha = 0.0; setEndBlendTime(0); setStartBlendValue(0.0); }
         
         // setup new alpha value 
         mCurrentBlendValue = alpha;
@@ -625,7 +625,8 @@ void PostProcessUnit::removeShader()
 void PostProcessUnit::setViewport(osg::Viewport* vp)
 {
     // if viewport is valid and we have to ignore new settings
-    if (mViewport.valid() && getInputTextureIndexForViewportReference() >=0)
+    if ((mViewport.valid() && getInputTextureIndexForViewportReference() >=0)
+        || vp == NULL)
         return;
 
     // otherwise setup new viewport
