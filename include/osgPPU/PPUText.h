@@ -26,7 +26,7 @@
 namespace osgPPU
 {
     /**
-    * Same as PostProcessFXOut but shows some text on the screen.
+    * Same as PostProcessFXOut but renders a text on the output texture.
     * The text is displayed in 2D ortho mode.
     **/
     class PostProcessUnitText : public PostProcessUnitInOut
@@ -43,10 +43,12 @@ namespace osgPPU
             virtual void init();
         
             //! Set size of the characters (relative to viewport.width / 640)
-            void setSize(float size) { mSize= size;}
-            float getSize() const { return mSize; }
+            inline void setSize(float size) { mSize= size;}
+
+            //! Get current size 
+            inline float getSize() const { return mSize; }
     
-            //! get text 
+            //! Get text object which is responsible for rendering the text
             Text* getText(){ return mText.get(); }
     
         protected:

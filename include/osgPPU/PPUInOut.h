@@ -53,6 +53,7 @@ class PostProcessUnitOut : public PostProcessUnit {
         virtual void noticeChangeViewport() {}
 };
 
+
 /**
  * Screen capturing ppu. The input texture is captured into a file.
  * This ppu allows to render out in higher resolution than your
@@ -90,9 +91,10 @@ class PostProcessUnitOutCapture : public PostProcessUnitOut {
 };
 
 
+
 /**
- * InOut PPU, does render the content of input image with applied shader 
- * to the output texture. Rendering is done in background, so no information
+ * InOut PPU, does render the content of input textures with applied shader 
+ * to the output textures. Rendering is done in background, so no information
  * will leack to the frame buffer
  **/
 class PostProcessUnitInOut : public PostProcessUnit {
@@ -107,7 +109,14 @@ class PostProcessUnitInOut : public PostProcessUnit {
         //! Initialze the default postprocessing unit 
         virtual void init();
         
-        //! Set to true if in/out shoudl also be done for mipmap levels
+        /**
+         * Set to true if in/out should also be done for mipmap levels.
+         * This would mean that the shader will be called on 
+         * each mipmap level of the input texture. The generated
+         * result will be stored in the according level of the output 
+         * texture. This method assumes the input and output textures 
+         * do have the same number of mipmap levels.
+        **/
         void setMipmappedIO(bool b);
     
         //! Are we using IO also for mipmap-levels
@@ -152,8 +161,8 @@ class PostProcessUnitInOut : public PostProcessUnit {
 
 
 /**
- * Resample the input and output it to resultings image. This PPU will 
- * render the image resampled to an offscreenbuffer. Next PPU will work 
+ * Resample the input. This PPU will 
+ * render the input data resampled to the output. Next PPU will work 
  * on the resampled one. NOTE: You loose information in your data after 
  * appling this PPU.
  **/

@@ -39,13 +39,9 @@ namespace osgPPU
 class PostProcess;
 
 /**
- * PostProcessing Effect. This is a postprocessing effect. The effects
+ * PostProcessing Effect. The effects
  * are used by PostProcess in their order to apply some
- * post processing effects onto the frame buffer.
- * 
- * The effects are applied in a pipeline, so the output of the 
- * effect is an input for another effect. At the end of the pipeline there should be
- * a bypass effect which does render the result into the frame buffer.
+ * processing computation onto the input data.
  * 
  * Per defualt the class PostProcessUnit is an empty effect, hence it just bypass
  * all the data (direct connection from input to output).
@@ -75,11 +71,11 @@ class PostProcessUnit : public osg::Object {
         **/        
         virtual ~PostProcessUnit();
         
-        //! Set state, which is used to apply the ppu on
-        void setState(osg::State* state);
-
-        //! Get framebuffer object 
-        osg::FrameBufferObject* getFBO() { return mFBO.get(); }
+        /**
+         * Get framebuffer object used by this ppu. Almost every ppu do work 
+         * with fbos. If there is no use in fbo, then NULL is returned.
+        **/
+        inline osg::FrameBufferObject* getFBO() { return mFBO.get(); }
 
         /**
         * Set a texture as input texture.
@@ -88,14 +84,17 @@ class PostProcessUnit : public osg::Object {
         **/        
         void setInputTexture(osg::Texture* inTex, int inputIndex);
         
-        //! Return a texture of a certain index
-        osg::Texture* getInputTexture(int inputIndex) { return mInputTex[inputIndex].get(); }
+        /**
+         * Return an input texture of a certain index.
+         * @param inputIndex Index of the input texture (index is equal to the texture unit)
+        **/
+        inline osg::Texture* getInputTexture(int inputIndex) { return mInputTex[inputIndex].get(); }
+
+        //! Assign input textures directly by a index to texture map
+        inline void setInputTextureMap(const TextureMap& map) { mInputTex = map; }
 
         //! Return complete index to texture mapping
         const TextureMap& getInputTextureMap() const {return mInputTex;}
-
-        //! Assign input textures directly by a index to texture map
-        void setInputTextureMap(const TextureMap& map) { mInputTex = map; }
 
         /**
         * Input textures for a ppu can be used in a shader program. To accomplish
@@ -109,15 +108,6 @@ class PostProcessUnit : public osg::Object {
         void bindInputTextureToUniform(int index, const std::string& name);
 
         /**
-        * Instead of adding uniforms you can set the complete list of uniforms.
-        * The list should contain the uniforms for the texture samples with correct values.
-        * If you call afterwards setInputTextureUniformName() the list will be cleared
-        * and setted up again.
-        **/
-        //void setUniformList(const osg::StateSet::UniformList& list);
-        //const osg::StateSet::UniformList& getUniformList() { return mUniforms; }
-
-        /**
         * Set an output texture.
         * @param outTex Texture used as output of this ppu 
         * @param mrt MRT (multiple rendering target) index of this output
@@ -125,16 +115,20 @@ class PostProcessUnit : public osg::Object {
         void setOutputTexture(osg::Texture* outTex, int mrt = 0);
         
         //! Get output texture of certain MRT index
-        osg::Texture* getOutputTexture(int mrt = 0);
+        inline osg::Texture* getOutputTexture(int mrt = 0) { return mOutputTex[mrt].get(); }
+
+        //! Set a mrt to texture map for output textures
+        inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map;}
 
         //! Get mrt index to texture mapping
-        const TextureMap& getOutputTextureMap() const {return mOutputTex;}
+        inline const TextureMap& getOutputTextureMap() const {return mOutputTex;}
                 
         /**
         * Set new input ppu. The order of adding the ppus corresponds to their 
-        * input indicies.
+        * input indicies. The output of the ppu added as second will be mapped
+        * to the input indices 1 + number of output textures.
         * @param ppu PPU which will be used as input.
-        * @param bUsePPUsViewport Should we use the viewport of that ppu
+        * @param bUsePPUsViewport Should we use the viewport of that ppu to setup our own.
         **/
         inline void addInputPPU(PostProcessUnit* ppu, bool bUsePPUsViewport = false)
         {
@@ -147,10 +141,10 @@ class PostProcessUnit : public osg::Object {
         }
 
         //! Return the index of this postprocessing unit
-        int getIndex() const { return mIndex; }
+        inline int getIndex() const { return mIndex; }
         
         //! Set index of this ppu
-        void setIndex(int i) { mIndex = i; }
+        inline void setIndex(int i) { mIndex = i; }
         
         /**
         * Initialze the postprocessing unit. This method should be overwritten by the 
@@ -168,11 +162,14 @@ class PostProcessUnit : public osg::Object {
         **/
         virtual void apply(float dTime = 0.0f);
         
-        //! Set the current time directly
-        void setTime(float f) { mTime = f; }
+        /**
+         * Set the current time directly.
+         * @param f Time in seconds.
+        **/
+        inline void setTime(float f) { mTime = f; }
 
         //! Comparison operator for sorting. Compare by index value
-        bool operator < (const PostProcessUnit& b)
+        inline bool operator < (const PostProcessUnit& b)
         {
                return mIndex < b.mIndex;
         }
@@ -181,94 +178,121 @@ class PostProcessUnit : public osg::Object {
         void setViewport(osg::Viewport* vp);
 
         //! Get viewport of this unit
-        osg::Viewport* getViewport() { return mViewport.get(); }
+        inline osg::Viewport* getViewport() { return mViewport.get(); }
         
-        //! Set camera which is used for this ppu. The camera attachments might be used as inputs
-        void setCamera(osg::Camera* cam) { mCamera = cam; }
-        osg::Camera* getCamera() { return mCamera.get(); }
+        /**
+         * Set camera which is used for this ppu. The camera attachments might be used as inputs.
+         * However it is up to the definition of the ppu to use camera inputs or not.
+         * @param camera Camera for a potential use of inputs from.
+        **/
+        inline void setCamera(osg::Camera* camera) { mCamera = camera; }
 
-        // Set/get expire time of this ppu
-        inline void setExpireTime(float time) { mExpireTime = time; }
+        //! Return camera associated with this ppu.
+        inline osg::Camera* getCamera() { return mCamera.get(); }
+
+        inline void setExpireBlendTime(float time) { mExpireTime = time; }
         inline void setBlendDuration(float time) { mExpireTime = mStartTime + time; }
-        inline float getExpireTime() const { return mExpireTime; }
+        inline float getExpireBlendTime() const { return mExpireTime; }
 
-        // set/get startign time
-        inline void setStartTime(float time) { mStartTime = time; }
+        inline void setStartBlendTime(float time) { mStartTime = time; }
         inline void setStartBlendTimeToCurrent() { mStartTime = mTime; }
-        inline float getStartTime() const { return mStartTime ; }
+        inline float getStartBlendTime() const { return mStartTime ; }
 
-        // set/get starting blend value
         inline void setStartBlendValue(float alpha) { mStartBlendValue = alpha; }
         inline float getStartBlendValue() const { return mStartBlendValue; }
 
-        // set/get finish blend value
         inline void setEndBlendValue(float alpha) { mEndBlendValue = alpha; }
         inline float getEndBlendValue() const { return mEndBlendValue; }
-        
-        // enable/disbael blending mode 
+        inline float getCurrentBlendValue() const { return mCurrentBlendValue; }
+
+        //! Should the blend mode be activated or not        
         void setBlendMode(bool enable);
+
+        //! Do we currently use blend mode
         bool useBlendMode(); 
         
-        // activate or deactive the ppu 
+        /**
+         * Activate or deactive the ppu. An active ppu is updated during the update 
+         * of the post processor.
+         * @param b True to activate, false to deactive
+        **/
         inline void setActive(bool b) { mbActive = b; }
+
+        //! Check active status
         inline bool isActive() const { return mbActive; }
         
-        // get current blend value 
-        float getCurrentBlendValue() const { return mCurrentBlendValue; }
-
-        //! Change drawing position and size of this ppu. This changes the projection matrix
+        /**
+         * Change drawing position and size of this ppu. This changes the projection matrix,
+         * therefor it is better not to change this parameters until you really 
+         * need this. If you just want to place the ppu on another position, then just 
+         * play with the viewport.
+        **/
         void setRenderingPosAndSize(float left, float top, float right, float bottom);
         
 		/**
 		* Set this ppu in the mode, so that it is not combined into the rendering graph.
 		* This means its output will not be connected to input of the next ppu. Thus the 
-		* rendering is done offline in the manner of ppu graph.
+		* rendering is done offline in the manner of ppu graph. You have to setup
+        * the input and the output of the offline ppus by yourself. Offline ppus
+        * are used for a pipeline independent computation on the input data.
 		**/
 		inline void setOfflineMode(bool mode) {mbOfflinePPU = mode;}
 
 		//! Check whenever this ppu runs in an offline mode 
 		inline bool getOfflineMode() const { return mbOfflinePPU; }
 
-        //! Set internal format which will be used by creating the textures
+        /**
+         * Set internal format which will be used by creating the textures. The format
+         * specified here will be passed along to the osg::Texture::setInternalFormat()
+         * method when creating output textures of a corresponding ppu.
+        **/
         void setOutputInternalFormat(GLenum format);
 
         //! Get internal format which is used by the output textures
-        GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
+        inline GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
 
-        //! Utility function to derive source texture format from the internal format
+        /**
+         * Utility function to derive source texture format from the internal format.
+         * For example GL_RGB16F_ARB corresponds to GL_FLOAT
+        **/
         static GLenum createSourceTextureFormat(GLenum internalFormat);
 
-        //! Set new shader 
-        void setShader(Shader* sh)
-        //void setShader(osg::Program* sh)
+        /**
+         * Assign a shader used when computing the output data of the ppu.
+         * Shaders are one of the main aspects of the ppu rendering.
+         * @param sh Shader used by this ppu to generate output from the input.
+        **/
+        inline void setShader(Shader* sh)
         { 
             mShader = sh;
             mbDirtyShader = true;
             //assignShader(); 
         }
 
-        //! Get currently bounded shader program
-        Shader* getShader() { return mShader.get(); }
-        //osg::Program* getShader() { return mShader.get(); }
+        //! Get currently assigned shader
+        inline Shader* getShader() { return mShader.get(); }
 
-        //! Set mipmap shader 
-        void setMipmapShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+        /**
+         * Assign a mipmap shader. A mipmap shader is used when generating mipmaps
+         * on the output data. Hence this shader is only applied to all the mipmap levels
+         * except of level 0, where a normal shader specified by setShader() is applied.
+        **/
+        inline void setMipmapShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+
+        //! Return current mipmap shader
         inline Shader* getMipmapShader() { return mMipmapShader.get(); }
         
-        //! Shall we use mipmap shader
-        void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
+        //! Shall we use mipmap shader to generate mipmaps
+        inline void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
 
-        //! Shall we use mipmaps
-        void setUseMipmaps(bool b) { mbUseMipmaps = b; }
-
-        //! Enable mipmap generation on all output textures
-        void enableMipmapGeneration();
+        //! Shall we use mipmaps at all 
+        inline void setUseMipmaps(bool b) { mbUseMipmaps = b; }
 
         //! Set user data
-        void setUserData(void* data) { mUserData = data; }
+        inline void setUserData(void* data) { mUserData = data; }
 
         //! get user data
-        void* getUserData() { return mUserData; }
+        inline void* getUserData() { return mUserData; }
 
         /**
         * Set index of an input texture which size is used as reference 
@@ -280,13 +304,14 @@ class PostProcessUnit : public osg::Object {
         **/
         void setInputTextureIndexForViewportReference(int index);
 
-        //! get index of the viewport reference texture 
-        int getInputTextureIndexForViewportReference() const { return mInputTexIndexForViewportReference; }
+        //! Get index of the viewport reference texture 
+        inline int getInputTextureIndexForViewportReference() const { return mInputTexIndexForViewportReference; }
 
         //! Get stateset of the ppu 
-        osg::StateSet* getStateSet() { return sScreenQuad->getOrCreateStateSet(); }
+        inline osg::StateSet* getStateSet() { return sScreenQuad->getOrCreateStateSet(); }
 
     protected:
+
         //! We do not want the user to use this method directly
         PostProcessUnit();
 
@@ -338,6 +363,9 @@ class PostProcessUnit : public osg::Object {
         //! Generate mipmaps (for specified output texture)
         void generateMipmaps(osg::Texture* output, int mrt);
         
+        //! Enable mipmap generation on all output textures
+        void enableMipmapGeneration();
+
         //! Each ppfx use its own framebuffer object where results are written
         osg::ref_ptr<osg::FrameBufferObject>    mFBO;
         
@@ -346,19 +374,10 @@ class PostProcessUnit : public osg::Object {
         
         //! Output textures
         TextureMap  mOutputTex;
-
-        //! Uniform map which maps uniform to texture index
-        //UniformMap mUniformMap;
-
-        //! List of all uniforms
-        //osg::StateSet::UniformList mUniforms;
         
         //! Shader which will be used for rendering
         osg::ref_ptr<Shader>   mShader;
         
-        //! Uniform to set the mipmap level 
-        //osg::ref_ptr<osg::Uniform> mShaderMipmapLevelUniform;
-
         //! Index of this postprocessing unit in the pipeline
         int mIndex;
         
@@ -432,36 +451,18 @@ class PostProcessUnit : public osg::Object {
         int mInputTexIndexForViewportReference;
 
     private:
-        //! Flag to setup if PPU is active or not 
-        bool mbActive;
-        
-        //! Expire time
+        bool mbActive;        
         float mExpireTime;
-
-        //! Start time, when this ppu should start running
         float mStartTime;
-
-        //! Starting alpha value (for blending)
         float mStartBlendValue;
-
-        //! Finish alpha value
         float mEndBlendValue;
-        
-        //! Current alpha value 
         float mCurrentBlendValue;
-        
-        //osg::ref_ptr<osg::BlendColor> mBlendColor;
-        //osg::ref_ptr<osg::Material> mBlendMaterial;
         osg::ref_ptr<osg::BlendFunc> mBlendFunc;        
-
-        // initialize default vairables
-        void initialize(PostProcess* parent);//osg::State* parentState, osg::StateSet* parentStateSet);
-
-        //! current time
         float mTime;
-
-        //! user data 
         void* mUserData;
+
+        void initialize(PostProcess* parent);
+
 };
 
 };

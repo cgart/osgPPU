@@ -20,6 +20,8 @@
 #include <osg/Texture2D>
 #include <osg/Depth>
 
+#include <assert.h>
+
 
 #define DEBUG_PPU 0
 
@@ -27,12 +29,13 @@ namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-PostProcess::PostProcess() 
+PostProcess::PostProcess(osg::State* state) : mState(state) 
 {
     mTime = 0.0f;
 
     // create default state for post processing effects
-    mState = new osg::State();
+    //if (state == NULL) mState = new osg::State();
+    assert(state != NULL);
     mStateSet = new osg::StateSet();
     
     // setup default state set 
@@ -65,10 +68,10 @@ PostProcess::~PostProcess(){
 }
 
 //------------------------------------------------------------------------------
-void PostProcess::setState(osg::State* state)
+/*void PostProcess::setState(osg::State* state)
 {
     mState = state;
-}
+}*/
 
 //------------------------------------------------------------------------------
 void PostProcess::setCamera(osg::Camera* camera)

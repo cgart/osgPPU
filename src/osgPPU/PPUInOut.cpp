@@ -65,8 +65,10 @@ void PostProcessUnitOut::render(int mipmapLevel)
     // setup shader values
     if (mShader.valid()) 
     {
-        mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
-        mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
+        //mShader->set("g_TextureWidth", (float)(mViewport->x() + mViewport->width()));
+        //mShader->set("g_TextureHeight",(float)(mViewport->y() + mViewport->height()));
+        mShader->set("g_ViewportWidth", (float)mViewport->width());
+        mShader->set("g_ViewportHeight", (float)mViewport->height());
         mShader->set("g_MipmapLevel", mipmapLevel);
         mShader->update();
     }

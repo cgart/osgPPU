@@ -48,8 +48,8 @@ void PostProcessUnit::initialize(PostProcess* parent)
     mbDirtyShader = false;
 
     // we do steup defaults
-    setStartTime(0);
-    setExpireTime(0);
+    setStartBlendTime(0);
+    setExpireBlendTime(0);
     setStartBlendValue(1);
     setEndBlendValue(1);
     setActive(true);
@@ -97,9 +97,8 @@ void PostProcessUnit::initialize(PostProcess* parent)
     sModelviewMatrix = osg::Matrixf::identity();
     
     // setup per default local state equal to the parent state 
-    if (mParent.valid())
-        sState.setState(mParent->getState());
-    
+    sState.setState(mParent->getState());
+
     // setup uniform variable
     //mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0.0f);
     //sScreenQuad->getOrCreateStateSet()->addUniform(mShaderMipmapLevelUniform.get());
@@ -157,11 +156,11 @@ PostProcessUnit::~PostProcessUnit()
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setState(osg::State* state)
+/*void PostProcessUnit::setState(osg::State* state)
 {
     if (state != NULL)
         sState.setState(state);
-}
+}*/
 
 //------------------------------------------------------------------------------
 void PostProcessUnit::setRenderingPosAndSize(float left, float top, float right, float bottom)
@@ -235,14 +234,6 @@ void PostProcessUnit::setOutputTexture(osg::Texture* outTex, int mrt)
         mOutputTex[mrt] = osg::ref_ptr<osg::Texture>(NULL);
 
 	mbDirtyOutputTextures = true;
-}
-
-//------------------------------------------------------------------------------
-osg::Texture* PostProcessUnit::getOutputTexture(int mrt)
-{
-    std::map<int, osg::ref_ptr<osg::Texture> >::const_iterator it = mOutputTex.find(mrt);
-    if (it == mOutputTex.end()) return NULL;
-    return it->second.get();
 }
 
 
@@ -426,21 +417,21 @@ bool PostProcessUnit::applyBaseRenderParameters()
     if (!isActive()) return false;
     
     // the fx should be shown
-    if (getStartTime() <= mTime)
+    if (getStartBlendTime() <= mTime)
     {
         // blending factor
         float factor = 1.0;
         
         // if we get 0 as expire time, so the factor is the start value 
-        if (getExpireTime() < 0.0001)
+        if (getExpireBlendTime() < 0.0001)
             factor = 0;
         else
-            factor = (mTime - getStartTime()) / (getExpireTime() - getStartTime());
+            factor = (mTime - getStartBlendTime()) / (getExpireBlendTime() - getStartBlendTime());
         
         // compute blend value for the ppu
         float alpha = getStartBlendValue()*(1-factor) + factor*getEndBlendValue();
-        if (alpha > 1.0 ) { alpha = 1.0; setExpireTime(0); setStartBlendValue(1.0); }
-        if (alpha < 0.0 ) { alpha = 0.0; setExpireTime(0); setStartBlendValue(0.0); }
+        if (alpha > 1.0 ) { alpha = 1.0; setExpireBlendTime(0); setStartBlendValue(1.0); }
+        if (alpha < 0.0 ) { alpha = 0.0; setExpireBlendTime(0); setStartBlendValue(0.0); }
         
         // setup new alpha value 
         mCurrentBlendValue = alpha;

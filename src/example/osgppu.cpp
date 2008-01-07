@@ -173,9 +173,8 @@ class Viewer : public osgViewer::Viewer
             mState->initializeExtensionProcs();
 
             // initialize the post process
-            mPostProcess = new osgPPU::PostProcess();
+            mPostProcess = new osgPPU::PostProcess(mState.get());
             mPostProcess->setCamera(mCamera.get());
-            mPostProcess->setState(mState.get());
             mPostProcess->setName("PostProcess");
             
             // disable color clamping, because we want to work on real hdr values
@@ -265,6 +264,19 @@ class Viewer : public osgViewer::Viewer
                 bgppu->setViewport(vp);
             }
 
+            // add a text ppu after the pipeline is setted up
+            {
+                osgPPU::PostProcessUnitText* fpstext = new osgPPU::PostProcessUnitText(mPostProcess.get());
+                fpstext->setIndex(999);
+                fpstext->setName("FPSTextPPU");
+                fpstext->setSize(12);
+                fpstext->getText()->setText("FPS: ");
+                fpstext->getText()->setPosition(0.0, 0.95);
+
+                mPostProcess->addPPUToPipeline(fpstext);
+                fpstext->init();
+            }
+
             // add now new camera as new scene data, so it gets updated
             getCamera()->addChild(mCamera.get());
 
@@ -311,14 +323,15 @@ class Viewer : public osgViewer::Viewer
             }
 
             // print also some info about the fps number
-            /*osgPPU::PostProcessUnitText* ppu = dynamic_cast<osgPPU::PostProcessUnitText*>(mPostProcess->getPPU("TextPPU"));
-            if (ppu)
             {
-                char txt[64];
-                sprintf(txt, "osgPPU rocks! FPS:%4.2f", 1.0 / frameTime);
-                ppu->getText()->setText(txt);
-            }*/
-
+                osgPPU::PostProcessUnitText* ppu = dynamic_cast<osgPPU::PostProcessUnitText*>(mPostProcess->getPPU("FPSTextPPU"));
+                if (ppu)
+                {
+                    char txt[64];
+                    sprintf(txt, "FPS:%4.2f", 1.0 / frameTime);
+                    ppu->getText()->setText(txt);
+                }
+            }
             
     }
 };

@@ -30,12 +30,17 @@ namespace osgPPU
 /**
  * PostProcess should be called as a last step in your rendering pipeline.
  * This class manages the post processing units which do form a graph.
- * To the PostProcess object a camera is attached. The camera's subgraph
- * should contain the scene to apply the post processing on. Also
- * the camera must provide a valid viewport and color attachment (texture).
- * The update of the post processing is done by using post draw callback
- * of the attached camera, hence you have to take care before using
- * your own post draw callbacks on the attached camera.
+ * To the PostProcess object a camera is attached. 
+ * The attached camera must provide a valid viewport and color attachment (texture)
+ * which will be used as input for the pipeline.
+ * 
+ * The ppus are applied in a pipeline, so the output of one 
+ * ppu is an input to the next one. At the end of the pipeline there should be
+ * a bypassout ppu specified which do render the result into the frame buffer.
+ * 
+ * A post processor can also be used to do some multipass computation on input data.
+ * In that case it is not neccessary to output the resulting data on the screen, but
+ * you can use the output texture of the last ppu for any other purpose.
  **/
 class PostProcess : public osg::Object {
     public: 
@@ -43,80 +48,104 @@ class PostProcess : public osg::Object {
         META_Object(osgPPU, PostProcess)
         typedef std::list<osg::ref_ptr<PostProcessUnit> > FXPipeline;
         
-        //! Initialize the postprocessing system
-        PostProcess();
-    
-        //! Copy constructor
+        /**
+         * Initialize the postprocessing system. 
+         * @param state Specify a state which will be used to apply the post process statesets
+        **/
+        PostProcess(osg::State* state);    
         PostProcess(const PostProcess&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     
-        //! Release the system
+        /**
+         * Release the system. This will free used memory and close all ppus.
+        **/
         virtual ~PostProcess();
         
-        //! This should be called every frame to update the system
+        /**
+         * This should be called every frame to update the system.
+         * @param dTime Time (in seconds) of one frame.
+        **/
         virtual void update(float dTime = 0.0f);
         
-        //! Add the camera object
+        /**
+         * Add a camera which texture attachment can be used as input to the pipeline.
+         * The camera object must be setted up to render into a texture.
+         * A bypass ppu (PostProcessUnit) as first in the pipeline can bypass
+         * the camera attachment into the pipeline.
+         * @param camera Camera object to use input from.
+         **/
         void setCamera(osg::Camera* camera);
         
-        //! Get camera
+        /**
+         * Get camera used for this pipeline. This method returns the camera object
+         * specified with setCamera().
+        **/
         inline osg::Camera* getCamera() { return mCamera.get(); }
 
-        //! Update the pipeline by retrieving all postprocessing effects and recombine them into the pipeline
+        /**
+         * This method do set up the pipeline. The ppus are inserted into the pipeline
+         * according to their indices. Input and outputs are setted up according 
+         * to the order of the ppus (if not specified explicitely).
+         * Calling of this method will always clean up the pipeline first.
+         * @param pipeline List of ppus to add into the pipeline.
+        **/
         void setPipeline(const FXPipeline& pipeline);
         
-        //! Setup osg state which can be used as global one
-        void setState(osg::State* state);
-    
-        //! Remove one ppu from the pipeling
+        /**
+         * Remove a ppu from the pipeline. An offline ppu is just removed.  
+         * If an online ppu is removed then the input of the removed ppu 
+         * is setted up as input to the next ppu in the pipeline.
+         * @param ppuName Unique name of the ppu in the pipeline.
+         * @return Iterator of the pipeline list which can be used to resetup the list manually.
+        **/
         FXPipeline::iterator removePPUFromPipeline(const std::string& ppuName);
     
-        //! Add new ppu to the pipeline
+        /**
+         * Add new ppu to the pipeline. The ppu will be sorted in to the pipeline according
+         * to its index. So call PostProcessUnit::setIndex() before calling this method.
+         * Inputs and outputs are setted up acoordingly. A ppu will not be initialized,
+         * hence do this after you have added it into a pipeline.
+         * @param ppu Pointer to the ppu 
+        **/
         void addPPUToPipeline(PostProcessUnit* ppu);
         
-        //! Get state of the post processing class 
-        inline osg::State* getState() { return mState.get(); }
-
-        //! Get stateset of this object
+        /**
+         * Get stateset of the post processor. This is the working stateset. You can 
+         * change its content to change default behaviour of the pipeline. However 
+         * it is not recomended.
+        **/
         osg::StateSet* getOrCreateStateSet();
 
-        //! Set current time. Use this to setup reference time
+        /**
+         * Set current time. Use this to setup reference time. 
+         * A time is needed to be able to animate blending of ppus.
+         * @param t Current time in seconds
+        **/
         inline void setTime(float t) { mTime = t; }
 
-        //! Get ppu based on its name
+        /**
+         * Get a ppu.
+         * @param name Unique name of the ppu in the pipeline
+        **/
         PostProcessUnit* getPPU(const std::string& name);
 
-        //! Setup a post draw callback to update post process for the specified camera
-        void initPostDrawCallback(osg::Camera*);
+        /**
+         * Setup a post draw callback to update post processor.
+         * @param camera Camera which post draw callback will be used to update the 
+         * post processor. This can either be the same camera as specified in 
+         * setCamera() method or a different one.
+        **/
+        void initPostDrawCallback(osg::Camera* camera);
         
     protected:
-        //! This is the callback class to update the post process
-        struct Callback : osg::Camera::DrawCallback
-        {
-            Callback(PostProcess* parent) : mParent(parent) {}
-            
-            void operator () (const osg::Camera&) const
-            {
-                mParent->update();
-            }
 
-            PostProcess* mParent;
-        };
-        
-        //! Store here global state for all ppus
-        osg::ref_ptr<osg::State>    mState;
-        
-        //! State set for global state for all ppus 
-        osg::ref_ptr<osg::StateSet> mStateSet;
-        
-        //! camera
-        osg::ref_ptr<osg::Camera> mCamera;
-        
-        //! FX pipeline used for post processing
-        FXPipeline  mFXPipeline;
+        friend class PostProcessUnit;
 
-        //! here we store our current time 
-        float mTime;
+        //! Empty constructor is defined as protected to prevent of creating non-valid post processors
+        PostProcess() {printf("PostProcess::PostProcess() - How get there?\n");}
 
+        //! Return current state assigned with the post process 
+        inline osg::State* getState() { return mState.get(); }
+        
         /**
          * Callback function for derived classes, which if ppu was applied.
          * @param ppu Pointer to the ppu, which was applied 
@@ -129,6 +158,26 @@ class PostProcess : public osg::Object {
         * @return The caller should return true if to continue to initialize the ppu or false if not
         **/
         virtual bool onPPUInit(PostProcessUnit* ppu) {return true;};
+
+
+        struct Callback : osg::Camera::DrawCallback
+        {
+            Callback(PostProcess* parent) : mParent(parent) {}
+            
+            void operator () (const osg::Camera&) const
+            {
+                mParent->update();
+            }
+
+            PostProcess* mParent;
+        };
+
+
+        osg::ref_ptr<osg::State>    mState;
+        osg::ref_ptr<osg::StateSet> mStateSet;
+        osg::ref_ptr<osg::Camera> mCamera;
+        FXPipeline  mFXPipeline;
+        float mTime;
 
 };
 
