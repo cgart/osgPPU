@@ -23,6 +23,7 @@
 //-------------------------------------------------------------------------
 #include <osgPPU/PostProcessUnit.h>
 #include <osg/Camera>
+#include <osg/State>
 
 namespace osgPPU
 {
@@ -45,14 +46,15 @@ namespace osgPPU
 class PostProcess : public osg::Object {
     public: 
     
-        META_Object(osgPPU, PostProcess)
+        META_Object(osgPPU, PostProcess);
         typedef std::list<osg::ref_ptr<PostProcessUnit> > FXPipeline;
         
         /**
          * Initialize the postprocessing system. 
          * @param state Specify a state which will be used to apply the post process statesets
         **/
-        PostProcess(osg::State* state);    
+        PostProcess(osg::State* state);   
+         
         PostProcess(const PostProcess&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     
         /**

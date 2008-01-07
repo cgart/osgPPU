@@ -49,9 +49,8 @@ class PostProcess;
 class PostProcessUnit : public osg::Object {
     public:
 
-        META_Object(osgPPU,PostProcessUnit)
+        META_Object(osgPPU,PostProcessUnit);
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
-        typedef std::map<int, std::string > UniformMap;
         
         /**
          * Create empty ppu. If you use this ppu in your graph you will
