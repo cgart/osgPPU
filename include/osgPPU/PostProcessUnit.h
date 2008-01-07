@@ -1,9 +1,15 @@
 /***************************************************************************
+ *   Copyright (c) 2008   Art Tevs                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
  ***************************************************************************/
 
@@ -183,10 +189,12 @@ class PostProcessUnit : public osg::Object {
 
         // Set/get expire time of this ppu
         inline void setExpireTime(float time) { mExpireTime = time; }
+        inline void setBlendDuration(float time) { mExpireTime = mStartTime + time; }
         inline float getExpireTime() const { return mExpireTime; }
 
         // set/get startign time
         inline void setStartTime(float time) { mStartTime = time; }
+        inline void setStartBlendTimeToCurrent() { mStartTime = mTime; }
         inline float getStartTime() const { return mStartTime ; }
 
         // set/get starting blend value

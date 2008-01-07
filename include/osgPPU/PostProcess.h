@@ -1,11 +1,18 @@
 /***************************************************************************
+ *   Copyright (c) 2008   Art Tevs                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
  ***************************************************************************/
+
 
 #ifndef _C_POST_PROCESS__H_
 #define _C_POST_PROCESS__H_
@@ -75,6 +82,13 @@ class PostProcess : public osg::Object {
         //! Set current time. Use this to setup reference time
         inline void setTime(float t) { mTime = t; }
 
+        //! Get ppu based on its name
+        PostProcessUnit* getPPU(const std::string& name);
+
+        //! Setup a post draw callback to update post process for the specified camera
+        void initPostDrawCallback(osg::Camera*);
+        
+    protected:
         //! This is the callback class to update the post process
         struct Callback : osg::Camera::DrawCallback
         {
@@ -87,11 +101,6 @@ class PostProcess : public osg::Object {
 
             PostProcess* mParent;
         };
-
-        //! Get ppu based on its name
-        PostProcessUnit* getPPU(const std::string& name);
-        
-    protected:
         
         //! Store here global state for all ppus
         osg::ref_ptr<osg::State>    mState;

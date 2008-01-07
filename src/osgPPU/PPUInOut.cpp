@@ -1,9 +1,15 @@
 /***************************************************************************
+ *   Copyright (c) 2008   Art Tevs                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
  ***************************************************************************/
 
@@ -407,10 +413,12 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
             sState.getState()->applyTextureAttribute(unit, it->second.get());
         }
 
+        #if 0
         if (mShader.valid())
             printf("render: %s - %s (level=%d, %dx%d)\n", getName().c_str(), mShader->getName().c_str(), mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
         else
             printf("render: %s (level=%d, %dx%d)\n", getName().c_str(),mipmapLevel, int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()));
+        #endif
         
         // render the content of the input texture into the frame buffer
         if (useBlendMode() && getOfflineMode() == false)
