@@ -25,8 +25,9 @@
 
 namespace osgPPU
 {
+    //! Smae as PostProcessUnitInOut but do render a text onto the output
     /**
-    * Same as PostProcessFXOut but renders a text on the output texture.
+    * Same as PostProcessUnitInOut but renders a text on the output texture.
     * The text is displayed in 2D ortho mode.
     **/
     class PostProcessUnitText : public PostProcessUnitInOut

@@ -25,6 +25,7 @@
 namespace osgPPU
 {
 
+//! Output the input to the frame buffer instead to the output texture
 /**
  * Default postprocess effect. Pass input texture to the frame buffer. Use this ppu 
  * to render results of the previous ppus into the framebuffer. So it is usual that
@@ -54,6 +55,7 @@ class PostProcessUnitOut : public PostProcessUnit {
 };
 
 
+//! Capture the content of the input texture to a file
 /**
  * Screen capturing ppu. The input texture is captured into a file.
  * This ppu allows to render out in higher resolution than your
@@ -91,7 +93,7 @@ class PostProcessUnitOutCapture : public PostProcessUnitOut {
 };
 
 
-
+//! Compute output texture based on the assigned shaders and input data
 /**
  * InOut PPU, does render the content of input textures with applied shader 
  * to the output textures. Rendering is done in background, so no information
@@ -160,6 +162,7 @@ class PostProcessUnitInOut : public PostProcessUnit {
 };
 
 
+//! Same as PostProcessUnitInOut but do resampling inbetween
 /**
  * Resample the input. This PPU will 
  * render the input data resampled to the output. Next PPU will work 

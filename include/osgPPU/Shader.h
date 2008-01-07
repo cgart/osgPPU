@@ -28,6 +28,7 @@
 namespace osgPPU
 {
 
+//! Helper class to work with ppus and their shaders
 /**
  * The shader class does encapsulate osg::Program and osg::Uniforms in one class.
  * The using of shader programs is therefor simplified. Shaders can be bound 

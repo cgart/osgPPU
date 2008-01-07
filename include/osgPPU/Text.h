@@ -31,6 +31,7 @@
 namespace osgPPU
 {
 
+    //! Wrapper class to wrap up osgText::Text
     /**
     * Simple class drawing a text on the screen.
     **/

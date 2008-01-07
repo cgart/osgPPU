@@ -38,6 +38,7 @@ namespace osgPPU
 
 class PostProcess;
 
+//! Base class of any ppu which do work as a simple bypass ppu per default
 /**
  * PostProcessing Effect. The effects
  * are used by PostProcess in their order to apply some

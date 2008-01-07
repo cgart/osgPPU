@@ -28,6 +28,7 @@
 namespace osgPPU
 {
 
+//! Main ppu processor used to setup the ppu pipeline
 /**
  * PostProcess should be called as a last step in your rendering pipeline.
  * This class manages the post processing units which do form a graph.
