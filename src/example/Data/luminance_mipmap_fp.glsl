@@ -13,11 +13,14 @@
 // -------------------------------------------------------
 uniform sampler2D texUnit0;
 
+uniform float g_ViewportWidth;
+uniform float g_ViewportHeight;
+
 // width of the input texture 
-uniform float g_TextureWidth;
+//uniform float g_TextureWidth;
 
 // height of the input texture 
-uniform float g_TextureHeight;
+//uniform float g_TextureHeight;
 
 // current mipmap level where we render the output
 uniform int g_MipmapLevel;
@@ -61,26 +64,32 @@ void main(void)
     float c[4];
     
     // get texture sizes of the previous level
-    ivec2 size = textureSize2D(texUnit0, g_MipmapLevel - 1);
-    
+    //ivec2 size = textureSize2D(texUnit0, g_MipmapLevel - 1);
+    vec2 size = vec2(g_ViewportWidth, g_ViewportHeight);
+
     // this is our starting sampling coordinate 
-    ivec2 iCoord = ivec2(gl_TexCoord[0] * size);
+    //ivec2 iCoord = ivec2(gl_TexCoord[0] * size);
+    vec2 iCoord = gl_TexCoord[0].st;
+    vec2 texel = 1.0 / size;
 
     // create offset for the texel sampling (TODO check why -1 seems to be correct)
-    ivec2 st[4];
+    //ivec2 st[4];
+    vec2 st[4];
     st[0] = iCoord + ivec2(0,0);
-    st[1] = iCoord + ivec2(-1,0);
-    st[2] = iCoord + ivec2(0,-1);
-    st[3] = iCoord + ivec2(-1,-1);
+    st[1] = iCoord + ivec2(-texel.x,0);
+    st[2] = iCoord + ivec2(0,-texel.y);
+    st[3] = iCoord + ivec2(-texel.x,-texel.y);
     
     // retrieve 4 texels from the previous mipmap level
     for (int i=0; i < 4; i++)
     {
         // map texels coordinates, such that they do stay in defined space
-        st[i] = clamp(st[i], 0, size.xy - 1);
+        //st[i] = clamp(st[i], 0, size.xy - 1);
+        st[i] = clamp(st[i], 0, 1);
         
         // get texel from the previous mipmap level
-        c[i] = texelFetch2D(texUnit0, st[i], g_MipmapLevel - 1).r;
+        //c[i] = texelFetch2D(texUnit0, st[i], g_MipmapLevel - 1).r;
+        c[i] = texture2DLod(texUnit0, st[i], g_MipmapLevel - 1).r;
     }
 
     // if we compute the first mipmap level, then just compute the sum
@@ -104,15 +113,16 @@ void main(void)
     res *= 0.25;
 
     // if we are in the last mipmap level
-    if (g_TextureWidth < 1.001 && g_TextureHeight < 1.001)
-    //if (size.x == 2 && si)
+    //if (g_TextureWidth < 1.001 && g_TextureHeight < 1.001)
+    if (g_ViewportWidth < 1.001 && g_ViewportHeight < 1.001)
     {
         // exponentiate
         res = exp(res);
         res = min(res, 65504);
 
         // get old adapted luminance value 
-        float old = texelFetch2D(texUnit0, 0, g_MipmapLevel).a;
+        //float old = texelFetch2D(texUnit0, 0, g_MipmapLevel).a;
+        float old = texture2DLod(texUnit0, 0, g_MipmapLevel).a;
 
         // compute adapted luminance value and store this
         gl_FragColor.rgb = res;
@@ -123,6 +133,6 @@ void main(void)
 
         // result
         gl_FragColor.rgb = min(res, 65504);
-        gl_FragColor.a = maxLuminance;
+        gl_FragColor.a = 1.0;
     }
 }

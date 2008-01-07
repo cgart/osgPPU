@@ -25,12 +25,12 @@ class HDRRendering
         // Setup default hdr values
         HDRRendering()
         {
-            mMidGrey = 0.45;
+            mMidGrey = 0.145;
             mHDRBlurSigma = 7.0;
-            mHDRBlurRadius = 5.0;
+            mHDRBlurRadius = 7.0;
             mGlareFactor = 2.0;
-            mMinLuminance = 0.001;
-            mMaxLuminance = 2.0;
+            mMinLuminance = 0.01;
+            mMaxLuminance = 1.0;
             mAdaptFactor = 10.0;
         }
            
@@ -77,8 +77,8 @@ class HDRRendering
                     // setup shader parameters
                     // samplers are bounded automagically
                     lumShaderMipmap->add("g_MipmapLevel", osg::Uniform::INT);
-                    lumShaderMipmap->add("g_TextureWidth", osg::Uniform::FLOAT);
-                    lumShaderMipmap->add("g_TextureHeight", osg::Uniform::FLOAT);
+                    lumShaderMipmap->add("g_ViewportWidth", osg::Uniform::FLOAT);
+                    lumShaderMipmap->add("g_ViewportHeight", osg::Uniform::FLOAT);
                     lumShaderMipmap->add("maxLuminance", osg::Uniform::FLOAT);
                     lumShaderMipmap->add("minLuminance", osg::Uniform::FLOAT);
                     lumShaderMipmap->add("adaptScaleFactor", osg::Uniform::FLOAT);
@@ -87,8 +87,8 @@ class HDRRendering
                     // Setup texture sizes
                     // Actually this should be done by the ppu class, but this functionality can
                     // be removed with later versions.
-                    lumShaderMipmap->set("g_TextureWidth", (float)camera->getViewport()->width());
-                    lumShaderMipmap->set("g_TextureHeight", (float)camera->getViewport()->height());
+                    lumShaderMipmap->set("g_ViewportWidth", (float)camera->getViewport()->width());
+                    lumShaderMipmap->set("g_ViewportHeight", (float)camera->getViewport()->height());
 
                     // Set maximum and minimum representable luminance values
                     lumShaderMipmap->set("maxLuminance", mMaxLuminance);

@@ -245,7 +245,7 @@ class Teapot : public osg::Drawable
             extensions->glClampColor(GL_CLAMP_VERTEX_COLOR, false);
             */
             
-            glColor3f(50.0, 30.0, 20.0);
+            glColor3f(15.0, 9.0, 6.0);
             
             // just call the OpenGL code.
             teapot(14,GL_FILL);

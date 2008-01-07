@@ -336,7 +336,7 @@ int main(int argc, char **argv)
     // setup scene
     osg::Group* node = new osg::Group();
     osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
-    if (!loadedModel) loadedModel = osgDB::readNodeFile("Data/cessnafire.osg");
+    if (!loadedModel) loadedModel = createTeapot();//osgDB::readNodeFile("Data/cessnafire.osg");
     if (!loadedModel) return 1;
     node->addChild(loadedModel);
     
