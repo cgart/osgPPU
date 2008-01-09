@@ -100,9 +100,6 @@ void PostProcessUnit::initialize(PostProcess* parent)
     if (mParent.valid())
         sState.setState(mParent->getState());
 
-    // setup uniform variable
-    //mShaderMipmapLevelUniform = new osg::Uniform("g_MipmapLevel", 0.0f);
-    //sScreenQuad->getOrCreateStateSet()->addUniform(mShaderMipmapLevelUniform.get());
 }
 
 //------------------------------------------------------------------------------
@@ -487,7 +484,7 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
     // check if we have generated all the fbo's for each mipmap level
     int width = output->getTextureWidth();
     int height = output->getTextureHeight();
-    int numLevels = 1 + (int)floor(log2(std::max(width, height)));
+    int numLevel = 1 + (int)floor(log2(std::max(width, height)));
     
     // before we start generating of mipmaps we save some data 
     osg::ref_ptr<osg::FrameBufferObject> currentFBO = mFBO;
@@ -496,12 +493,12 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
     osg::ref_ptr<Shader> currentShader = mShader;
 
     // generate fbo for each mipmap level 
-    if ((int)mMipmapFBO.size() != numLevels)
+    if ((int)mMipmapFBO.size() != numLevel)
     {
         // generate mipmap levels
         mMipmapFBO.clear();
         mMipmapViewport.clear();
-        for (int i=0; i < numLevels; i++)
+        for (int i=0; i < numLevel; i++)
         {
             // generate viewport 
             osg::Viewport* vp = new osg::Viewport();
@@ -529,13 +526,15 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
     mInputTex[0] = output;
     assignInputTexture();
     
+    if (mShader.valid()) mShader->set("g_MipmapLevelNum", float(numLevel));
+
     // now we render the result in a loop to generate mipmaps 
-    for (int i=1; i < numLevels; i++)
+    for (int i=1; i < numLevel; i++)
     {
         // set mipmap level
         //if (mShaderMipmapLevelUniform != NULL) 
         //    mShaderMipmapLevelUniform->set(float(i));
-        if (mShader.valid()) mShader->set("g_MipmapLevel", i);
+        if (mShader.valid()) mShader->set("g_MipmapLevel", float(i));
 
         // assign new viewport 
         mViewport = mMipmapViewport[i];

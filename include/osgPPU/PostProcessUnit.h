@@ -407,7 +407,7 @@ class PostProcessUnit : public osg::Object {
         
         //! Pointer to the shader which is used to generate mipmaps
         osg::ref_ptr<Shader> mMipmapShader;
-        
+
         //! FBOs for different mipmap levels
         std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
         

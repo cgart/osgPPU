@@ -67,7 +67,7 @@ void PostProcessUnitOut::render(int mipmapLevel)
     {
         mShader->set("g_ViewportWidth", (float)mViewport->width());
         mShader->set("g_ViewportHeight", (float)mViewport->height());
-        mShader->set("g_MipmapLevel", mipmapLevel);
+        mShader->set("g_MipmapLevel", float(mipmapLevel));
         mShader->update();
     }
 
@@ -380,10 +380,15 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
         {
             mShader->set("g_ViewportWidth", (float)mViewport->width());
             mShader->set("g_ViewportHeight", (float)mViewport->height());
-            mShader->set("g_MipmapLevel", mipmapLevel);
+            mShader->set("g_MipmapLevel", float(mipmapLevel));
             mShader->update();
         }
 
+        /*printf("render %s-%s: %dx%d (%d)\n", getName().c_str(),
+            mShader.valid() ? mShader->getName().c_str() : "nil", (int)mViewport->width(),
+            (int)mViewport->height(), mipmapLevel);
+         */
+         
         // aplly stateset
         sState.getState()->apply(sScreenQuad->getStateSet());
 

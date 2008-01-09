@@ -268,6 +268,7 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
                 return;
             }
         }
+        return;
     }
 
     //printf("add ppu %s (%d)\n", ppu->getName().c_str(), ppu->getIndex());
@@ -335,6 +336,7 @@ void PostProcess::update(float dTime)
     // apply state set 
     mState->apply(mStateSet.get());
 
+    
     #if DEBUG_PPU    
     printf("--------------------------------------------------------------------\n");
     printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
