@@ -29,23 +29,26 @@ uniform float g_MipmapLevelNum;
 void main(void)
 {
     // just some variables
-    const float epsilon = 0.0001f;
+    const float epsilon = 0.001f;
     float res = 0.0f;
     float c[4];
     
     // get texture sizes of the previous level
-    vec2 size = vec2(g_ViewportWidth, g_ViewportHeight);
+    vec2 size = vec2(g_ViewportWidth, g_ViewportHeight) * 2.0;
 
     // this is our starting sampling coordinate 
     vec2 iCoord = gl_TexCoord[0].st;
-    vec2 texel = vec2(1.0, 1.0) / size;
 
-    // create offset for the texel sampling (TODO check why -1 seems to be correct)
+    // this represent the step size to sample the pixels from previous mipmap level
+    vec2 texel = vec2(1.0, 1.0) / (size);
+    vec2 halftexel = vec2(0.5, 0.5) / size;
+
+    // create offset for the texel sampling (TODO check why -1 seems to be correct)    
     vec2 st[4];
-    st[0] = iCoord + vec2(0,0);
-    st[1] = iCoord + vec2(-texel.x,0);
-    st[2] = iCoord + vec2(0,-texel.y);
-    st[3] = iCoord + vec2(-texel.x,-texel.y);
+    st[0] = iCoord - halftexel + vec2(0,0);
+    st[1] = iCoord - halftexel + vec2(texel.x,0);
+    st[2] = iCoord - halftexel + vec2(0,texel.y);
+    st[3] = iCoord - halftexel + vec2(texel.x,texel.y);
     
     // retrieve 4 texels from the previous mipmap level
     for (int i=0; i < 4; i++)
@@ -54,6 +57,7 @@ void main(void)
         st[i] = clamp(st[i], vec2(0,0), vec2(1,1));
         
         // get texel from the previous mipmap level
+        //c[i] = texelFetch2D(texUnit0, ivec2(size * st[i]), (int)g_MipmapLevel - 1).r;
         c[i] = texture2D(texUnit0, st[i], g_MipmapLevel - 1.0).r;
     }
 
@@ -67,7 +71,8 @@ void main(void)
         res += log(epsilon + c[3]);
 
     // for the rest we just compute the sum of underlying values
-    }else{
+    }else
+    {
         res += c[0];
         res += c[1];
         res += c[2];

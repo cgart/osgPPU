@@ -273,7 +273,7 @@ class Viewer : public osgViewer::Viewer
             }
 
             // add a text ppu after the pipeline is setted up
-            {
+            /*{
                 osgPPU::PostProcessUnitText* fpstext = new osgPPU::PostProcessUnitText(mPostProcess.get());
                 fpstext->setIndex(999);
                 fpstext->setName("FPSTextPPU");
@@ -283,7 +283,7 @@ class Viewer : public osgViewer::Viewer
 
                 mPostProcess->addPPUToPipeline(fpstext);
                 fpstext->init();
-            }
+            }*/
 
             // add now new camera as new scene data, so it gets updated
             getCamera()->addChild(mCamera.get());
@@ -357,6 +357,7 @@ int main(int argc, char **argv)
 
     // just make it singlethreaded since I get some problems if not in this mode
     viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    viewer->setUpViewInWindow(0,0,512,512);
 
     // setup scene
     osg::Group* node = new osg::Group();

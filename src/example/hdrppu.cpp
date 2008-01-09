@@ -27,13 +27,13 @@ class HDRRendering
         // Setup default hdr values
         HDRRendering()
         {
-            mMidGrey = 0.145;
+            mMidGrey = 0.45;
             mHDRBlurSigma = 7.0;
             mHDRBlurRadius = 7.0;
             mGlareFactor = 2.0;
             mMinLuminance = 0.2;
             mMaxLuminance = 1.0;
-            mAdaptFactor = 1.0;
+            mAdaptFactor = 0.01;
         }
 
         // generate a 1x1 texture to store adapted luminance value
@@ -74,6 +74,19 @@ class HDRRendering
                 
                 pipeline.push_back(bypass);
             #if 1
+
+            // Now we have got a texture with only to bright pixels.
+            // To simulate hdr glare we have to blur this texture.
+            // We do this by first downsampling the texture and
+            // applying separated gauss filter afterwards.
+            osgPPU::PostProcessUnitInResampleOut* resample = new osgPPU::PostProcessUnitInResampleOut(parent);
+            {
+                resample->setIndex(10);
+                resample->setName("Resample");
+                resample->setFactor(0.5, 0.5);
+                resample->addInputPPU(bypass.get());
+            }
+            pipeline.push_back(osg::ref_ptr<osgPPU::PostProcessUnit>(resample));
             
             // Now we need a ppu which do compute the luminance of the scene.
             // We need to compute luminance per pixel and current luminance
@@ -83,7 +96,7 @@ class HDRRendering
             // resulting luminance in the last mipmap level. For more info about
             // this step take a look into the according shaders.
             osg::ref_ptr<osgPPU::PostProcessUnit> luminance = new osgPPU::PostProcessUnitInOut(parent);
-            luminance->setIndex(10);
+            luminance->setIndex(15);
             luminance->setName("ComputeLuminance");
             luminance->setUseMipmaps(true);
             {
@@ -151,23 +164,11 @@ class HDRRendering
                 brightpass->setShader(brightpassSh);
 
                 // brightpass ppu does get two input textures, hence add them
-                brightpass->addInputPPU(bypass.get(), true);
+                brightpass->addInputPPU(resample, true);
                 brightpass->addInputPPU(luminance.get());
             }
             pipeline.push_back(brightpass);
 
-            // Now we have got a texture with only to bright pixels.
-            // To simulate hdr glare we have to blur this texture.
-            // We do this by first downsampling the texture and
-            // applying separated gauss filter afterwards.
-            osgPPU::PostProcessUnitInResampleOut* resample = new osgPPU::PostProcessUnitInResampleOut(parent);
-            {
-                resample->setIndex(30);
-                resample->setName("Resample");
-                resample->setFactor(0.5, 0.5);
-                resample->addInputPPU(brightpass.get());
-            }
-            pipeline.push_back(osg::ref_ptr<osgPPU::PostProcessUnit>(resample));
 
             // now we perform a gauss blur on the downsampled data
             osg::ref_ptr<osgPPU::PostProcessUnit> blurx = new osgPPU::PostProcessUnitInOut(parent);

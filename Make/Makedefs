@@ -49,7 +49,7 @@ INST_LOCATION_INC = $(INST_LOCATION)/include
 # Define macros with compiler options
 #-----------------------------------------------
 CC = g++
-CFLAGS = -m32 -pthread -O2 -Wall $(INCPATH)
+CFLAGS = -m32 -pthread -g -Wall $(INCPATH)
 LIBS = 
 LDFLAGS = -shared $(LIBPATH) $(LIBS)
 DEPARG = -MM

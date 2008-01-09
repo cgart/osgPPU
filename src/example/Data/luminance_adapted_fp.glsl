@@ -1,6 +1,6 @@
 /*
  * Compute adapted luminance based on the data from the previous frames.
- * based on: http://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf
+ * see http://msdn2.microsoft.com/en-us/library/bb173484(VS.85).aspx
  */
 
 // -------------------------------------------------------
@@ -22,6 +22,9 @@ uniform float invFrameTime;
 // scaling factor which decides how fast to adapt for new luminance
 uniform float adaptScaleFactor;
 
+static const float TauCone = 0.01;
+static const float TauRod = 0.04;
+
 /**
  * Compute adapted luminance value.
  * @param current Is the current luminance value 
@@ -30,18 +33,32 @@ uniform float adaptScaleFactor;
 void main(void)
 {
     // get current luminance, this one is stored in the last mipmap level
-    float current = texture2D(texLuminance, vec2(0,0), 100.0).x;
+    float current = texture2D(texLuminance, vec2(0.5,0.5), 100.0).x;
     
     // get old adapted luminance value
-    float old = texture2D(texAdaptedLuminance, vec2(0,0)).x;
+    float old = texture2D(texAdaptedLuminance, vec2(0.5,0.5)).w;
 
-    // check that we do not exceed over a maximum value 
-    //current = clamp(current, minLuminance, maxLuminance);
+    //determin if rods or cones are active
+    //Perceptual Effects in Real-time Tone Mapping: Equ(7)    
+    float sigma = saturate(0.4/(0.04+current));
+
+    //interpolate tau from taurod and taucone depending on lum
+    //Perceptual Effects in Real-time Tone Mapping: Equ(12)
+    float Tau = lerp(TauCone,TauRod,sigma) / adaptScaleFactor;
 
     // compute new adapted value
-    float lum = old + (current - old) * (1.0 - pow(0.98, adaptScaleFactor * invFrameTime));
+    //float lum = old + (current - old) * (1.0 - pow(0.98, adaptScaleFactor * invFrameTime));
 
     // clamp and return back
-    gl_FragData[0].xyz = maxLuminance;//clamp(lum, minLuminance, maxLuminance);
-    gl_FragData[0].a = 1.0;
+    //gl_FragData[0].xyzw = lum;//clamp(lum, minLuminance, maxLuminance);
+    //gl_FragData[0].a = 1.0;
+
+
+    //calculate adaption
+    //Perceptual Effects in Real-time Tone Mapping: Equ(5)
+    float lum  = old + (current - old) * (1 - exp(-(invFrameTime)/Tau));
+    //gl_FragData[0].x = current;
+    //gl_FragData[0].y = old;
+    //gl_FragData[0].z = (1 - exp(-(invFrameTime)/Tau));
+    gl_FragData[0].xyzw = clamp(lum, minLuminance, maxLuminance);
 }

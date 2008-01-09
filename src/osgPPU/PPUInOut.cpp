@@ -74,6 +74,20 @@ void PostProcessUnitOut::render(int mipmapLevel)
     // aplly stateset
     sState.getState()->apply(sScreenQuad->getStateSet());
 
+    // HACK: need this sometimes otherwise the wrong mipmap level is readed
+    if (mipmapLevel > 0)
+    {
+        for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
+        {
+            sState.getState()->applyTextureAttribute((*it).first, (*it).second.get());
+
+            GLenum target = (*it).second->getTextureTarget();
+    
+            glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, mipmapLevel-1);
+            glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipmapLevel-1);
+        }
+    }
+
     // apply viewport if such is valid
     if (mViewport.valid()) mViewport->apply(*sState.getState());
 
@@ -89,6 +103,19 @@ void PostProcessUnitOut::render(int mipmapLevel)
         glDisable(GL_BLEND);
         glColor4f(1,1,1,1);
     }   
+
+
+    // HACK
+    if (mipmapLevel > 0)
+    {
+        for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
+        {
+            GLenum target = (*it).second->getTextureTarget();
+    
+            glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
+            glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
+        }
+    }
 
 }
 
@@ -211,7 +238,7 @@ void PostProcessUnitInOut::assignOutputTexture()
             if (mTex == NULL)
             {
                 mTex = new osg::Texture2D();
-                mTex->setTextureSize(int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()) );
+                mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
                 mTex->setResizeNonPowerOfTwoHint(false);
                 mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
                 mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);               
@@ -261,7 +288,7 @@ void PostProcessUnitInOut::assignOutputTexture()
 //------------------------------------------------------------------------------
 void PostProcessUnitInOut::checkIOMipmappedData()
 {
-    if (mFBO.valid() && mOutputTex.size() > 0)
+    if (mFBO.valid() && mOutputTex.size() > 0 && mbMipmappedIO)
     {
         // do only proceed if output texture is valid
         if (mOutputTex.begin()->second == NULL) return;
@@ -374,7 +401,9 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
     // can only be done on valid data 
     if (mFBO.valid() && mViewport.valid())
     {
+        // just to be sure to pass correct values
         if (mipmapLevel < 0) mipmapLevel = 0;
+
         // update shaders manually, because they are do not updated from scene graph
         if (mShader.valid()) 
         {
@@ -387,13 +416,27 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
         /*printf("render %s-%s: %dx%d (%d)\n", getName().c_str(),
             mShader.valid() ? mShader->getName().c_str() : "nil", (int)mViewport->width(),
             (int)mViewport->height(), mipmapLevel);
-         */
-         
+        */
+
         // aplly stateset
         sState.getState()->apply(sScreenQuad->getStateSet());
 
         // apply framebuffer object, this will bind it, so we can use it
         mFBO->apply(*sState.getState());
+
+        // HACK: need this sometimes otherwise the wrong mipmap level is readed
+        if (mipmapLevel > 0)
+        {
+            for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
+            {
+                sState.getState()->applyTextureAttribute((*it).first, (*it).second.get());
+    
+                GLenum target = (*it).second->getTextureTarget();
+        
+                glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, mipmapLevel-1);
+                glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipmapLevel-1);
+            }
+        }
         
         // apply viewport
         mViewport->apply(*sState.getState());
@@ -412,6 +455,56 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
             sScreenQuad->draw(sState);
             glColor4f(1,1,1,1);
         }
+
+        // HACK
+        if (mipmapLevel > 0)
+        {
+            for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
+            {
+                GLenum target = (*it).second->getTextureTarget();
+        
+                glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
+                glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
+            }
+        }
+
+        #if 0
+        // TEST
+        if (getName() == "AdaptedLuminance")
+        {
+            // get maximal level count
+            int width = mOutputTex[0]->getTextureWidth();
+            int height = mOutputTex[0]->getTextureHeight();
+            int numLevels = 1 + (int)floor(log2(std::max(width, height)));
+        
+            // the mipmap level we want to read from is
+            int level = numLevels  - 1;
+
+            // create image to hold result, if no such already exists
+            static osg::ref_ptr<osg::Image> mMipmapImage = new osg::Image();
+        
+            // compute the w and h based on the level
+            int w = std::max(1, (int)floor(float(width) / float(pow(2,level)) ));
+            int h = std::max(1, (int)floor(float(height) / float(pow(2,level)) ));
+            
+            // read out
+            mFBO->apply(*sState.getState());
+            glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+            mMipmapImage->readPixels(0, 0, w, h, GL_RGBA, GL_FLOAT);
+    
+            // store result in variable
+            float r = ((float*)(mMipmapImage->data()))[0];
+            float g = ((float*)(mMipmapImage->data()))[1];
+            float b = ((float*)(mMipmapImage->data()))[2];
+            float a = ((float*)(mMipmapImage->data()))[3];
+    
+            printf("read out %f %f %f %f\n", r,g,b,a);
+    
+            // disable fbo, since it was disabled before 
+            osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
+            fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        }
+        #endif
     }    
 }
 

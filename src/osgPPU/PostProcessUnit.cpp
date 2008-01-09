@@ -83,6 +83,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
 
     // assign empty state set
     sScreenQuad->setStateSet(new osg::StateSet());
+    sScreenQuad->setUseDisplayList(false);
     setBlendMode(false);
 
     // disable mipmapping per default
@@ -525,15 +526,14 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
     // now we assign input texture as our result texture, so we can generate mipmaps
     mInputTex[0] = output;
     assignInputTexture();
-    
+
+    // set global shader variable    
     if (mShader.valid()) mShader->set("g_MipmapLevelNum", float(numLevel));
 
     // now we render the result in a loop to generate mipmaps 
     for (int i=1; i < numLevel; i++)
     {
         // set mipmap level
-        //if (mShaderMipmapLevelUniform != NULL) 
-        //    mShaderMipmapLevelUniform->set(float(i));
         if (mShader.valid()) mShader->set("g_MipmapLevel", float(i));
 
         // assign new viewport 

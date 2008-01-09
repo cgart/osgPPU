@@ -14,7 +14,7 @@ uniform sampler2D texUnit0;
 void main(void)
 {
 	// get color from the texture
-	vec4 texColor0 = texture2DLod(texUnit0, gl_TexCoord[0], 0.0);
+	vec4 texColor0 = texture2D(texUnit0, gl_TexCoord[0]);
 	
 	// compute luminance and output
 	gl_FragColor.xyz = texColor0.r * 0.2125 + texColor0.g * 0.7154 + texColor0.b * 0.0721;

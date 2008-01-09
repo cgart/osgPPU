@@ -10,7 +10,7 @@
 // Original hdr input 
 uniform sampler2D hdrInput;
 
-// Luminance input containing scaled luminance values
+// Luminance input containing luminance values (mipmapped)
 uniform sampler2D lumInput;
 
 // input texture containing the adpted luminance
@@ -47,15 +47,15 @@ void main(void)
 		
 	// get luminance and average (adapted) luminance value 
 	float fLuminance = texture2D(lumInput, gl_TexCoord[0]).r;
-	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0,0)).x;
+	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0.5,0.5)).w;
     float fScaledLum = computeScaledLuminance(fAdaptedLum, fLuminance);
 
     // get color of the pixel 
     vec3 vSample = texture2D(hdrInput, gl_TexCoord[0]).rgb;
 
 	// Determine what the pixel's value will be after tone mapping occurs
-    //vSample *= fScaledLum;
-    vSample.rgb *= g_fMiddleGray/(fScaledLum + 0.001);
+    vSample *= fScaledLum;
+    //vSample.rgb *= g_fMiddleGray/(fScaledLum + 0.001);
 	
 	// Subtract out dark pixels
 	vSample -= BRIGHT_PASS_THRESHOLD;

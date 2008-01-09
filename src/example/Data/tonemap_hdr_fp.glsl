@@ -58,7 +58,7 @@ void main(void)
 
 	// get adapted, normal and scaled luminance
     float fLuminance = texture2D(lumInput, inTex).r;
-	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0,0)).x;
+	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0.5,0.5)).w;
     float fScaledLum = computeScaledLuminance(fAdaptedLum, fLuminance);
 
 	// resulting color is the hdr color multiplied by the scaled luminance

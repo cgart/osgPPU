@@ -268,7 +268,6 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
                 return;
             }
         }
-        return;
     }
 
     //printf("add ppu %s (%d)\n", ppu->getName().c_str(), ppu->getIndex());
@@ -328,7 +327,7 @@ void PostProcess::update(float dTime)
     glGetFloatv(GL_MODELVIEW_MATRIX, mvmat);
 
     // push some attributes, TODO: should be avoided since we are using StateSet's
-    glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_VIEWPORT_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT);
+    //glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_VIEWPORT_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT);
     //glClearColor(0,1,0,0);
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //glDepthMask(GL_FALSE);
@@ -336,7 +335,6 @@ void PostProcess::update(float dTime)
     // apply state set 
     mState->apply(mStateSet.get());
 
-    
     #if DEBUG_PPU    
     printf("--------------------------------------------------------------------\n");
     printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
@@ -415,7 +413,7 @@ void PostProcess::update(float dTime)
     #endif
 
     // give me all things back
-    glPopAttrib();
+    //glPopAttrib();
 }
 
 
