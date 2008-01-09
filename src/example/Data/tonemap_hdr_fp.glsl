@@ -16,6 +16,9 @@ uniform sampler2D hdrInput;
 // Luminance input 
 uniform sampler2D lumInput;
 
+// input texture containing the adpted luminance
+uniform sampler2D texAdaptedLuminance;
+
 // how much to use blurred 
 uniform float fBlurFactor;
 
@@ -34,7 +37,7 @@ float computeScaledLuminance(float avg, float lum)
     float scaledLum = lum * (g_fMiddleGray / (avg + 0.001));
     
     // clamp to fp16 value 
-    scaledLum = min(scaledLum, 65504);
+    scaledLum = min(scaledLum, 65504.0);
     
     // compute new luminance for the color
     return scaledLum / (1.0 + scaledLum);    
@@ -55,7 +58,7 @@ void main(void)
 
 	// get adapted, normal and scaled luminance
     float fLuminance = texture2D(lumInput, inTex).r;
-	float fAdaptedLum = texture2DLod(lumInput, 0, 100).a;
+	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0,0)).x;
     float fScaledLum = computeScaledLuminance(fAdaptedLum, fLuminance);
 
 	// resulting color is the hdr color multiplied by the scaled luminance

@@ -13,6 +13,9 @@ uniform sampler2D hdrInput;
 // Luminance input containing scaled luminance values
 uniform sampler2D lumInput;
 
+// input texture containing the adpted luminance
+uniform sampler2D texAdaptedLuminance;
+
 // this gives us middle gray value 
 uniform float g_fMiddleGray;
 
@@ -27,7 +30,7 @@ float computeScaledLuminance(float avg, float lum)
     float scaledLum = lum * (g_fMiddleGray / (avg + 0.001));
     
     // clamp to fp16 value 
-    scaledLum = min(scaledLum, 65504);
+    scaledLum = min(scaledLum, 65504.0);
     
     // compute new luminance for the color
     return scaledLum / (1.0 + scaledLum);    
@@ -44,26 +47,26 @@ void main(void)
 		
 	// get luminance and average (adapted) luminance value 
 	float fLuminance = texture2D(lumInput, gl_TexCoord[0]).r;
-	float fAdaptedLum = texture2DLod(lumInput, gl_TexCoord[0], 100).a;
+	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0,0)).x;
     float fScaledLum = computeScaledLuminance(fAdaptedLum, fLuminance);
 
     // get color of the pixel 
-    vec4 vSample = texture2D(hdrInput, gl_TexCoord[0]);
+    vec3 vSample = texture2D(hdrInput, gl_TexCoord[0]).rgb;
 
 	// Determine what the pixel's value will be after tone mapping occurs
-    vSample.rgb *= fScaledLum;
-    //vSample.rgb *= g_fMiddleGray/(fScaledLum + 0.001);
+    //vSample *= fScaledLum;
+    vSample.rgb *= g_fMiddleGray/(fScaledLum + 0.001);
 	
 	// Subtract out dark pixels
-	vSample.rgb -= BRIGHT_PASS_THRESHOLD;
+	vSample -= BRIGHT_PASS_THRESHOLD;
 	
 	// Clamp to 0
-	vSample = max(vSample, 0.0);
+	vSample = max(vSample, vec3(0.0, 0.0, 0.0));
 	
 	// Map the resulting value into the 0 to 1 range. Higher values for
 	// BRIGHT_PASS_OFFSET will isolate lights from illuminated scene 
 	// objects.
-	vSample.rgb /= (BRIGHT_PASS_OFFSET + vSample);
+	vSample /= (BRIGHT_PASS_OFFSET + vSample);
 
 	// resulting color
 	gl_FragColor.rgb = vSample;

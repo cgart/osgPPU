@@ -46,12 +46,16 @@ public:
                         textppu->getText()->setString("Gauss Blur on Brightpass");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F5)
                     {
+                        ppu->setInputTexture(mPostProcess->getPPU("AdaptedLuminanceCopy")->getOutputTexture(0), 0);
+                        textppu->getText()->setString("Adapted Luminance");
+                    }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
+                    {
                         ppu->setStartBlendValue(1.0);
                         ppu->setEndBlendValue(0.0);
                         ppu->setStartBlendTimeToCurrent();
                         ppu->setBlendDuration(3.0);
                         ppu->setBlendMode(true);
-                    }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
+                    }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F7)
                     {
                         ppu->setStartBlendValue(0.0);
                         ppu->setEndBlendValue(1.0);
@@ -177,16 +181,9 @@ class Viewer : public osgViewer::Viewer
             mPostProcess->setCamera(mCamera.get());
             mPostProcess->setName("PostProcess");
             
-            // disable color clamping, because we want to work on real hdr values
-            /*osg::ClampColor* clamp = new osg::ClampColor();
-            clamp->setClampVertexColor(false);
-            clamp->setClampFragmentColor(false);
-            mPostProcess->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON);
-            */
-
             // we want to simulate hdr rendering, hence setup the pipeline
             // for the hdr rendering
-            osgPPU::PostProcess::FXPipeline pipeline = mHDRSetup.createPipeline(mPostProcess.get());
+            osgPPU::PostProcess::FXPipeline pipeline = mHDRSetup.createHDRPipeline(mPostProcess.get());
 
             // This ppu do get the input from the camera and bypass it
             // You MUST have this ppu to get the data from the camera into the pipeline
@@ -219,6 +216,9 @@ class Viewer : public osgViewer::Viewer
             // finally we add the list of the ppus to the pipeline
             mPostProcess->setPipeline(pipeline);
 
+            // now after the pipeline is setted up, we add offline ppus to compute adapted luminace
+            mHDRSetup.setupPPUsToComputeAdaptedLuminance(mPostProcess.get());
+            
             // This ppu just render a texture over the screen.
             // We do this after we have setted up the pipeline, so that we can
             // seamless include this into the pipeline.
@@ -263,6 +263,13 @@ class Viewer : public osgViewer::Viewer
                 vp->height() = bypass->getViewport()->height() * 0.4;
                 bgppu->setViewport(vp);
 
+                osg::Shader* sh = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/bypass_fp.glsl");
+                osgPPU::Shader* shader = new osgPPU::Shader();
+                shader->addShader(sh);
+                shader->add("texUnit0", osg::Uniform::SAMPLER_2D);
+                shader->set("texUnit0", 0);
+
+                bgppu->setShader(shader);
             }
 
             // add a text ppu after the pipeline is setted up
@@ -318,9 +325,9 @@ class Viewer : public osgViewer::Viewer
             // I would suggest to solve this in another way
             {
                 // get ppu containing the shader with the variable
-                osgPPU::PostProcessUnit* ppu = mPostProcess->getPPU("ComputeLuminance");
+                osgPPU::PostProcessUnit* ppu = mPostProcess->getPPU("AdaptedLuminance");
                 if (ppu)
-                    ppu->getMipmapShader()->set("invFrameTime", frameTime);
+                    ppu->getShader()->set("invFrameTime", frameTime);
             }
 
             // print also some info about the fps number
@@ -360,8 +367,9 @@ int main(int argc, char **argv)
     
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
-    clamp->setClampVertexColor(false);
-    clamp->setClampFragmentColor(false);
+    clamp->setClampVertexColor(GL_FALSE);
+    clamp->setClampFragmentColor(GL_FALSE);
+    clamp->setClampReadColor(GL_FALSE);
 
     // make it protected and override, so that it is done for the whole rendering pipeline
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
@@ -376,8 +384,9 @@ int main(int argc, char **argv)
     printf("\tF2 - Show luminance per pixel\n");
     printf("\tF3 - Show brightpassed pixels\n");
     printf("\tF4 - Show blurred version of brightpassed pixels\n");
-    printf("\tF5 - Fade out the picture in picture\n");
-    printf("\tF6 - Fade in the picture in picture\n");
+    printf("\tF5 - Show the 1x1 texture with adapted luminance value\n");
+    printf("\tF6 - Fade out the picture in picture\n");
+    printf("\tF7 - Fade in the picture in picture\n");
     
     // run costumzied viewer, so that we can update our own stuff
     return viewer->run();

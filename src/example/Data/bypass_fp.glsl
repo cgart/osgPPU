@@ -1,6 +1,6 @@
 /*
- * Compute luminance values of the input texture.
- * So result will contain only luminance values per pixel.
+ * Reimplement fixed function pipeline of OpenGL
+ * So bypass all the data.
  */
 
 // -------------------------------------------------------
@@ -10,13 +10,13 @@ uniform sampler2D texUnit0;
 
 
 /**
+ * Reimplement fixed pipeline
  **/
 void main(void)
 {
 	// get color from the texture
 	vec4 texColor0 = texture2DLod(texUnit0, gl_TexCoord[0], 0.0);
 	
-	// compute luminance and output
-	gl_FragColor.xyz = texColor0.r * 0.2125 + texColor0.g * 0.7154 + texColor0.b * 0.0721;
-	gl_FragColor.a = texColor0.a;
+	// combine texture color with the vertex color
+	gl_FragData[0] = texColor0;
 }

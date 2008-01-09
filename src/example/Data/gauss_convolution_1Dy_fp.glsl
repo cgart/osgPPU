@@ -19,23 +19,20 @@ varying float sigma2;
 varying float c;
 
 // width of the input texture 
-//uniform float g_TextureWidth[16];
+uniform float g_ViewportWidth;
 
 // height of the input texture 
-//uniform float g_TextureHeight[16];
+uniform float g_ViewportHeight;
 
 /**
  **/
 void main(void)
 {
-    // get texture size 
-    float g_TextureWidth = textureSize2D(texUnit0, 0).x;
-    float g_TextureHeight = textureSize2D(texUnit0, 0).y;
 
 	// store here resulting color
 	vec4 color;
 	float totalWeigth = 0;
-	float inputTexTexelWidth = 1.0 / g_TextureHeight;
+	float inputTexTexelWidth = 1.0 / g_ViewportHeight;
 
 	// convolve by applying nsamples-time the texture lookup
 	for (float i=-radius; i < radius; i += 1.0) 
