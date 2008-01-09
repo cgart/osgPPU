@@ -75,7 +75,7 @@ void PostProcessUnitOut::render(int mipmapLevel)
     sState.getState()->apply(sScreenQuad->getStateSet());
 
     // HACK: need this sometimes otherwise the wrong mipmap level is readed
-    if (mipmapLevel > 0)
+    /*if (mipmapLevel > 0)
     {
         for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
         {
@@ -86,7 +86,7 @@ void PostProcessUnitOut::render(int mipmapLevel)
             glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, mipmapLevel-1);
             glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipmapLevel-1);
         }
-    }
+    }*/
 
     // apply viewport if such is valid
     if (mViewport.valid()) mViewport->apply(*sState.getState());
@@ -106,7 +106,7 @@ void PostProcessUnitOut::render(int mipmapLevel)
 
 
     // HACK
-    if (mipmapLevel > 0)
+    /*if (mipmapLevel > 0)
     {
         for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
         {
@@ -115,7 +115,7 @@ void PostProcessUnitOut::render(int mipmapLevel)
             glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
             glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
         }
-    }
+    }*/
 
 }
 
@@ -425,7 +425,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
         mFBO->apply(*sState.getState());
 
         // HACK: need this sometimes otherwise the wrong mipmap level is readed
-        if (mipmapLevel > 0)
+        /*if (mipmapLevel > 0)
         {
             for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
             {
@@ -436,7 +436,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
                 glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, mipmapLevel-1);
                 glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipmapLevel-1);
             }
-        }
+        }*/
         
         // apply viewport
         mViewport->apply(*sState.getState());
@@ -457,7 +457,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
         }
 
         // HACK
-        if (mipmapLevel > 0)
+        /*if (mipmapLevel > 0)
         {
             for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
             {
@@ -466,7 +466,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
                 glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
                 glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
             }
-        }
+        }*/
 
         #if 0
         // TEST
