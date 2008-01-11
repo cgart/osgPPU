@@ -273,17 +273,17 @@ class Viewer : public osgViewer::Viewer
             }
 
             // add a text ppu after the pipeline is setted up
-            /*{
+            {
                 osgPPU::PostProcessUnitText* fpstext = new osgPPU::PostProcessUnitText(mPostProcess.get());
                 fpstext->setIndex(999);
                 fpstext->setName("FPSTextPPU");
-                fpstext->setSize(12);
-                fpstext->getText()->setString("FPS: ");
-                fpstext->getText()->setPosition(0.0, 0.95);
+                fpstext->setSize(24);
+                fpstext->setText("FPS: ");
+                fpstext->setPosition(0.0, 0.95);
 
                 mPostProcess->addPPUToPipeline(fpstext);
                 fpstext->init();
-            }*/
+            }
 
             // add now new camera as new scene data, so it gets updated
             getCamera()->addChild(mCamera.get());
