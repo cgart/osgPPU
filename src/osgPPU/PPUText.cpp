@@ -22,7 +22,7 @@ namespace osgPPU
     PostProcessUnitText::PostProcessUnitText(osgPPU::PostProcess* parent) : osgPPU::PostProcessUnitInOut(parent)
     {
         // Create text for statistics
-        mText = new Text();
+        //mText = new Text();
         mSize = 26.0;
     }
     
@@ -32,12 +32,31 @@ namespace osgPPU
 
     }
     
+
+    //------------------------------------------------------------------------------
+    /*PostProcessUnitText::setFont()
+    {
+        osg::ref_ptr<osgText::Font> font = osgText::readFontFile(fontFile);
+        if (font.valid()) setFont(mFont.get());
+        return font.valid();
+    }*/
+
     //------------------------------------------------------------------------------
     void PostProcessUnitText::init()
     {
         // initialize text
-        mText->setColor(1,1,1,1);
-        mText->getTextPtr()->setStateSet(sScreenQuad->getOrCreateStateSet());
+        setColor(osg::Vec4(1,1,1,1));
+        setStateSet(sScreenQuad->getOrCreateStateSet());
+
+        // setup some defaults parameters
+        setLayout(osgText::Text::LEFT_TO_RIGHT);
+        setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+        
+        // setup stateset
+        osg::StateSet* stateSet = sScreenQuad->getOrCreateStateSet();
+        stateSet->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        stateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
+        stateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
     
         // init inout ppu
         mOutputTex[0] = mInputTex[0];
@@ -58,8 +77,12 @@ namespace osgPPU
         if (mFBO.valid() && mViewport.valid())
         {
             // we take the width 640 as reference width for the size of characters
-            mText->setSize(mSize * (float(getViewport()->width()) / 640.0));
-    
+            //mText->setSize(mSize * (float(getViewport()->width()) / 640.0));
+            setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
+
+            // compute new color, change alpha acording to the blend value
+            _color.a() = getCurrentBlendValue();
+
             // aplly stateset
             sState.getState()->apply(sScreenQuad->getStateSet());
     
@@ -68,18 +91,9 @@ namespace osgPPU
     
             // apply viewport
             mViewport->apply(*sState.getState());
-            
-            // compute new color 
-            osg::Vec4 color = mText->getColor();
-            color.a() = getCurrentBlendValue();
-    
-            // get string and print it to the output
-            mText->setColor(color);
-            sState.getState()->apply(mText->getTextPtr()->getStateSet());
-    
-            glEnable(GL_BLEND);
-            mText->getTextPtr()->draw(sState);
-            glDisable(GL_BLEND);
+
+            // draw the text                
+            draw(sState);
         }
     }
 

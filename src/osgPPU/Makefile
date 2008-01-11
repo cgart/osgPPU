@@ -17,8 +17,7 @@ CPPFILES= PostProcess.cpp \
 	  PostProcessUnit.cpp \
 	  PPUInOut.cpp \
 	  Shader.cpp \
-	  PPUText.cpp \
-	  Text.cpp
+	  PPUText.cpp
 
 # define used vairables
 TARGET = libosgPPU.so

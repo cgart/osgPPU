@@ -31,23 +31,23 @@ public:
                     if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("CameraBypass")->getOutputTexture(0), 0);
-                        textppu->getText()->setString("Original Input");
+                        textppu->setText("Original Input");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("ComputeLuminance")->getOutputTexture(0), 0);
-                        textppu->getText()->setString("Per Pixel Luminance");
+                        textppu->setText("Per Pixel Luminance");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F3)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("Brightpass")->getOutputTexture(0), 0);
-                        textppu->getText()->setString("Brightpass");
+                        textppu->setText("Brightpass");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F4)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("BlurVertical")->getOutputTexture(0), 0);
-                        textppu->getText()->setString("Gauss Blur on Brightpass");
+                        textppu->setText("Gauss Blur on Brightpass");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F5)
                     {
                         ppu->setInputTexture(mPostProcess->getPPU("AdaptedLuminanceCopy")->getOutputTexture(0), 0);
-                        textppu->getText()->setString("Adapted Luminance");
+                        textppu->setText("Adapted Luminance");
                     }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
                     {
                         ppu->setStartBlendValue(1.0);
@@ -209,8 +209,8 @@ class Viewer : public osgViewer::Viewer
             pputext->setIndex(999);
             pputext->setName("TextPPU");
             pputext->setSize(26);
-            pputext->getText()->setString("osgPPU rocks!");
-            pputext->getText()->setPosition(0.0, 0.4);
+            pputext->setText("osgPPU rocks!");
+            pputext->setPosition(0.0, 0.4);
             pipeline.push_back(osg::ref_ptr<osgPPU::PostProcessUnit>(pputext));
 
             // finally we add the list of the ppus to the pipeline
@@ -337,7 +337,7 @@ class Viewer : public osgViewer::Viewer
                 {
                     char txt[64];
                     sprintf(txt, "FPS:%4.2f", 1.0 / frameTime);
-                    ppu->getText()->setString(txt);
+                    ppu->setText(txt);
                 }
             }
             

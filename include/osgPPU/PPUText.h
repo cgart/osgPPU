@@ -21,16 +21,16 @@
 // Includes
 //-------------------------------------------------------------------------
 #include <osgPPU/PPUInOut.h>
-#include <osgPPU/Text.h>
+#include <osgText/Text>
 
 namespace osgPPU
 {
     //! Smae as PostProcessUnitInOut but do render a text onto the output
     /**
-    * Same as PostProcessUnitInOut but renders a text on the output texture.
-    * The text is displayed in 2D ortho mode.
+    * The text is displayed in 2D ortho mode. This class is also derived from the osgText::Text
+    * class. Hence check it for more information about the text support.
     **/
-    class PostProcessUnitText : public PostProcessUnitInOut
+    class PostProcessUnitText : public PostProcessUnitInOut, public osgText::Text
     {
         public:
         
@@ -48,17 +48,20 @@ namespace osgPPU
 
             //! Get current size 
             inline float getSize() const { return mSize; }
-    
-            //! Get text object which is responsible for rendering the text
-            Text* getText(){ return mText.get(); }
-    
+        
+            //! Set 2D Screen positon
+            inline void setPosition(float x, float y) { osgText::Text::setPosition(osg::Vec3(x,y,0)); }
+
+            //! Redefine the setName method, because of diamond polymorphysm against osg::Object
+            inline void setName(const std::string& name)
+            {
+                PostProcessUnitInOut::setName(name);
+            }
+
         protected:
 
             //! Apply the defule unit 
             virtual void render(int mipmapLevel = 0);
-    
-            //! Text holding our statistics
-            osg::ref_ptr<Text> mText;
             
             //! Size of the font
             float mSize;

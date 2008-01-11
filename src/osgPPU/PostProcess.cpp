@@ -22,7 +22,6 @@
 
 #include <assert.h>
 
-
 #define DEBUG_PPU 0
 
 namespace osgPPU
@@ -393,6 +392,7 @@ void PostProcess::update(float dTime)
 
             printf("\n");
 			#endif
+
 
             // apply the post processing unit
             if (onPPUApply(it->get()))

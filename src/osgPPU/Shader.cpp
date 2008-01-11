@@ -43,7 +43,6 @@ Shader::Shader(const Shader& sh, const osg::CopyOp& copyop)
     for (unsigned int i=0; i < sh.mProgram->getNumShaders(); i++)
         mProgram->addShader(new osg::Shader(*(sh.mProgram->getShader(i))));
     
-    
     // copy attributes
     osg::Program::AttribBindingList::const_iterator it = sh.mProgram->getAttribBindingList().begin();
     for (; it != sh.mProgram->getAttribBindingList().end(); it ++)
