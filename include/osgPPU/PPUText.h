@@ -13,8 +13,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _C_POST_PROCESS_UNITS_TEXT_HUD_H_
-#define _C_POST_PROCESS_UNITS_TEXT_HUD_H_
+#ifndef _C_UNITS_TEXT_HUD_H_
+#define _C_UNITS_TEXT_HUD_H_
 
 
 //-------------------------------------------------------------------------
@@ -25,20 +25,20 @@
 
 namespace osgPPU
 {
-    //! Smae as PostProcessUnitInOut but do render a text onto the output
+    //! Smae as UnitInOut but do render a text onto the output
     /**
     * The text is displayed in 2D ortho mode. This class is also derived from the osgText::Text
     * class. Hence check it for more information about the text support.
     **/
-    class PostProcessUnitText : public PostProcessUnitInOut, public osgText::Text
+    class UnitText : public UnitInOut, public osgText::Text
     {
         public:
         
             //! Create default ppfx 
-            PostProcessUnitText(osgPPU::PostProcess* parent);
+            UnitText(osgPPU::Processor* parent);
             
             //! Release it and used memory
-            ~PostProcessUnitText();
+            ~UnitText();
             
             //! Initialze the default postprocessing unit 
             virtual void init();
@@ -55,7 +55,7 @@ namespace osgPPU
             //! Redefine the setName method, because of diamond polymorphysm against osg::Object
             inline void setName(const std::string& name)
             {
-                PostProcessUnitInOut::setName(name);
+                UnitInOut::setName(name);
             }
 
         protected:

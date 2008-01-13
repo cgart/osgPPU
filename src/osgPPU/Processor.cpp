@@ -13,7 +13,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <osgPPU/PostProcess.h>
+#include <osgPPU/Processor.h>
 #include <osgDB/WriteFile>
 #include <osgDB/Registry>
 #include <osg/Image>
@@ -22,13 +22,14 @@
 
 #include <assert.h>
 
+
 #define DEBUG_PPU 0
 
 namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-PostProcess::PostProcess(osg::State* state) : mState(state) 
+Processor::Processor(osg::State* state) : mState(state)
 {
     mTime = 0.0f;
 
@@ -50,30 +51,30 @@ PostProcess::PostProcess(osg::State* state) : mState(state)
 }
 
 //------------------------------------------------------------------------------
-PostProcess::PostProcess(const PostProcess& pp, const osg::CopyOp& copyop) : 
+Processor::Processor(const Processor& pp, const osg::CopyOp& copyop) :
     osg::Object(pp, copyop),
     mState(pp.mState),
     mStateSet(copyop(pp.mStateSet.get())),
     mCamera(pp.mCamera),
-    mFXPipeline(pp.mFXPipeline),
+    mPipeline(pp.mPipeline),
     mTime(pp.mTime)
 {
 
 }
 
 //------------------------------------------------------------------------------
-PostProcess::~PostProcess(){
+Processor::~Processor(){
 
 }
 
 //------------------------------------------------------------------------------
-/*void PostProcess::setState(osg::State* state)
+/*void Processor::setState(osg::State* state)
 {
     mState = state;
 }*/
 
 //------------------------------------------------------------------------------
-void PostProcess::setCamera(osg::Camera* camera)
+void Processor::setCamera(osg::Camera* camera)
 {
     // setup camera
     mCamera = camera;
@@ -84,49 +85,49 @@ void PostProcess::setCamera(osg::Camera* camera)
 }
 
 //------------------------------------------------------------------------------
-void PostProcess::initPostDrawCallback(osg::Camera* camera)
+void Processor::initPostDrawCallback(osg::Camera* camera)
 {
     if (!camera) return;
     camera->setPostDrawCallback(new Callback(this));
 }
 
 //------------------------------------------------------------------------------
-osg::StateSet* PostProcess::getOrCreateStateSet()
+osg::StateSet* Processor::getOrCreateStateSet()
 {
     if (!mStateSet.valid()) mStateSet = new osg::StateSet();
     return mStateSet.get();
 }
 
 //------------------------------------------------------------------------------
-struct less_comparisonFX : std::less<osg::ref_ptr<PostProcessUnit> >
+struct less_comparisonFX : std::less<osg::ref_ptr<Unit> >
 {
     public:
-        bool operator () (const osg::ref_ptr<PostProcessUnit>& a, const osg::ref_ptr<PostProcessUnit>& b)
+        bool operator () (const osg::ref_ptr<Unit>& a, const osg::ref_ptr<Unit>& b)
         {
             return (*a) < (*b);
         }
 };
 
 //------------------------------------------------------------------------------
-void PostProcess::setPipeline(const FXPipeline& pipeline)
+void Processor::setPipeline(const Pipeline& pipeline)
 {
     // first we clean out our current pipeline
-    mFXPipeline.clear();
-    FXPipeline offlinePPUs;
+    mPipeline.clear();
+    Pipeline offlinePPUs;
 
     // iterate through the list 
-    FXPipeline::const_iterator it = pipeline.begin();
+    Pipeline::const_iterator it = pipeline.begin();
     for (; it != pipeline.end(); it++)
     {
         // add the element into the pipeline
         if ((*it)->getOfflineMode() == false)
-            mFXPipeline.push_back((*it));
+            mPipeline.push_back((*it));
         else
             offlinePPUs.push_back((*it));
     }
     
     // sort the pipeline
-    mFXPipeline.sort(less_comparisonFX());
+    mPipeline.sort(less_comparisonFX());
 
     // now combine the output and inputs of the pipeline
     // This is done by set camera texture as input for the first unit 
@@ -141,8 +142,8 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
     osg::Viewport* vp = const_cast<osg::Viewport*>(mCamera->getViewport());
         
     // iterate through the whole pipeline
-    FXPipeline::iterator jt = mFXPipeline.begin();
-    for (; jt != mFXPipeline.end(); jt++)
+    Pipeline::iterator jt = mPipeline.begin();
+    for (; jt != mPipeline.end(); jt++)
     {
 		// check if we have an online ppu, then do connect it
 		if ((*jt)->getOfflineMode() == false)
@@ -176,11 +177,11 @@ void PostProcess::setPipeline(const FXPipeline& pipeline)
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnit* PostProcess::getPPU(const std::string& ppuName)
+Unit* Processor::getPPU(const std::string& ppuName)
 {
     // iterate through pipeline
-    FXPipeline::iterator jt = mFXPipeline.begin();
-    for (; jt != mFXPipeline.end(); jt++ )
+    Pipeline::iterator jt = mPipeline.begin();
+    for (; jt != mPipeline.end(); jt++ )
         if ((*jt)->getName() == ppuName)
             return (*jt).get();
 
@@ -188,32 +189,32 @@ PostProcessUnit* PostProcess::getPPU(const std::string& ppuName)
 }
 
 //------------------------------------------------------------------------------
-PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::string& ppuName)
+Processor::Pipeline::iterator Processor::removePPUFromPipeline(const std::string& ppuName)
 {
     // iterate through pipeline
-    FXPipeline::iterator jt = mFXPipeline.begin();
-    for (; jt != mFXPipeline.end(); jt++ )
+    Pipeline::iterator jt = mPipeline.begin();
+    for (; jt != mPipeline.end(); jt++ )
     {
         if ((*jt)->getName() == ppuName)
         {
             // check if we have only one ppu, so just clean pipeline
-            if (mFXPipeline.size()  <= 1)
+            if (mPipeline.size()  <= 1)
             {
-                mFXPipeline.clear();
-                return mFXPipeline.end();
+                mPipeline.clear();
+                return mPipeline.end();
             }
          
 			// if we have an offline ppu, then we just remove it from the list 
 			if ((*jt)->getOfflineMode())
 			{
-				return mFXPipeline.erase(jt);
+				return mPipeline.erase(jt);
 			}
    
             // we are not at the end
-            if (jt != mFXPipeline.end()--)
+            if (jt != mPipeline.end()--)
             {
                 // get next element
-                FXPipeline::iterator it = jt; it++;
+                Pipeline::iterator it = jt; it++;
 
                 // set input for the next from input of the current
                 (*it)->setInputTextureMap((*jt)->getInputTextureMap());
@@ -224,7 +225,7 @@ PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::
             // this is the last ppu, so just remove it
             }else{
                 // get element before
-                FXPipeline::iterator it = jt; it--;
+                Pipeline::iterator it = jt; it--;
 
                 // remove outputs
                 (*it)->setOutputTexture(NULL, 0);
@@ -233,37 +234,37 @@ PostProcess::FXPipeline::iterator PostProcess::removePPUFromPipeline(const std::
             }
 
             // remove ppu from pipeline
-            return mFXPipeline.erase(jt);
+            return mPipeline.erase(jt);
         }
     }
-    return mFXPipeline.end();
+    return mPipeline.end();
 }
 
 //------------------------------------------------------------------------------
-void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
+void Processor::addPPUToPipeline(Unit* ppu)
 {
     // check for the case if pipeline is empty
-    if (mFXPipeline.size() == 0) mFXPipeline.push_back(ppu);
+    if (mPipeline.size() == 0) mPipeline.push_back(ppu);
 
     // offscreen ppus are inserted from the end
     if (ppu->getOfflineMode())
     {
-        FXPipeline::reverse_iterator jt = mFXPipeline.rbegin();
-        for (int i=0; jt != mFXPipeline.rend(); jt++, i++)
+        Pipeline::reverse_iterator jt = mPipeline.rbegin();
+        for (int i=0; jt != mPipeline.rend(); jt++, i++)
         {
             if ((*jt)->getOfflineMode() && (*jt)->getIndex() <= ppu->getIndex())
             {
                 // create iterator pointing to this position
-                FXPipeline::iterator it = mFXPipeline.begin(); for (int k=mFXPipeline.size(); k > i; k--) it++;
-                mFXPipeline.insert(it++, ppu);
+                Pipeline::iterator it = mPipeline.begin(); for (int k=mPipeline.size(); k > i; k--) it++;
+                mPipeline.insert(it++, ppu);
                 return;
 
             // if we meet the first occurence of non offline, then add after it
             }else if ((*jt)->getOfflineMode() == false)
             {
                 // create iterator pointing to this position
-                FXPipeline::iterator it = mFXPipeline.begin(); for (int k=mFXPipeline.size(); k > i; k--) it++;
-                mFXPipeline.insert(it++, ppu);
+                Pipeline::iterator it = mPipeline.begin(); for (int k=mPipeline.size(); k > i; k--) it++;
+                mPipeline.insert(it++, ppu);
                 return;
             }
         }
@@ -273,9 +274,9 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
 
     // add it based on index
     // iterate through the whole pipeline
-    FXPipeline::iterator jt = mFXPipeline.begin();
-    FXPipeline::iterator it = mFXPipeline.begin();
-    for (++jt; jt != mFXPipeline.end(); jt++, it++)
+    Pipeline::iterator jt = mPipeline.begin();
+    Pipeline::iterator it = mPipeline.begin();
+    for (++jt; jt != mPipeline.end(); jt++, it++)
     {
         //printf("%s (%d) ", (*it)->getName().c_str(), (*it)->getIndex());
         //printf("  -- %s (%d)\n", (*jt)->getName().c_str(), (*jt)->getIndex());
@@ -284,7 +285,7 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
         if ((*jt)->getIndex() > ppu->getIndex())
         {
             // get ppu before
-            //FXPipeline::iterator it = jt;
+            //Pipeline::iterator it = jt;
            
             // input to this ppu is the output of the one before
             ppu->setInputTexture((*it)->getOutputTexture(0), 0);
@@ -294,25 +295,25 @@ void PostProcess::addPPUToPipeline(PostProcessUnit* ppu)
             //printf("%fx%f\n", ppu->getViewport()->width(), ppu->getViewport()->height());
 
             // add the new ppu 
-            mFXPipeline.insert(jt, ppu);
+            mPipeline.insert(jt, ppu);
             
             return;
         }
     }
     
     // we are here, so no such place were found, so add at the end
-    FXPipeline::reverse_iterator rit = mFXPipeline.rbegin();
+    Pipeline::reverse_iterator rit = mPipeline.rbegin();
     
     // input to this ppu is the output of the one before
     ppu->setInputTexture((*rit)->getOutputTexture(0), 0);
     ppu->setViewport((*rit)->getViewport());
     
     // add the new ppu 
-    mFXPipeline.push_back(ppu);   
+    mPipeline.push_back(ppu);
 }
 
 //------------------------------------------------------------------------------
-void PostProcess::update(float dTime)
+void Processor::update(float dTime)
 {
     mTime += dTime;
 
@@ -339,8 +340,8 @@ void PostProcess::update(float dTime)
     printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
     printf("--------------------------------------------------------------------\n");
     #endif
-    // iterate through postprocessing units
-    for (FXPipeline::iterator it = mFXPipeline.begin(); it != mFXPipeline.end(); it ++)
+    // iterate through Processoring units
+    for (Pipeline::iterator it = mPipeline.begin(); it != mPipeline.end(); it ++)
     {
         if ((*it)->isActive())
         {
@@ -393,7 +394,6 @@ void PostProcess::update(float dTime)
             printf("\n");
 			#endif
 
-
             // apply the post processing unit
             if (onPPUApply(it->get()))
             {
@@ -418,7 +418,7 @@ void PostProcess::update(float dTime)
 
 
 //--------------------------------------------------------------------------
-GLenum PostProcess::createSourceTextureFormat(GLenum internalFormat)
+GLenum Processor::createSourceTextureFormat(GLenum internalFormat)
 {
     switch (internalFormat)
     {

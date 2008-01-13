@@ -19,7 +19,7 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
-    PostProcessUnitText::PostProcessUnitText(osgPPU::PostProcess* parent) : osgPPU::PostProcessUnitInOut(parent)
+    UnitText::UnitText(osgPPU::Processor* parent) : osgPPU::UnitInOut(parent)
     {
         // Create text for statistics
         //mText = new Text();
@@ -27,22 +27,13 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
-    PostProcessUnitText::~PostProcessUnitText()
+    UnitText::~UnitText()
     {
 
     }
     
-
     //------------------------------------------------------------------------------
-    /*PostProcessUnitText::setFont()
-    {
-        osg::ref_ptr<osgText::Font> font = osgText::readFontFile(fontFile);
-        if (font.valid()) setFont(mFont.get());
-        return font.valid();
-    }*/
-
-    //------------------------------------------------------------------------------
-    void PostProcessUnitText::init()
+    void UnitText::init()
     {
         // initialize text
         setColor(osg::Vec4(1,1,1,1));
@@ -60,7 +51,7 @@ namespace osgPPU
     
         // init inout ppu
         mOutputTex[0] = mInputTex[0];
-        osgPPU::PostProcessUnitInOut::init();
+        osgPPU::UnitInOut::init();
     
         // setup projection matrix
         sProjectionMatrix = osg::Matrix::ortho2D(0,1,0,1);
@@ -68,7 +59,7 @@ namespace osgPPU
     
     
     //------------------------------------------------------------------------------
-    void PostProcessUnitText::render(int mipmapLevel)
+    void UnitText::render(int mipmapLevel)
     {
         // return if we do not get valid state
         if (!sState.getState()) return;

@@ -14,14 +14,14 @@
  ***************************************************************************/
 
 
-#ifndef _C_POST_PROCESS__H_
-#define _C_POST_PROCESS__H_
+#ifndef _C_PROCESSOR__H_
+#define _C_PROCESSOR__H_
 
 
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
-#include <osgPPU/PostProcessUnit.h>
+#include <osgPPU/Unit.h>
 #include <osg/Camera>
 #include <osg/State>
 
@@ -30,9 +30,9 @@ namespace osgPPU
 
 //! Main ppu processor used to setup the ppu pipeline
 /**
- * PostProcess should be called as a last step in your rendering pipeline.
- * This class manages the post processing units which do form a graph.
- * To the PostProcess object a camera is attached. 
+ * Processor should be called as a last step in your rendering pipeline.
+ * This class manages the units which do form a graph.
+ * To the Processor object a camera is attached.
  * The attached camera must provide a valid viewport and color attachment (texture)
  * which will be used as input for the pipeline.
  * 
@@ -40,28 +40,28 @@ namespace osgPPU
  * ppu is an input to the next one. At the end of the pipeline there should be
  * a bypassout ppu specified which do render the result into the frame buffer.
  * 
- * A post processor can also be used to do some multipass computation on input data.
+ * A processor can also be used to do some multipass computation on input data.
  * In that case it is not neccessary to output the resulting data on the screen, but
  * you can use the output texture of the last ppu for any other purpose.
  **/
-class PostProcess : public osg::Object {
+class Processor : public osg::Object {
     public: 
     
-        META_Object(osgPPU, PostProcess);
-        typedef std::list<osg::ref_ptr<PostProcessUnit> > FXPipeline;
+        META_Object(osgPPU, Processor);
+        typedef std::list<osg::ref_ptr<Unit> > Pipeline;
         
         /**
-         * Initialize the postprocessing system. 
+         * Initialize the ppu system.
          * @param state Specify a state which will be used to apply the post process statesets
         **/
-        PostProcess(osg::State* state);   
+        Processor(osg::State* state);
          
-        PostProcess(const PostProcess&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+        Processor(const Processor&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     
         /**
          * Release the system. This will free used memory and close all ppus.
         **/
-        virtual ~PostProcess();
+        virtual ~Processor();
         
         /**
          * This should be called every frame to update the system.
@@ -72,7 +72,7 @@ class PostProcess : public osg::Object {
         /**
          * Add a camera which texture attachment can be used as input to the pipeline.
          * The camera object must be setted up to render into a texture.
-         * A bypass ppu (PostProcessUnit) as first in the pipeline can bypass
+         * A bypass ppu (Unit) as first in the pipeline can bypass
          * the camera attachment into the pipeline.
          * @param camera Camera object to use input from.
          **/
@@ -91,7 +91,7 @@ class PostProcess : public osg::Object {
          * Calling of this method will always clean up the pipeline first.
          * @param pipeline List of ppus to add into the pipeline.
         **/
-        void setPipeline(const FXPipeline& pipeline);
+        void setPipeline(const Pipeline& pipeline);
         
         /**
          * Remove a ppu from the pipeline. An offline ppu is just removed.  
@@ -100,16 +100,16 @@ class PostProcess : public osg::Object {
          * @param ppuName Unique name of the ppu in the pipeline.
          * @return Iterator of the pipeline list which can be used to resetup the list manually.
         **/
-        FXPipeline::iterator removePPUFromPipeline(const std::string& ppuName);
+        Pipeline::iterator removePPUFromPipeline(const std::string& ppuName);
     
         /**
          * Add new ppu to the pipeline. The ppu will be sorted in to the pipeline according
-         * to its index. So call PostProcessUnit::setIndex() before calling this method.
+         * to its index. So call Unit::setIndex() before calling this method.
          * Inputs and outputs are setted up acoordingly. A ppu will not be initialized,
          * hence do this after you have added it into a pipeline.
          * @param ppu Pointer to the ppu 
         **/
-        void addPPUToPipeline(PostProcessUnit* ppu);
+        void addPPUToPipeline(Unit* ppu);
         
         /**
          * Get stateset of the post processor. This is the working stateset. You can 
@@ -129,7 +129,7 @@ class PostProcess : public osg::Object {
          * Get a ppu.
          * @param name Unique name of the ppu in the pipeline
         **/
-        PostProcessUnit* getPPU(const std::string& name);
+        Unit* getPPU(const std::string& name);
 
         /**
          * Setup a post draw callback to update post processor.
@@ -147,48 +147,49 @@ class PostProcess : public osg::Object {
 
     protected:
 
-        friend class PostProcessUnit;
+        friend class Unit;
 
         //! Empty constructor is defined as protected to prevent of creating non-valid post processors
-        PostProcess() {printf("PostProcess::PostProcess() - How get there?\n");}
+        Processor() {printf("osgPPU::Processor::Processor() - How get there?\n");}
 
         //! Return current state assigned with the post process 
         inline osg::State* getState() { return mState.get(); }
         
         /**
-         * Callback function for derived classes, which if ppu was applied.
+         * Callback function for derived classes, which is called before ppu is applied.
          * @param ppu Pointer to the ppu, which was applied 
          * @return The caller should return true if to apply the ppu or false if not
          **/
-        virtual bool onPPUApply(PostProcessUnit* ppu) {return true;}
+        virtual bool onPPUApply(Unit* ppu) {return true;}
 
         /**
         * Callback function which will be called, if ppu is initialized
         * @return The caller should return true if to continue to initialize the ppu or false if not
         **/
-        virtual bool onPPUInit(PostProcessUnit* ppu) {return true;};
+        virtual bool onPPUInit(Unit* ppu) {return true;};
 
 
         struct Callback : osg::Camera::DrawCallback
         {
-            Callback(PostProcess* parent) : mParent(parent) {}
+            Callback(Processor* parent) : mParent(parent) {}
             
             void operator () (const osg::Camera&) const
             {
                 mParent->update();
             }
 
-            PostProcess* mParent;
+            Processor* mParent;
         };
 
 
         osg::ref_ptr<osg::State>    mState;
         osg::ref_ptr<osg::StateSet> mStateSet;
         osg::ref_ptr<osg::Camera> mCamera;
-        FXPipeline  mFXPipeline;
+        Pipeline  mPipeline;
         float mTime;
 
 };
+
 
 };
 

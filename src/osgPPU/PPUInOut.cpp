@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 #include <osgPPU/PPUInOut.h>
-#include <osgPPU/PostProcess.h>
+#include <osgPPU/Processor.h>
 
 #include <osg/Texture2D>
 #include <osgDB/WriteFile>
@@ -29,24 +29,24 @@ namespace osgPPU
 {
 
 //--------------------------------------------------------------------------
-// PostProcessUnitOut Implementation
+// UnitOut Implementation
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-PostProcessUnitOut::PostProcessUnitOut(PostProcess* parent) : PostProcessUnit(parent)
-//osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
+UnitOut::UnitOut(Processor* parent) : Unit(parent)
+//osg::State* s, osg::StateSet* ss) : Unit(s,ss)
 {
 
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnitOut::~PostProcessUnitOut()
+UnitOut::~UnitOut()
 {
 
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitOut::init()
+void UnitOut::init()
 {
     // assign the input texture and shader if they are valid
     //assignInputTexture();
@@ -57,7 +57,7 @@ void PostProcessUnitOut::init()
 
 
 //------------------------------------------------------------------------------
-void PostProcessUnitOut::render(int mipmapLevel)
+void UnitOut::render(int mipmapLevel)
 {
     // return if we do not get valid state
     if (!sState.getState()) return;
@@ -121,10 +121,10 @@ void PostProcessUnitOut::render(int mipmapLevel)
 
 
 //--------------------------------------------------------------------------
-// PostProcessUnitOutCapture Implementation
+// UnitOutCapture Implementation
 //--------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-PostProcessUnitOutCapture::PostProcessUnitOutCapture(PostProcess* parent) : PostProcessUnitOut(parent)
+UnitOutCapture::UnitOutCapture(Processor* parent) : UnitOut(parent)
 {
     mPath = ".";
     mCaptureNumber = 0;
@@ -132,13 +132,13 @@ PostProcessUnitOutCapture::PostProcessUnitOutCapture(PostProcess* parent) : Post
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnitOutCapture::~PostProcessUnitOutCapture()
+UnitOutCapture::~UnitOutCapture()
 {
 }
 
 
 //------------------------------------------------------------------------------
-void PostProcessUnitOutCapture::noticeFinishRendering()
+void UnitOutCapture::noticeFinishRendering()
 {
     if (isActive() && sState.getState())
     {
@@ -181,12 +181,12 @@ void PostProcessUnitOutCapture::noticeFinishRendering()
 
 
 //--------------------------------------------------------------------------
-// PostProcessUnitInOut Implementation
+// UnitInOut Implementation
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-//PostProcessUnitInOut::PostProcessUnitInOut(osg::State* s, osg::StateSet* ss) : PostProcessUnit(s,ss)
-PostProcessUnitInOut::PostProcessUnitInOut(PostProcess* parent) : PostProcessUnit(parent)
+//UnitInOut::UnitInOut(osg::State* s, osg::StateSet* ss) : Unit(s,ss)
+UnitInOut::UnitInOut(Processor* parent) : Unit(parent)
 {
     // create FBO because we need it
     mFBO = new osg::FrameBufferObject();
@@ -198,13 +198,13 @@ PostProcessUnitInOut::PostProcessUnitInOut(PostProcess* parent) : PostProcessUni
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnitInOut::~PostProcessUnitInOut()
+UnitInOut::~UnitInOut()
 {
 
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::init()
+void UnitInOut::init()
 {
     //assignShader();
 
@@ -222,7 +222,7 @@ void PostProcessUnitInOut::init()
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::assignOutputTexture()
+void UnitInOut::assignOutputTexture()
 {
     if (mFBO.valid())
     {
@@ -243,7 +243,7 @@ void PostProcessUnitInOut::assignOutputTexture()
                 mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
                 mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);               
                 mTex->setInternalFormat(getOutputInternalFormat());
-                mTex->setSourceFormat(PostProcess::createSourceTextureFormat(getOutputInternalFormat()));
+                mTex->setSourceFormat(Processor::createSourceTextureFormat(getOutputInternalFormat()));
 
                 //mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_BORDER);
                 //mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_BORDER);
@@ -286,7 +286,7 @@ void PostProcessUnitInOut::assignOutputTexture()
 
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::checkIOMipmappedData()
+void UnitInOut::checkIOMipmappedData()
 {
     if (mFBO.valid() && mOutputTex.size() > 0 && mbMipmappedIO)
     {
@@ -331,7 +331,7 @@ void PostProcessUnitInOut::checkIOMipmappedData()
                 // if width and height are not equal, then we give some error and stop here 
                 if ((_width != width || _height != height))
                 {
-                    printf("PostProcessUnitInOut %s: output textures has different dimensions\n", getName().c_str());
+                    printf("UnitInOut %s: output textures has different dimensions\n", getName().c_str());
                     return; 
                 }
     
@@ -347,7 +347,7 @@ void PostProcessUnitInOut::checkIOMipmappedData()
 
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::render(int mipmapLevel)
+void UnitInOut::render(int mipmapLevel)
 {
     // if we do generate mipmaps
     if (mipmapLevel >= 0)
@@ -385,7 +385,7 @@ void PostProcessUnitInOut::render(int mipmapLevel)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::setMipmappedIO(bool b)
+void UnitInOut::setMipmappedIO(bool b)
 {
     mbDirtyOutputTextures = b;
     mbMipmappedIO = b;
@@ -393,7 +393,7 @@ void PostProcessUnitInOut::setMipmappedIO(bool b)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::doRender(int mipmapLevel)
+void UnitInOut::doRender(int mipmapLevel)
 {
     // return if we do not get valid state
     if (!sState.getState()) return;
@@ -510,7 +510,7 @@ void PostProcessUnitInOut::doRender(int mipmapLevel)
 
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInOut::noticeChangeViewport()
+void UnitInOut::noticeChangeViewport()
 {
     // change size of the result texture according to the viewport
     TextureMap::iterator it = mOutputTex.begin();
@@ -531,11 +531,11 @@ void PostProcessUnitInOut::noticeChangeViewport()
 
 
 //--------------------------------------------------------------------------
-// PostProcessUnitInResampleOut Implementation
+// UnitInResampleOut Implementation
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(PostProcess* parent) : PostProcessUnitInOut(parent)
+UnitInResampleOut::UnitInResampleOut(Processor* parent) : UnitInOut(parent)
 {
     // setup default values 
     mWidthFactor = 1.0;
@@ -544,13 +544,13 @@ PostProcessUnitInResampleOut::PostProcessUnitInResampleOut(PostProcess* parent) 
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnitInResampleOut::~PostProcessUnitInResampleOut()
+UnitInResampleOut::~UnitInResampleOut()
 {
 
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInResampleOut::setFactor(float w, float h)
+void UnitInResampleOut::setFactor(float w, float h)
 {
     mWidthFactor = w;
     mHeightFactor = h;
@@ -558,7 +558,7 @@ void PostProcessUnitInResampleOut::setFactor(float w, float h)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnitInResampleOut::render(int mipmapLevel)
+void UnitInResampleOut::render(int mipmapLevel)
 {
     // if we have to reset the resampling factor
     if (mDirtyFactor)
@@ -579,7 +579,7 @@ void PostProcessUnitInResampleOut::render(int mipmapLevel)
     }
 
     // do rendering as usual
-    PostProcessUnitInOut::render();
+    UnitInOut::render();
 }
 
 }; // end namespace

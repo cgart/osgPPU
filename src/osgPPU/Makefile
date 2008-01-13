@@ -13,8 +13,8 @@ include $(TOPDIR)/Make/Makedefs
 #-----------------------------------------------
 # We have to built this files into the library
 #-----------------------------------------------
-CPPFILES= PostProcess.cpp \
-	  PostProcessUnit.cpp \
+CPPFILES= Processor.cpp \
+	  Unit.cpp \
 	  PPUInOut.cpp \
 	  Shader.cpp \
 	  PPUText.cpp

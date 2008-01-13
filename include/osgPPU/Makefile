@@ -8,8 +8,8 @@ include $(TOPDIR)/Make/Makedefs
 #-----------------------------------------------
 # We have to built this files into the library
 #-----------------------------------------------
-INCFILES=   PostProcess.h \
-		PostProcessUnit.h \
+INCFILES=   Processor.h \
+		Unit.h \
 		PPUInOut.h \
 		Shader.h \
 		PPUText.h

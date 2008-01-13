@@ -13,34 +13,34 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _C_POST_PROCESS_UNIT_IO_H_
-#define _C_POST_PROCESS_UNIT_IO_H_
+#ifndef _C_UNIT_IO_H_
+#define _C_UNIT_IO_H_
 
 
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
-#include <osgPPU/PostProcessUnit.h>
+#include <osgPPU/Unit.h>
 
 namespace osgPPU
 {
 
 //! Output the input to the frame buffer instead to the output texture
 /**
- * Default postprocess effect. Pass input texture to the frame buffer. Use this ppu 
+ * Pass input texture to the frame buffer. Use this ppu
  * to render results of the previous ppus into the framebuffer. So it is usual that
  * this ppu is applied at the end of the pipeline
  **/
-class PostProcessUnitOut : public PostProcessUnit {
+class UnitOut : public Unit {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitOut(PostProcess* parent);
+        UnitOut(Processor* parent);
         
         //! Release it and used memory
-        virtual ~PostProcessUnitOut();
+        virtual ~UnitOut();
         
-        //! Initialze the default postprocessing unit 
+        //! Initialze the default Processoring unit
         virtual void init();
         
     protected:
@@ -62,14 +62,14 @@ class PostProcessUnitOut : public PostProcessUnit {
  * monitor supports. This can be only achieved if your rendering
  * is going completely through ppu pipeline, so renderer in offscreen mode.
  **/
-class PostProcessUnitOutCapture : public PostProcessUnitOut {
+class UnitOutCapture : public UnitOut {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitOutCapture(PostProcess* parent);
+        UnitOutCapture(Processor* parent);
         
         //! Release it and used memory
-        virtual ~PostProcessUnitOutCapture();
+        virtual ~UnitOutCapture();
         
         //! Set path were to store the screenshots
         void setPath(const std::string& path) { mPath = path; }
@@ -99,16 +99,16 @@ class PostProcessUnitOutCapture : public PostProcessUnitOut {
  * to the output textures. Rendering is done in background, so no information
  * will leack to the frame buffer
  **/
-class PostProcessUnitInOut : public PostProcessUnit {
+class UnitInOut : public Unit {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitInOut(PostProcess* parent);
+        UnitInOut(Processor* parent);
         
         //! Release it and used memory
-        virtual ~PostProcessUnitInOut();
+        virtual ~UnitInOut();
         
-        //! Initialze the default postprocessing unit 
+        //! Initialze the default Processoring unit
         virtual void init();
         
         /**
@@ -162,21 +162,21 @@ class PostProcessUnitInOut : public PostProcessUnit {
 };
 
 
-//! Same as PostProcessUnitInOut but do resampling inbetween
+//! Same as UnitInOut but do resampling inbetween
 /**
  * Resample the input. This PPU will 
  * render the input data resampled to the output. Next PPU will work 
  * on the resampled one. NOTE: You loose information in your data after 
  * appling this PPU.
  **/
-class PostProcessUnitInResampleOut : public PostProcessUnitInOut {
+class UnitInResampleOut : public UnitInOut {
     public:
     
         //! Create default ppfx 
-        PostProcessUnitInResampleOut(PostProcess* parent);
+        UnitInResampleOut(Processor* parent);
         
         //! Release it and used memory
-        virtual ~PostProcessUnitInResampleOut();
+        virtual ~UnitInResampleOut();
         
         //! Set resampling factor
         void setFactor(float x, float h);

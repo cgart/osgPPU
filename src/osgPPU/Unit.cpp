@@ -13,8 +13,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <osgPPU/PostProcessUnit.h>
-#include <osgPPU/PostProcess.h>
+#include <osgPPU/Unit.h>
+#include <osgPPU/Processor.h>
 
 #include <osg/Texture2D>
 #include <osgDB/WriteFile>
@@ -26,13 +26,13 @@ namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-PostProcessUnit::PostProcessUnit()
+Unit::Unit()
 {
     assert(false && "This constructor shouldn't be used!!!");
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnit::PostProcessUnit(PostProcess* parent)
+Unit::Unit(Processor* parent)
 {
     initialize(parent);
     setName("__Nameless_PPU_");
@@ -40,7 +40,7 @@ PostProcessUnit::PostProcessUnit(PostProcess* parent)
 
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::initialize(PostProcess* parent)
+void Unit::initialize(Processor* parent)
 {
     mParent = parent;
     mUserData = NULL;
@@ -104,7 +104,7 @@ void PostProcessUnit::initialize(PostProcess* parent)
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& copyop) : 
+Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     osg::Object(ppu, copyop),
     mFBO(ppu.mFBO),
     mInputTex(ppu.mInputTex),
@@ -149,25 +149,25 @@ PostProcessUnit::PostProcessUnit(const PostProcessUnit& ppu, const osg::CopyOp& 
 }
 
 //------------------------------------------------------------------------------
-PostProcessUnit::~PostProcessUnit()
+Unit::~Unit()
 {
 }
 
 //------------------------------------------------------------------------------
-/*void PostProcessUnit::setState(osg::State* state)
+/*void Unit::setState(osg::State* state)
 {
     if (state != NULL)
         sState.setState(state);
 }*/
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setRenderingPosAndSize(float left, float top, float right, float bottom)
+void Unit::setRenderingPosAndSize(float left, float top, float right, float bottom)
 {
     sProjectionMatrix = osg::Matrix::ortho2D(left, right, bottom, top);
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setInputTextureIndexForViewportReference(int index)
+void Unit::setInputTextureIndexForViewportReference(int index)
 {
     if (index < 0)
     {
@@ -194,7 +194,7 @@ void PostProcessUnit::setInputTextureIndexForViewportReference(int index)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setInputTexture(osg::Texture* inTex, int inputIndex)
+void Unit::setInputTexture(osg::Texture* inTex, int inputIndex)
 {
     if (inTex)
 	{
@@ -205,7 +205,7 @@ void PostProcessUnit::setInputTexture(osg::Texture* inTex, int inputIndex)
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::bindInputTextureToUniform(int index, const std::string& name)
+void Unit::bindInputTextureToUniform(int index, const std::string& name)
 {
     osg::Texture* tex = getInputTexture(index);
     if (mShader.valid() && tex)
@@ -215,7 +215,7 @@ void PostProcessUnit::bindInputTextureToUniform(int index, const std::string& na
 }
 
 //------------------------------------------------------------------------------
-/*void PostProcessUnit::setUniformList(const osg::StateSet::UniformList& list)
+/*void Unit::setUniformList(const osg::StateSet::UniformList& list)
 {
     mUniforms = list;
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
@@ -224,7 +224,7 @@ void PostProcessUnit::bindInputTextureToUniform(int index, const std::string& na
 }*/
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::setOutputTexture(osg::Texture* outTex, int mrt)
+void Unit::setOutputTexture(osg::Texture* outTex, int mrt)
 {
     if (outTex)
         mOutputTex[mrt] = outTex;
@@ -236,7 +236,7 @@ void PostProcessUnit::setOutputTexture(osg::Texture* outTex, int mrt)
 
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::initializeBase()
+void Unit::initializeBase()
 {    
     // check if input PPU is specified
     for (int i=0; i < (int)mInputPPU.size(); i++)
@@ -266,7 +266,7 @@ void PostProcessUnit::initializeBase()
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::enableMipmapGeneration()
+void Unit::enableMipmapGeneration()
 {
     mbUseMipmaps = true;
     
@@ -293,7 +293,7 @@ void PostProcessUnit::enableMipmapGeneration()
 
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::apply(float dTime)
+void Unit::apply(float dTime)
 {
     // update time value 
     mTime += dTime;
@@ -409,7 +409,7 @@ void PostProcessUnit::apply(float dTime)
 }
 
 //--------------------------------------------------------------------------
-bool PostProcessUnit::applyBaseRenderParameters()
+bool Unit::applyBaseRenderParameters()
 {
     // only update if active 
     if (!isActive()) return false;
@@ -445,7 +445,7 @@ bool PostProcessUnit::applyBaseRenderParameters()
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::setBlendMode(bool enable)
+void Unit::setBlendMode(bool enable)
 {
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
     ss->setAttribute(mBlendFunc.get(), enable ? osg::StateAttribute::ON : osg::StateAttribute::OFF);
@@ -453,14 +453,14 @@ void PostProcessUnit::setBlendMode(bool enable)
 }
 
 //--------------------------------------------------------------------------
-bool PostProcessUnit::useBlendMode()
+bool Unit::useBlendMode()
 {
     osg::StateAttribute::GLModeValue mode = sScreenQuad->getOrCreateStateSet()->getMode(GL_BLEND);
     return (mode & osg::StateAttribute::ON) == osg::StateAttribute::ON;
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
+void Unit::generateMipmaps(osg::Texture* output, int mrt)
 {
     // if ppu doesn't use mipmapping so return 
     if (!mbUseMipmaps || output == NULL
@@ -560,7 +560,7 @@ void PostProcessUnit::generateMipmaps(osg::Texture* output, int mrt)
 
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::assignInputTexture()
+void Unit::assignInputTexture()
 {
     // here the textures will be applied
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
@@ -588,7 +588,7 @@ void PostProcessUnit::assignInputTexture()
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::assignShader()
+void Unit::assignShader()
 {
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
     
@@ -607,7 +607,7 @@ void PostProcessUnit::assignShader()
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::removeShader()
+void Unit::removeShader()
 {
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
     
@@ -621,7 +621,7 @@ void PostProcessUnit::removeShader()
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::setViewport(osg::Viewport* vp)
+void Unit::setViewport(osg::Viewport* vp)
 {
     // if viewport is valid and we have to ignore new settings
     if ((mViewport.valid() && getInputTextureIndexForViewportReference() >=0)
@@ -635,7 +635,7 @@ void PostProcessUnit::setViewport(osg::Viewport* vp)
 }
 
 //--------------------------------------------------------------------------
-void PostProcessUnit::setOutputInternalFormat(GLenum format)
+void Unit::setOutputInternalFormat(GLenum format)
 {
     mOutputInternalFormat = format;
     
@@ -645,21 +645,21 @@ void PostProcessUnit::setOutputInternalFormat(GLenum format)
     {
         if (it->second.valid()){
             it->second->setInternalFormat(mOutputInternalFormat);
-            it->second->setSourceFormat(PostProcess::createSourceTextureFormat(mOutputInternalFormat));
+            it->second->setSourceFormat(Processor::createSourceTextureFormat(mOutputInternalFormat));
         }
     }
 
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::init()
+void Unit::init()
 {
     // just copy input to the output
     mOutputTex = mInputTex;
 }
 
 //------------------------------------------------------------------------------
-void PostProcessUnit::render(int mipmapLevel)
+void Unit::render(int mipmapLevel)
 {
     // do nothing just copy the data
     mOutputTex = mInputTex;

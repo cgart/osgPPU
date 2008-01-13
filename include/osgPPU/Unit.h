@@ -13,8 +13,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _C_POST_PROCESS_UNIT_H_
-#define _C_POST_PROCESS_UNIT_H_
+#ifndef _C_UNIT_H_
+#define _C_UNIT_H_
 
 
 //-------------------------------------------------------------------------
@@ -36,7 +36,7 @@
 namespace osgPPU
 {
 
-class PostProcess;
+class Processor;
 
 //! Base class of any ppu which do work as a simple bypass ppu per default
 /**
@@ -47,10 +47,10 @@ class PostProcess;
  * Per defualt the class PostProcessUnit is an empty effect, hence it just bypass
  * all the data (direct connection from input to output).
  **/
-class PostProcessUnit : public osg::Object {
+class Unit : public osg::Object {
     public:
 
-        META_Object(osgPPU,PostProcessUnit);
+        META_Object(osgPPU,Unit);
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         
         /**
@@ -59,17 +59,17 @@ class PostProcessUnit : public osg::Object {
          * data to its output, by setting output textures equal to the input 
          * @param parent Parent post processing class from where we borrow the state and stateset
          **/
-        PostProcessUnit(PostProcess* parent);
+        Unit(Processor* parent);
 
         /**
          * Copy constructor.
         **/
-        PostProcessUnit(const PostProcessUnit&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+        Unit(const Unit&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
 
         /**
         * Release used memory by the ppu. 
         **/        
-        virtual ~PostProcessUnit();
+        virtual ~Unit();
         
         /**
          * Get framebuffer object used by this ppu. Almost every ppu do work 
@@ -130,7 +130,7 @@ class PostProcessUnit : public osg::Object {
         * @param ppu PPU which will be used as input.
         * @param bUsePPUsViewport Should we use the viewport of that ppu to setup our own.
         **/
-        inline void addInputPPU(PostProcessUnit* ppu, bool bUsePPUsViewport = false)
+        inline void addInputPPU(Unit* ppu, bool bUsePPUsViewport = false)
         {
             mInputPPU.push_back(ppu);
             if (bUsePPUsViewport)
@@ -140,14 +140,14 @@ class PostProcessUnit : public osg::Object {
             }
         }
 
-        //! Return the index of this postprocessing unit
+        //! Return the index of this unit
         inline int getIndex() const { return mIndex; }
         
         //! Set index of this ppu
         inline void setIndex(int i) { mIndex = i; }
         
         /**
-        * Initialze the postprocessing unit. This method should be overwritten by the 
+        * Initialze the unit. This method should be overwritten by the
         * derived classes to support non-standard initialization routines.
         **/
         virtual void init();
@@ -169,7 +169,7 @@ class PostProcessUnit : public osg::Object {
         inline void setTime(float f) { mTime = f; }
 
         //! Comparison operator for sorting. Compare by index value
-        inline bool operator < (const PostProcessUnit& b)
+        inline bool operator < (const Unit& b)
         {
                return mIndex < b.mIndex;
         }
@@ -297,10 +297,10 @@ class PostProcessUnit : public osg::Object {
     protected:
 
         //! We do not want the user to use this method directly
-        PostProcessUnit();
+        Unit();
 
         //! it is good to have friends
-        friend class PostProcess;
+        friend class Processor;
 
         //! Notice derived units about end of rendering
         virtual void noticeFinishRendering() {}
@@ -372,7 +372,7 @@ class PostProcessUnit : public osg::Object {
         //! Shader which will be used for rendering
         osg::ref_ptr<Shader>   mShader;
         
-        //! Index of this postprocessing unit in the pipeline
+        //! Index of this unit in the pipeline
         int mIndex;
         
         //! Here we store a screen sized quad, so it can be used for rendering 
@@ -391,13 +391,13 @@ class PostProcessUnit : public osg::Object {
         osg::ref_ptr<osg::Viewport> mViewport;
         
         //! Resource pointer to the ppu which is used as input (if such is specified)
-        std::vector<osg::ref_ptr<PostProcessUnit> > mInputPPU;
+        std::vector<osg::ref_ptr<Unit> > mInputPPU;
         
         //! Resource pointer to the ppu which is used as output (if such is specified)
-        std::vector<osg::ref_ptr<PostProcessUnit> > mOutputPPU;
+        std::vector<osg::ref_ptr<Unit> > mOutputPPU;
                 
         //! Name of the ppu wich viewport should be used
-        PostProcessUnit* mUseInputPPUViewport;
+        Unit* mUseInputPPUViewport;
         
         //! Should we use mipmapping on the output texture
         bool mbUseMipmaps;
@@ -436,7 +436,7 @@ class PostProcessUnit : public osg::Object {
         GLenum mOutputInternalFormat;
 
         //! Pointer to the parent post process 
-        osg::ref_ptr<PostProcess> mParent;
+        osg::ref_ptr<Processor> mParent;
 
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
@@ -452,7 +452,7 @@ class PostProcessUnit : public osg::Object {
         float mTime;
         void* mUserData;
 
-        void initialize(PostProcess* parent);
+        void initialize(Processor* parent);
 
 };
 

@@ -1,5 +1,5 @@
-#include <osgPPU/PostProcess.h>
-#include <osgPPU/PostProcessUnit.h>
+#include <osgPPU/Processor.h>
+#include <osgPPU/Unit.h>
 #include <osgPPU/PPUInOut.h>
 #include <osgPPU/PPUText.h>
 
@@ -59,16 +59,16 @@ class HDRRendering
 
         
         //------------------------------------------------------------------------
-        osgPPU::PostProcess::FXPipeline createHDRPipeline(osgPPU::PostProcess* parent)
+        osgPPU::Processor::Pipeline createHDRPipeline(osgPPU::Processor* parent)
         {
             // resulting pipeline
-            osgPPU::PostProcess::FXPipeline pipeline;
+            osgPPU::Processor::Pipeline pipeline;
             osg::Camera* camera = parent->getCamera();
             
             // first a simple bypass to get the data from somewhere
             // there must be a camera bypass already specified
             // You need this ppu to relay on it with following ppus
-                osg::ref_ptr<osgPPU::PostProcessUnit> bypass = new osgPPU::PostProcessUnit(parent);
+                osg::ref_ptr<osgPPU::Unit> bypass = new osgPPU::Unit(parent);
                 bypass->setIndex(9);
                 bypass->setName("HDRBypass");
                 
@@ -79,14 +79,14 @@ class HDRRendering
             // To simulate hdr glare we have to blur this texture.
             // We do this by first downsampling the texture and
             // applying separated gauss filter afterwards.
-            osgPPU::PostProcessUnitInResampleOut* resample = new osgPPU::PostProcessUnitInResampleOut(parent);
+            osgPPU::UnitInResampleOut* resample = new osgPPU::UnitInResampleOut(parent);
             {
                 resample->setIndex(10);
                 resample->setName("Resample");
                 resample->setFactor(0.5, 0.5);
                 resample->addInputPPU(bypass.get());
             }
-            pipeline.push_back(osg::ref_ptr<osgPPU::PostProcessUnit>(resample));
+            pipeline.push_back(osg::ref_ptr<osgPPU::Unit>(resample));
             
             // Now we need a ppu which do compute the luminance of the scene.
             // We need to compute luminance per pixel and current luminance
@@ -95,7 +95,7 @@ class HDRRendering
             // For the second case we use the concept of mipmaps and store the
             // resulting luminance in the last mipmap level. For more info about
             // this step take a look into the according shaders.
-            osg::ref_ptr<osgPPU::PostProcessUnit> luminance = new osgPPU::PostProcessUnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> luminance = new osgPPU::UnitInOut(parent);
             luminance->setIndex(15);
             luminance->setName("ComputeLuminance");
             luminance->setUseMipmaps(true);
@@ -142,7 +142,7 @@ class HDRRendering
             // which pixels are too bright, so that they can not be represented
             // correctly. This pixels are passed through and will be blurred
             // later to simulate hdr glare.
-            osg::ref_ptr<osgPPU::PostProcessUnit> brightpass = new osgPPU::PostProcessUnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> brightpass = new osgPPU::UnitInOut(parent);
             brightpass->setName("Brightpass");
             brightpass->setIndex(20);
             {
@@ -171,8 +171,8 @@ class HDRRendering
 
 
             // now we perform a gauss blur on the downsampled data
-            osg::ref_ptr<osgPPU::PostProcessUnit> blurx = new osgPPU::PostProcessUnitInOut(parent);
-            osg::ref_ptr<osgPPU::PostProcessUnit> blury = new osgPPU::PostProcessUnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> blurx = new osgPPU::UnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> blury = new osgPPU::UnitInOut(parent);
             {
                 // set name and indicies
                 blurx->setName("BlurHorizontal");
@@ -235,7 +235,7 @@ class HDRRendering
             // to combine them together. This is done by applying tonemapping
             // operation on the hdr values and adding the blurred brightpassed
             // pixels with some glare factor on it.
-            osg::ref_ptr<osgPPU::PostProcessUnit> hdr = new osgPPU::PostProcessUnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> hdr = new osgPPU::UnitInOut(parent);
             {
                 // setup inputs, name and index
                 hdr->setIndex(50);
@@ -274,7 +274,7 @@ class HDRRendering
         }
 
         //------------------------------------------------------------------------
-        void setupPPUsToComputeAdaptedLuminance(osgPPU::PostProcess* parent)
+        void setupPPUsToComputeAdaptedLuminance(osgPPU::Processor* parent)
         {
             // create a texture which will hold the adapted luminance data
             //createAdaptedLuminanceTexture();
@@ -283,7 +283,7 @@ class HDRRendering
             // compute the adapted luminance value.
             // The ppu does use the input of the previous frame and do recompute it.
             // The ppu is choosen to be offline to show how to setup offline ppus.
-            osg::ref_ptr<osgPPU::PostProcessUnit> adaptedlum = new osgPPU::PostProcessUnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> adaptedlum = new osgPPU::UnitInOut(parent);
             {
                 adaptedlum->setName("AdaptedLuminance");
                 
@@ -346,7 +346,7 @@ class HDRRendering
             // We will use the output of this ppu as input for the
             // adapted luminance ppu. In this way we do not write to the
             // same texture as we have readed from.
-            osg::ref_ptr<osgPPU::PostProcessUnit> adaptedlumCopy = new osgPPU::PostProcessUnitInOut(parent);
+            osg::ref_ptr<osgPPU::Unit> adaptedlumCopy = new osgPPU::UnitInOut(parent);
             {
                 adaptedlumCopy->setName("AdaptedLuminanceCopy");
                 adaptedlumCopy->setIndex(1);
