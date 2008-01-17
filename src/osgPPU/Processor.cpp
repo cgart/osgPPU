@@ -249,28 +249,25 @@ void Processor::addPPUToPipeline(Unit* ppu)
     // offscreen ppus are inserted from the end
     if (ppu->getOfflineMode())
     {
-        Pipeline::reverse_iterator jt = mPipeline.rbegin();
-        for (int i=0; jt != mPipeline.rend(); jt++, i++)
+        // iterate through the whole pipeline        
+        bool foundPlace = false;
+        for(Pipeline::iterator it = mPipeline.begin(); it!=mPipeline.end(); ++it)
         {
-            if ((*jt)->getOfflineMode() && (*jt)->getIndex() <= ppu->getIndex())
+            // do add only if it is an offline ppu and we met a first ppu with bigger index
+            if ((*it)->getOfflineMode() && (*it)->getIndex() > ppu->getIndex())
             {
-                // create iterator pointing to this position
-                Pipeline::iterator it = mPipeline.begin(); for (int k=mPipeline.size(); k > i; k--) it++;
-                mPipeline.insert(it++, ppu);
-                return;
-
-            // if we meet the first occurence of non offline, then add after it
-            }else if ((*jt)->getOfflineMode() == false)
-            {
-                // create iterator pointing to this position
-                Pipeline::iterator it = mPipeline.begin(); for (int k=mPipeline.size(); k > i; k--) it++;
-                mPipeline.insert(it++, ppu);
-                return;
+                mPipeline.insert(it, ppu);
+                foundPlace = true;
             }
         }
+        
+        // if we haven't found any right place, then just add at the end of the pipeline
+        if(!foundPlace)
+        {
+            mPipeline.push_back(ppu);
+            return;
+        }
     }
-
-    //printf("add ppu %s (%d)\n", ppu->getName().c_str(), ppu->getIndex());
 
     // add it based on index
     // iterate through the whole pipeline
@@ -278,22 +275,13 @@ void Processor::addPPUToPipeline(Unit* ppu)
     Pipeline::iterator it = mPipeline.begin();
     for (++jt; jt != mPipeline.end(); jt++, it++)
     {
-        //printf("%s (%d) ", (*it)->getName().c_str(), (*it)->getIndex());
-        //printf("  -- %s (%d)\n", (*jt)->getName().c_str(), (*jt)->getIndex());
-
         // jt is the ppu after ours, it is the one before
         if ((*jt)->getIndex() > ppu->getIndex())
         {
-            // get ppu before
-            //Pipeline::iterator it = jt;
-           
             // input to this ppu is the output of the one before
             ppu->setInputTexture((*it)->getOutputTexture(0), 0);
             ppu->setViewport((*it)->getViewport());
             
-            //printf("add ppu: %s --- %s --- %s\n", (*it)->getName().c_str(), ppu->getName().c_str(), (*jt)->getName().c_str());
-            //printf("%fx%f\n", ppu->getViewport()->width(), ppu->getViewport()->height());
-
             // add the new ppu 
             mPipeline.insert(jt, ppu);
             

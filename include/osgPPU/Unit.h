@@ -31,6 +31,7 @@
 #include <osg/Program>
 #include <osg/Uniform>
 
+#include <osgPPU/Export.h>
 #include <osgPPU/Shader.h>
 
 namespace osgPPU
@@ -47,7 +48,7 @@ class Processor;
  * Per defualt the class PostProcessUnit is an empty effect, hence it just bypass
  * all the data (direct connection from input to output).
  **/
-class Unit : public osg::Object {
+class OSGPPU_EXPORT Unit : public osg::Object {
     public:
 
         META_Object(osgPPU,Unit);

@@ -13,7 +13,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef _C_PROCESSOR__H_
 #define _C_PROCESSOR__H_
 
@@ -24,6 +23,8 @@
 #include <osgPPU/Unit.h>
 #include <osg/Camera>
 #include <osg/State>
+
+#include <osgPPU/Export.h>
 
 namespace osgPPU
 {
@@ -44,7 +45,7 @@ namespace osgPPU
  * In that case it is not neccessary to output the resulting data on the screen, but
  * you can use the output texture of the last ppu for any other purpose.
  **/
-class Processor : public osg::Object {
+class OSGPPU_EXPORT Processor : public osg::Object {
     public: 
     
         META_Object(osgPPU, Processor);

@@ -300,7 +300,7 @@ void UnitInOut::checkIOMipmappedData()
         // get dimensions of the output data
         int width = (mOutputTex.begin()->second)->getTextureWidth();
         int height = (mOutputTex.begin()->second)->getTextureHeight();
-        int numLevels = 1 + (int)floor(log2(std::max(width, height)));
+        int numLevels = 1 + (int)floor(log((float)std::max(width, height))/(float)M_LN2);
         mNumLevels = numLevels;
 
         // generate fbo for each mipmap level 
@@ -308,8 +308,8 @@ void UnitInOut::checkIOMipmappedData()
         {
             // generate viewport for this level
             osg::Viewport* vp = new osg::Viewport();
-            int w = std::max(1, (int)floor(float(width) / float(pow(2,level)) ));
-            int h = std::max(1, (int)floor(float(height) / float(pow(2,level)) ));
+            int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)level)) ));
+            int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)level)) ));
             vp->setViewport(0,0, w, h);
             mIOMipmapViewport.push_back(osg::ref_ptr<osg::Viewport>(vp));
 
@@ -467,44 +467,6 @@ void UnitInOut::doRender(int mipmapLevel)
                 glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
             }
         }*/
-
-        #if 0
-        // TEST
-        if (getName() == "AdaptedLuminance")
-        {
-            // get maximal level count
-            int width = mOutputTex[0]->getTextureWidth();
-            int height = mOutputTex[0]->getTextureHeight();
-            int numLevels = 1 + (int)floor(log2(std::max(width, height)));
-        
-            // the mipmap level we want to read from is
-            int level = numLevels  - 1;
-
-            // create image to hold result, if no such already exists
-            static osg::ref_ptr<osg::Image> mMipmapImage = new osg::Image();
-        
-            // compute the w and h based on the level
-            int w = std::max(1, (int)floor(float(width) / float(pow(2,level)) ));
-            int h = std::max(1, (int)floor(float(height) / float(pow(2,level)) ));
-            
-            // read out
-            mFBO->apply(*sState.getState());
-            glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-            mMipmapImage->readPixels(0, 0, w, h, GL_RGBA, GL_FLOAT);
-    
-            // store result in variable
-            float r = ((float*)(mMipmapImage->data()))[0];
-            float g = ((float*)(mMipmapImage->data()))[1];
-            float b = ((float*)(mMipmapImage->data()))[2];
-            float a = ((float*)(mMipmapImage->data()))[3];
-    
-            printf("read out %f %f %f %f\n", r,g,b,a);
-    
-            // disable fbo, since it was disabled before 
-            osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
-            fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-        }
-        #endif
     }    
 }
 
@@ -523,7 +485,7 @@ void UnitInOut::noticeChangeViewport()
             
             // change size
             osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
-            mTex->setTextureSize(int(mViewport->x() + mViewport->width()), int(mViewport->y() + mViewport->height()) );
+            mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
         }
     }
 }

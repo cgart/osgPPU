@@ -20,8 +20,10 @@
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
-#include <osgPPU/PPUInOut.h>
 #include <osgText/Text>
+
+#include <osgPPU/Export.h>
+#include <osgPPU/PPUInOut.h>
 
 namespace osgPPU
 {
@@ -30,7 +32,7 @@ namespace osgPPU
     * The text is displayed in 2D ortho mode. This class is also derived from the osgText::Text
     * class. Hence check it for more information about the text support.
     **/
-    class UnitText : public UnitInOut, public osgText::Text
+    class OSGPPU_EXPORT UnitText : public UnitInOut, public osgText::Text
     {
         public:
         

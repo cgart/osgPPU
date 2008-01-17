@@ -2,8 +2,8 @@
 #include <osgViewer/Renderer>
 #include <osgGA/TrackballManipulator>
 
-#include "osgteapot.cpp"
-#include "hdrppu.cpp"
+#include "osgteapot.h"
+#include "hdrppu.h"
 
 //--------------------------------------------------------------------------
 // Costumized viewer to support updating of osgppu

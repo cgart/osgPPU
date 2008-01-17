@@ -20,6 +20,7 @@
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
+#include <osgPPU/Export.h>
 #include <osgPPU/Unit.h>
 
 namespace osgPPU
@@ -31,7 +32,7 @@ namespace osgPPU
  * to render results of the previous ppus into the framebuffer. So it is usual that
  * this ppu is applied at the end of the pipeline
  **/
-class UnitOut : public Unit {
+class OSGPPU_EXPORT UnitOut : public Unit {
     public:
     
         //! Create default ppfx 
@@ -62,7 +63,7 @@ class UnitOut : public Unit {
  * monitor supports. This can be only achieved if your rendering
  * is going completely through ppu pipeline, so renderer in offscreen mode.
  **/
-class UnitOutCapture : public UnitOut {
+class OSGPPU_EXPORT UnitOutCapture : public UnitOut {
     public:
     
         //! Create default ppfx 
@@ -99,7 +100,7 @@ class UnitOutCapture : public UnitOut {
  * to the output textures. Rendering is done in background, so no information
  * will leack to the frame buffer
  **/
-class UnitInOut : public Unit {
+class OSGPPU_EXPORT UnitInOut : public Unit {
     public:
     
         //! Create default ppfx 
@@ -169,7 +170,7 @@ class UnitInOut : public Unit {
  * on the resampled one. NOTE: You loose information in your data after 
  * appling this PPU.
  **/
-class UnitInResampleOut : public UnitInOut {
+class OSGPPU_EXPORT UnitInResampleOut : public UnitInOut {
     public:
     
         //! Create default ppfx 

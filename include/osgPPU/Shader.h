@@ -25,6 +25,8 @@
 #include <osg/Texture>
 #include <osg/StateAttribute>
 
+#include <osgPPU/Export.h>
+
 namespace osgPPU
 {
 
@@ -34,7 +36,7 @@ namespace osgPPU
  * The using of shader programs is therefor simplified. Shaders can be bound 
  * to any osg::StateSet.
  **/
-class Shader : public osg::Object
+class OSGPPU_EXPORT Shader : public osg::Object
 {
     public:
         META_Object(osgPPU, Shader)

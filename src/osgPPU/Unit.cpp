@@ -21,6 +21,7 @@
 #include <osgDB/Registry>
 #include <osg/Image>
 #include <assert.h>
+#include <math.h>
 
 namespace osgPPU
 {
@@ -485,7 +486,7 @@ void Unit::generateMipmaps(osg::Texture* output, int mrt)
     // check if we have generated all the fbo's for each mipmap level
     int width = output->getTextureWidth();
     int height = output->getTextureHeight();
-    int numLevel = 1 + (int)floor(log2(std::max(width, height)));
+    int numLevel = 1 + (int)floor(log((float)std::max(width, height))/(float)M_LN2);
     
     // before we start generating of mipmaps we save some data 
     osg::ref_ptr<osg::FrameBufferObject> currentFBO = mFBO;
@@ -503,8 +504,8 @@ void Unit::generateMipmaps(osg::Texture* output, int mrt)
         {
             // generate viewport 
             osg::Viewport* vp = new osg::Viewport();
-            int w = std::max(1, (int)floor(float(width) / float(pow(2,i)) ));
-            int h = std::max(1, (int)floor(float(height) / float(pow(2,i)) ));
+            int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)i)) ));
+            int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)i)) ));
             vp->setViewport(0,0, w, h);
             mMipmapViewport.push_back(osg::ref_ptr<osg::Viewport>(vp));
             
