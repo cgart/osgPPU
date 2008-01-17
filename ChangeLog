@@ -1,0 +1,227 @@
+2008-01-17 13:24  art
+
+	* [r31]
+	  CMake install module added
+
+2008-01-17 13:23  art
+
+	* [r30]
+	  From "Stephane Lamoliatte"
+	  - CMake build system to support builds on multiple platforms.
+	  - CMake configured in the way that this compiles under Windows
+	  Visual Studio 8
+	  - Bug fix in the PostProcess.cpp which cause segfault on Windows.
+
+2008-01-13 01:06  art
+
+	* [r29]
+	  - Naming convention changed
+	  - Example application ow runs two times faster
+
+2008-01-11 14:27  art
+
+	* [r28]
+	  - CFLAGS changed from -g to -O2, now example runs with around
+	  400FPS (cessnafire.osg)
+
+2008-01-11 14:26  art
+
+	* [r27]
+	  - Example: FPS-Counter added back, on nVidia GeForce 8800Ultra
+	  the run of ./osgppu Data/cessnafire.osg gives around 350FPS
+
+2008-01-11 14:21  art
+
+	* [r26]
+	  - Text Wrapper class removed. PPUText is now derived directly
+	  from osgText::Text
+
+2008-01-09 18:53  art
+
+	* [r25]
+	  - Some hacks commented out for now, maybe commit a patch to osg
+	  to support them through StateSets
+
+2008-01-09 15:47  art
+
+	* [r24]
+	  - Some bugs and issues with the new driver corrected
+	  - In example changed all the occurencies of texture2DLod to
+	  texture2D
+	  Due to some bugs either in the driver or somewhere else texture2D
+	  do not read from the level 0 per default.
+	  - Therefor had to add glTexParameteri to change the base level of
+	  the texture
+	  for input textures in the PPUInOut.cpp
+	  - Maybe some patch to osg is required to control this by the
+	  stateset
+	  
+	  - Eye Adaption still do not work as one might expected, however
+	  the code is correct now.
+	  
+	  - I am not sure but better to check if ComputeLuminance
+	  mipmapshader does work properly
+
+2008-01-09 00:34  art
+
+	* [r23]
+	  - g_MimapLevel changed into float
+	  - g_MipmapLevelNum uniform added
+
+2008-01-09 00:32  art
+
+	* [r22]
+	  - Bugfixes with the new nVidia driver 167.07 corrected
+	  - Shader source for the example application corrected to support
+	  Shader Model 3.0
+	  - Structure of the example ppus changed. Now there is two offline
+	  ppus which
+	  do compute the adapted luminance value.
+	  
+	  - TODO: Adapted luminance value seems to have some problems. Will
+	  be corrected soon.
+
+2008-01-08 14:37  art
+
+	* [r21]
+	  - Small changes to the readme file
+
+2008-01-07 15:53  art
+
+	* [r20]
+	  - Hack with unbounded textures is solved
+	  - Shaders and ppus seems to work now fine, my another application
+	  (refEiko), works now also fine with osgPPU
+	  - example application slightly changed
+
+2008-01-07 13:00  art
+
+	* [r19]
+	  - small changes in the example application
+	  - small changes in the interface of PostProcess and
+	  PostProcessUnit
+	  - small addings in the documentation
+	  - footer.html added to generate doxygen documentation
+
+2008-01-07 11:25  art
+
+	* [r18]
+	  - Documentation changes
+
+2008-01-07 11:10  art
+
+	* [r17]
+	  - UniformMap type removed from PostProcessUnit
+	  - META_Object() get an semicolon afterwars, so that doxygen is
+	  able to parse
+
+2008-01-07 11:05  art
+
+	* [r16]
+	  - Documentation changed
+	  - A lot of methods were inlined
+	  - Some slightly changes in the interface
+
+2008-01-07 09:52  art
+
+	* [r15]
+	  - example: Setup material of teapot instead of direct call of
+	  glColor
+
+2008-01-07 09:48  art
+
+	* [r14]
+	  - PPUInOut.cpp g_TextureWidth and g_TextureHeight changed into
+	  g_ViewportWidth and g_ViewportHeight
+	  - example shaders changed from Shader Model 4 to Shader Model 3,
+	  exampel application should now also work on GeForce 6xxx
+	  - example: Teapot as default model added
+
+2008-01-07 00:39  art
+
+	* [r13]
+	  - Documentaion through doxygen added
+	  - Licence header changed
+	  - Small bugfixes
+	  - Example application includes some more features
+
+2008-01-06 19:04  art
+
+	* [r12]
+	  - osgppu Example is now almost complete. It shows how to use
+	  osgPPU to setup
+	  a proper HDR rendering pipeline
+	  
+	  - some minor bugfixes in PPUs
+	  
+	  - There are still some problems with ppu which do use textures
+	  and shader
+	  Textures has to be bound manually by hand, stateset semms not to
+	  settted up properly
+
+2008-01-05 00:35  art
+
+	* [r11]
+	  - Example application created
+	  - some changes in the PPUText done
+	  - PostProcess can now be used in the osg graph by specifying the
+	  camera drawcallback method
+	  - some bugfixes
+
+2008-01-04 12:14  art
+
+	* [r10]
+	  problems with blending corrected
+	  PPUText were added
+	  Text class as wrapper was also added
+
+2008-01-03 16:16  art
+
+	* [r9]
+	  Shader class included
+	  errors were corrected
+	  all things works fine for now
+	  there are still some problems with blending of ppu's
+
+2007-12-21 13:52  art
+
+	* [r8]
+	  
+
+2007-12-20 17:13  art
+
+	* [r7]
+	  
+
+2007-12-19 18:06  art
+
+	* [r6]
+	  
+
+2007-12-19 10:43  art
+
+	* [r5]
+	  CMake removed
+	  Simple Makefiles added
+	  Now you are able to make, install and uninstall gracefully
+
+2007-12-18 15:07  art
+
+	* [r4]
+	  
+
+2007-12-18 13:11  art
+
+	* [r3]
+	  
+
+2007-12-18 13:08  art
+
+	* [r2]
+	  
+
+2007-12-18 13:07  art
+
+	* [r1]
+	  
+
