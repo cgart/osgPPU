@@ -34,6 +34,7 @@ namespace osgPPU
  **/
 class OSGPPU_EXPORT UnitOut : public Unit {
     public:
+        virtual const char* className() const { return "UnitOut" ;} 
     
         //! Create default ppfx 
         UnitOut(Processor* parent);
@@ -65,6 +66,7 @@ class OSGPPU_EXPORT UnitOut : public Unit {
  **/
 class OSGPPU_EXPORT UnitOutCapture : public UnitOut {
     public:
+        virtual const char* className() const { return "UnitOutCapture" ;} 
     
         //! Create default ppfx 
         UnitOutCapture(Processor* parent);
@@ -102,6 +104,7 @@ class OSGPPU_EXPORT UnitOutCapture : public UnitOut {
  **/
 class OSGPPU_EXPORT UnitInOut : public Unit {
     public:
+        virtual const char* className() const { return "UnitInOut" ;} 
     
         //! Create default ppfx 
         UnitInOut(Processor* parent);
@@ -172,6 +175,8 @@ class OSGPPU_EXPORT UnitInOut : public Unit {
  **/
 class OSGPPU_EXPORT UnitInResampleOut : public UnitInOut {
     public:
+
+        virtual const char* className() const { return "UnitInResampleOut" ;} 
     
         //! Create default ppfx 
         UnitInResampleOut(Processor* parent);

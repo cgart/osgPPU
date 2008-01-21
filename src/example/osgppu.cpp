@@ -1,6 +1,7 @@
 #include <osg/GLExtensions>
 #include <osgViewer/Renderer>
 #include <osgGA/TrackballManipulator>
+#include <osgDB/WriteFile>
 
 #include "osgteapot.h"
 #include "hdrppu.h"
@@ -236,6 +237,9 @@ class Viewer : public osgViewer::Viewer
             // ppu pipeline is get rendered after the main camera is rendered and
             // before the main buffer swap take place
             mProcessor->initPostDrawCallback(getCamera());
+
+            // test writing to file 
+            osgDB::writeObjectFile(*mProcessor, "hdr.ppu");            
         }
 
         //! Update the frames        

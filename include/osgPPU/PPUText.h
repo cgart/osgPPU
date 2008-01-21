@@ -35,7 +35,8 @@ namespace osgPPU
     class OSGPPU_EXPORT UnitText : public UnitInOut, public osgText::Text
     {
         public:
-        
+            virtual const char* className() const { return "UnitText" ;} 
+
             //! Create default ppfx 
             UnitText(osgPPU::Processor* parent);
             
