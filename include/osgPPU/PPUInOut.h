@@ -36,8 +36,8 @@ class OSGPPU_EXPORT UnitOut : public Unit {
     public:
         virtual const char* className() const { return "UnitOut" ;} 
     
-        //! Create default ppfx 
-        UnitOut(Processor* parent);
+        UnitOut(osg::State* state) : Unit(state) {}
+        UnitOut() : Unit() {}
         
         //! Release it and used memory
         virtual ~UnitOut();
@@ -69,7 +69,8 @@ class OSGPPU_EXPORT UnitOutCapture : public UnitOut {
         virtual const char* className() const { return "UnitOutCapture" ;} 
     
         //! Create default ppfx 
-        UnitOutCapture(Processor* parent);
+        UnitOutCapture(osg::State* state);
+        UnitOutCapture();
         
         //! Release it and used memory
         virtual ~UnitOutCapture();
@@ -78,7 +79,13 @@ class OSGPPU_EXPORT UnitOutCapture : public UnitOut {
         void setPath(const std::string& path) { mPath = path; }
 
         //! set extension   
-        void setFileExtensions(const std::string& ext) { mExtension = ext; }
+        void setFileExtension(const std::string& ext) { mExtension = ext; }
+
+        //! get currently used path 
+        inline const std::string& getPath() const { return mPath; }
+
+        //! get currently used extension 
+        inline const std::string& getFileExtension() const { return mExtension; }
 
     protected:
         
@@ -107,7 +114,8 @@ class OSGPPU_EXPORT UnitInOut : public Unit {
         virtual const char* className() const { return "UnitInOut" ;} 
     
         //! Create default ppfx 
-        UnitInOut(Processor* parent);
+        UnitInOut(osg::State* parent);
+        UnitInOut();
         
         //! Release it and used memory
         virtual ~UnitInOut();
@@ -179,13 +187,20 @@ class OSGPPU_EXPORT UnitInResampleOut : public UnitInOut {
         virtual const char* className() const { return "UnitInResampleOut" ;} 
     
         //! Create default ppfx 
-        UnitInResampleOut(Processor* parent);
+        UnitInResampleOut(osg::State* state);
+        UnitInResampleOut();
         
         //! Release it and used memory
         virtual ~UnitInResampleOut();
         
         //! Set resampling factor
         void setFactor(float x, float h);
+
+        //! Get resampling factor
+        float getFactorX() const { return mWidthFactor; }
+
+        //! Get resampling factor
+        float getFactorY() const { return mHeightFactor; }
 
     protected:
         float mWidthFactor, mHeightFactor;

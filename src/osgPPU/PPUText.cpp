@@ -19,10 +19,13 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
-    UnitText::UnitText(osgPPU::Processor* parent) : osgPPU::UnitInOut(parent)
+    UnitText::UnitText(osg::State* state) : osgPPU::UnitInOut(state)
     {
-        // Create text for statistics
-        //mText = new Text();
+        mSize = 26.0;
+    }
+    //------------------------------------------------------------------------------
+    UnitText::UnitText() : osgPPU::UnitInOut()
+    {
         mSize = 26.0;
     }
     
@@ -68,7 +71,6 @@ namespace osgPPU
         if (mFBO.valid() && mViewport.valid())
         {
             // we take the width 640 as reference width for the size of characters
-            //mText->setSize(mSize * (float(getViewport()->width()) / 640.0));
             setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
 
             // compute new color, change alpha acording to the blend value

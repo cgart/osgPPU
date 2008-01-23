@@ -63,7 +63,7 @@ class OSGPPU_EXPORT Shader : public osg::Object
         /**
          * Return corresponding osg::Program used in this class.
          **/
-        osg::Program* getProgram() { return mProgram.get(); }
+        osg::Program* getProgram() const { return mProgram.get(); }
 
         /**
         * Add new uniform. The uniform can also represent an array.

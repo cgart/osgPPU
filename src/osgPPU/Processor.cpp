@@ -189,7 +189,7 @@ Unit* Processor::getPPU(const std::string& ppuName)
 }
 
 //------------------------------------------------------------------------------
-Processor::Pipeline::iterator Processor::removePPUFromPipeline(const std::string& ppuName)
+Pipeline::iterator Processor::removePPUFromPipeline(const std::string& ppuName)
 {
     // iterate through pipeline
     Pipeline::iterator jt = mPipeline.begin();

@@ -41,10 +41,12 @@ SET(TARGET_DEFAULT_LABEL_PREFIX "Plugins")
 # Generate plugin
 ###########################################
 SET(TARGET_SRC 
-    ReaderWriterPPU.cpp 
+    ReaderWriterPPU.cpp
+    IO_Unit.cpp
+    Base.cpp 
 )
 SET(TARGET_ADDED_LIBRARIES osgPPU )
-#SETUP_PLUGIN(ppu)
+SETUP_PLUGIN(ppu)
 
 
 

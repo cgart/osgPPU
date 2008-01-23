@@ -14,6 +14,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Processor.h
     ${HEADER_PATH}/Shader.h
     ${HEADER_PATH}/Unit.h
+    ${HEADER_PATH}/Pipeline.h
 )
 
 ADD_LIBRARY(${LIB_NAME}

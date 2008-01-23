@@ -131,29 +131,29 @@ class Viewer : public osgViewer::Viewer
             
             // we want to simulate hdr rendering, hence setup the pipeline
             // for the hdr rendering
-            osgPPU::Processor::Pipeline pipeline = mHDRSetup.createHDRPipeline(mProcessor.get());
+            osgPPU::Pipeline pipeline = mHDRSetup.createHDRPipeline(mProcessor.get());
 
             // This ppu do get the input from the camera and bypass it
             // You MUST have this ppu to get the data from the camera into the pipeline
             // A simple bypass ppu doesn't cost too much performance, since there is no
             // rendering. It is just a copying of input to output data.
-            osg::ref_ptr<osgPPU::Unit> bypass = new osgPPU::Unit(mProcessor.get());
+            /*osg::ref_ptr<osgPPU::Unit> bypass = new osgPPU::Unit(mState.get());
             bypass->setIndex(0);
             bypass->setName("CameraBypass");
-            pipeline.push_back(bypass);
+            pipeline.push_back(bypass);*/
 
 
             // next we setup a ppu which do render the content of the result
             // on the screenbuffer. This ppu MUST be as one of the last, otherwise you
             // will not be able to get results from the ppu pipeline
-            osg::ref_ptr<osgPPU::Unit> ppuout = new osgPPU::UnitOut(mProcessor.get());
+            osg::ref_ptr<osgPPU::Unit> ppuout = new osgPPU::UnitOut(mState.get());
             ppuout->setIndex(1000);
             ppuout->setName("PipelineResult");
             pipeline.push_back(ppuout);
 
 
             // now just as a gimmick do setup a text ppu, to render some info on the screen
-            osgPPU::UnitText* pputext = new osgPPU::UnitText(mProcessor.get());
+            osgPPU::UnitText* pputext = new osgPPU::UnitText(mState.get());
             pputext->setIndex(999);
             pputext->setName("TextPPU");
             pputext->setSize(26);
@@ -173,7 +173,11 @@ class Viewer : public osgViewer::Viewer
             // This ppu could be setted up before, but in this way we just 
             // demonstrate how to include ppus after pipeline setup
             {
-                osg::ref_ptr<osgPPU::Unit> bgppu = new osgPPU::UnitInOut(mProcessor.get());
+                // we need this to work on
+                osg::ref_ptr<osgPPU::Unit> bypass = mProcessor->getPPU("HDRBypass");
+
+                // create picture in picture ppu 
+                osg::ref_ptr<osgPPU::Unit> bgppu = new osgPPU::UnitInOut(mState.get());
                 bgppu->setName("PictureInPicturePPU");
 
                 // set index two 200, so that this ppu does get updated after the hdr pipeline
@@ -187,7 +191,10 @@ class Viewer : public osgViewer::Viewer
                 // we want to have it
                 
                 // input texture is output of the camera bypass, so that we see original scene view
-                bgppu->setInputTexture(bypass->getOutputTexture(0), 0);
+                osg::Texture2D* img = new osg::Texture2D();
+                img->setImage(osgDB::readImageFile("Images/reflect.rgb"));
+                bgppu->setInputTexture(img, 0);
+                //bgppu->setInputTexture(bypass->getOutputTexture(0), 0);
 
                 // output texture will be the same as the output of the text ppu,
                 // which is the same as the output of the hdr ppu.
@@ -222,7 +229,7 @@ class Viewer : public osgViewer::Viewer
 
             // add a text ppu after the pipeline is setted up
             {
-                osgPPU::UnitText* fpstext = new osgPPU::UnitText(mProcessor.get());
+                osgPPU::UnitText* fpstext = new osgPPU::UnitText(mState.get());
                 fpstext->setIndex(999);
                 fpstext->setName("FPSTextPPU");
                 fpstext->setSize(24);
@@ -239,7 +246,8 @@ class Viewer : public osgViewer::Viewer
             mProcessor->initPostDrawCallback(getCamera());
 
             // test writing to file 
-            osgDB::writeObjectFile(*mProcessor, "hdr.ppu");            
+            //osgDB::writeObjectFile(*mProcessor, "hdr.ppu");        
+            //osgPPU::Pipeline* pp = static_cast<osgPPU::Pipeline*>(osgDB::readObjectFile("hdr.ppu"));            
         }
 
         //! Update the frames        
@@ -252,7 +260,7 @@ class Viewer : public osgViewer::Viewer
 
             // initilize if it was not done before
             initialize();
-            
+
             // compute frame time
             float frameTime = elapsedTime() - mOldTime;
             mOldTime = elapsedTime();
@@ -315,7 +323,7 @@ public:
 
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getPPU("CameraBypass")->getOutputTexture(0), 0);
+                    ppu->setInputTexture(viewer->getProcessor()->getPPU("HDRBypass")->getOutputTexture(0), 0);
                     textppu->setText("Original Input");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
                 {

@@ -25,6 +25,7 @@
 #include <osg/State>
 
 #include <osgPPU/Export.h>
+#include <osgPPU/Pipeline.h>
 
 namespace osgPPU
 {
@@ -49,8 +50,7 @@ class OSGPPU_EXPORT Processor : public osg::Object {
     public: 
     
         META_Object(osgPPU, Processor);
-        typedef std::list<osg::ref_ptr<Unit> > Pipeline;
-        
+
         /**
          * Initialize the ppu system.
          * @param state Specify a state which will be used to apply the post process statesets
@@ -149,15 +149,15 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         **/
         static GLenum createSourceTextureFormat(GLenum internalFormat);
 
-    protected:
+        /**
+         * Return current state assigned with the post process.
+        **/
+        inline osg::State* getState() { return mState.get(); }
 
-        friend class Unit;
+    protected:
 
         //! Empty constructor is defined as protected to prevent of creating non-valid post processors
         Processor() {printf("osgPPU::Processor::Processor() - How get there?\n");}
-
-        //! Return current state assigned with the post process 
-        inline osg::State* getState() { return mState.get(); }
         
         /**
          * Callback function for derived classes, which is called before ppu is applied.

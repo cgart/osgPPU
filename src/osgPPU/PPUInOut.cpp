@@ -33,13 +33,6 @@ namespace osgPPU
 //--------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-UnitOut::UnitOut(Processor* parent) : Unit(parent)
-//osg::State* s, osg::StateSet* ss) : Unit(s,ss)
-{
-
-}
-
-//------------------------------------------------------------------------------
 UnitOut::~UnitOut()
 {
 
@@ -74,20 +67,6 @@ void UnitOut::render(int mipmapLevel)
     // aplly stateset
     sState.getState()->apply(sScreenQuad->getStateSet());
 
-    // HACK: need this sometimes otherwise the wrong mipmap level is readed
-    /*if (mipmapLevel > 0)
-    {
-        for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
-        {
-            sState.getState()->applyTextureAttribute((*it).first, (*it).second.get());
-
-            GLenum target = (*it).second->getTextureTarget();
-    
-            glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, mipmapLevel-1);
-            glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipmapLevel-1);
-        }
-    }*/
-
     // apply viewport if such is valid
     if (mViewport.valid()) mViewport->apply(*sState.getState());
 
@@ -103,20 +82,6 @@ void UnitOut::render(int mipmapLevel)
         glDisable(GL_BLEND);
         glColor4f(1,1,1,1);
     }   
-
-
-    // HACK
-    /*if (mipmapLevel > 0)
-    {
-        for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
-        {
-            GLenum target = (*it).second->getTextureTarget();
-    
-            glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
-            glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
-        }
-    }*/
-
 }
 
 
@@ -124,7 +89,14 @@ void UnitOut::render(int mipmapLevel)
 // UnitOutCapture Implementation
 //--------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-UnitOutCapture::UnitOutCapture(Processor* parent) : UnitOut(parent)
+UnitOutCapture::UnitOutCapture() : UnitOut()
+{
+    mPath = ".";
+    mCaptureNumber = 0;
+    mExtension = "png";
+}
+//------------------------------------------------------------------------------
+UnitOutCapture::UnitOutCapture(osg::State* state) : UnitOut(state)
 {
     mPath = ".";
     mCaptureNumber = 0;
@@ -183,10 +155,8 @@ void UnitOutCapture::noticeFinishRendering()
 //--------------------------------------------------------------------------
 // UnitInOut Implementation
 //--------------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
-//UnitInOut::UnitInOut(osg::State* s, osg::StateSet* ss) : Unit(s,ss)
-UnitInOut::UnitInOut(Processor* parent) : Unit(parent)
+UnitInOut::UnitInOut(osg::State* state) : Unit(state)
 {
     // create FBO because we need it
     mFBO = new osg::FrameBufferObject();
@@ -194,7 +164,16 @@ UnitInOut::UnitInOut(Processor* parent) : Unit(parent)
     // if the input does have mipmaps, then they will be passed to the output
     setMipmappedIO(false);
     mNumLevels = 0;
+}
+//------------------------------------------------------------------------------
+UnitInOut::UnitInOut() : Unit()
+{
+    // create FBO because we need it
+    mFBO = new osg::FrameBufferObject();
 
+    // if the input does have mipmaps, then they will be passed to the output
+    setMipmappedIO(false);
+    mNumLevels = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -266,12 +245,7 @@ void UnitInOut::assignOutputTexture()
 
             // attach the texture to the fbo
             mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
-
-            // setup viewport
-            //osg::Viewport* vp = new osg::Viewport(*mViewport);
-            //setViewport(*mViewport);
         }
-        //sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
         // clean mipmap data for output
         mMipmapFBO.clear();
@@ -413,30 +387,11 @@ void UnitInOut::doRender(int mipmapLevel)
             mShader->update();
         }
 
-        /*printf("render %s-%s: %dx%d (%d)\n", getName().c_str(),
-            mShader.valid() ? mShader->getName().c_str() : "nil", (int)mViewport->width(),
-            (int)mViewport->height(), mipmapLevel);
-        */
-
         // aplly stateset
         sState.getState()->apply(sScreenQuad->getStateSet());
 
         // apply framebuffer object, this will bind it, so we can use it
         mFBO->apply(*sState.getState());
-
-        // HACK: need this sometimes otherwise the wrong mipmap level is readed
-        /*if (mipmapLevel > 0)
-        {
-            for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
-            {
-                sState.getState()->applyTextureAttribute((*it).first, (*it).second.get());
-    
-                GLenum target = (*it).second->getTextureTarget();
-        
-                glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, mipmapLevel-1);
-                glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipmapLevel-1);
-            }
-        }*/
         
         // apply viewport
         mViewport->apply(*sState.getState());
@@ -455,18 +410,6 @@ void UnitInOut::doRender(int mipmapLevel)
             sScreenQuad->draw(sState);
             glColor4f(1,1,1,1);
         }
-
-        // HACK
-        /*if (mipmapLevel > 0)
-        {
-            for (TextureMap::iterator it = mInputTex.begin();it!= mInputTex.end(); it++)
-            {
-                GLenum target = (*it).second->getTextureTarget();
-        
-                glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
-                glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, 1000);
-            }
-        }*/
     }    
 }
 
@@ -495,9 +438,16 @@ void UnitInOut::noticeChangeViewport()
 //--------------------------------------------------------------------------
 // UnitInResampleOut Implementation
 //--------------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
-UnitInResampleOut::UnitInResampleOut(Processor* parent) : UnitInOut(parent)
+UnitInResampleOut::UnitInResampleOut(osg::State* state) : UnitInOut(state)
+{
+    // setup default values 
+    mWidthFactor = 1.0;
+    mHeightFactor = 1.0;
+    mDirtyFactor = true;
+}
+//------------------------------------------------------------------------------
+UnitInResampleOut::UnitInResampleOut() : UnitInOut()
 {
     // setup default values 
     mWidthFactor = 1.0;

@@ -37,6 +37,7 @@
 namespace osgPPU
 {
 
+// Forward declaration to simplify the work
 class Processor;
 
 //! Base class of any ppu which do work as a simple bypass ppu per default
@@ -55,12 +56,16 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         
         /**
-         * Create empty ppu. If you use this ppu in your graph you will
-         * do not encounter anything, since this ppu do just copy the input 
-         * data to its output, by setting output textures equal to the input 
-         * @param parent Parent post processing class from where we borrow the state and stateset
+        * Empty constructor. The unit will be initialized with default values.
+        * Call setState() or setParentProcessor() afterwards to provide the unit with correct 
+        * state data otherwise strange things can happen.
+        **/
+        Unit();
+
+        /**
+         * Initialze the unit and setup the state which is used for rendering.
          **/
-        Unit(Processor* parent);
+        Unit(osg::State* state);
 
         /**
          * Copy constructor.
@@ -179,7 +184,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         void setViewport(osg::Viewport* vp);
 
         //! Get viewport of this unit
-        inline osg::Viewport* getViewport() { return mViewport.get(); }
+        inline osg::Viewport* getViewport() const { return mViewport.get(); }
         
         inline void setEndBlendTime(float time) { mExpireTime = time; }
         inline void setBlendDuration(float time) { mExpireTime = mStartTime + time; }
@@ -200,7 +205,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         void setBlendMode(bool enable);
 
         //! Do we currently use blend mode
-        bool useBlendMode(); 
+        bool useBlendMode() const; 
         
         /**
          * Activate or deactive the ppu. An active ppu is updated during the update 
@@ -255,7 +260,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         }
 
         //! Get currently assigned shader
-        inline Shader* getShader() { return mShader.get(); }
+        inline Shader* getShader() const { return mShader.get(); }
 
         /**
          * Assign a mipmap shader. A mipmap shader is used when generating mipmaps
@@ -265,13 +270,15 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         inline void setMipmapShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
 
         //! Return current mipmap shader
-        inline Shader* getMipmapShader() { return mMipmapShader.get(); }
+        inline Shader* getMipmapShader() const { return mMipmapShader.get(); }
         
         //! Shall we use mipmap shader to generate mipmaps
         inline void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
+        inline bool getUseMipmapShader() const { return mbUseMipmapShader; }
 
         //! Shall we use mipmaps at all 
         inline void setUseMipmaps(bool b) { mbUseMipmaps = b; if (b) enableMipmapGeneration(); }
+        inline bool getUseMipmaps() const { return mbUseMipmaps; }
 
         //! Set user data
         inline void setUserData(void* data) { mUserData = data; }
@@ -295,10 +302,15 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         //! Get stateset of the ppu 
         inline osg::StateSet* getStateSet() { return sScreenQuad->getOrCreateStateSet(); }
 
-    protected:
+        /**
+        * Set state which is used to render the unit. 
+        **/
+        inline void setState(osg::State* state)
+        {
+            if (state) sState.setState(state);
+        }
 
-        //! We do not want the user to use this method directly
-        Unit();
+    protected:
 
         //! it is good to have friends
         friend class Processor;
@@ -436,9 +448,6 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         //! Internal format of the output texture
         GLenum mOutputInternalFormat;
 
-        //! Pointer to the parent post process 
-        osg::ref_ptr<Processor> mParent;
-
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
 
@@ -453,7 +462,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         float mTime;
         void* mUserData;
 
-        void initialize(Processor* parent);
+        void initialize();
 
 };
 

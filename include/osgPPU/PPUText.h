@@ -38,7 +38,8 @@ namespace osgPPU
             virtual const char* className() const { return "UnitText" ;} 
 
             //! Create default ppfx 
-            UnitText(osgPPU::Processor* parent);
+            UnitText(osg::State* state);
+            UnitText();
             
             //! Release it and used memory
             ~UnitText();

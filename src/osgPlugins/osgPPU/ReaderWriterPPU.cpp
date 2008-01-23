@@ -23,21 +23,74 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/FileUtils>
 
+#include "Base.h"
 
 class ReaderWriterPPU : public osgDB::ReaderWriter
 {
 private:
     // ----------------------------------------------------------------------------------------------------
-    void writeUnit(const osgPPU::Unit* unit, osgDB::Output& fout, const osgDB::ReaderWriter::Options* options) const
+    std::list<std::pair<osgPPU::Unit*, osg::Texture*> > findInputs(const osgPPU::Processor& ppu, const osgPPU::Unit* unit) const
     {
-        fout << std::endl;
-        fout.writeBeginObject(std::string("osgPPU::") + std::string(unit->className()));
-        fout.moveIn();
-                fout.indent() << "Name " <<  fout.wrapString(unit->getName()) << std::endl;
+        std::list<std::pair<osgPPU::Unit*, osg::Texture*> > list;
+        int inputCount = 0;
 
-        fout.moveOut();
-        fout.writeEndObject();
+        // get list of all inputs for this unit
+        const osgPPU::Unit::TextureMap& map = unit->getInputTextureMap();
+
+        // for each texture in the map search for a ppu, which do has this as output
+        for (osgPPU::Unit::TextureMap::const_iterator it = map.begin(); it!=map.end(); it++)
+        {
+            if (it->second.valid())
+            {
+                int found = -1;
+
+                // scan the pipeline and search for an unit which output is equal to this input 
+                osgPPU::Pipeline::const_iterator jt = ppu.getPipeline().begin();
+                for (; jt != ppu.getPipeline().end(); jt++)
+                {
+                    // since we support multiple outputs we have to check each output 
+                    const osgPPU::Unit::TextureMap& outmap = (*jt)->getOutputTextureMap();
+                    for (osgPPU::Unit::TextureMap::const_iterator ot = outmap.begin(); ot!=outmap.end(); ot++)
+                    {
+                        // if output texture is equal to the input, then add this ppu into the list
+                        if (ot->second.get() == it->second.get())
+                        {
+                            // if this is a bypass ppu and the input is equal to the output, then 
+                            // mark this appropriately
+                            //if (!strcmp((*jt)->className(), "Unit") && unit == jt->get())
+                            //{
+                            //    list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), NULL));                                 
+                            //}else
+                                // if we have already found one before, then do replace that
+                                // if the index of the one to check is greater
+                                if ((*jt)->getIndex() >= found && found != -1)
+                                {
+                                    list.back() = std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), it->second.get()); 
+                                }else{
+                                    if (inputCount < map.size())
+                                    {
+                                        list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), it->second.get())); 
+                                        inputCount ++;
+                                    }
+                                }
+                            found = (*jt)->getIndex();
+                            break;
+                        }
+                    }
+                }
+                // no ppu found, but input is specified, hence it is an external input, therefor set to NULL
+                if (found == -1)
+                {
+                    list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(NULL, it->second.get())); 
+                    inputCount ++;
+                }
+
+            }else
+                list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(NULL, NULL)); 
+        }
+        return list;
     }
+
 
 public:
     // ----------------------------------------------------------------------------------------------------
@@ -47,7 +100,7 @@ public:
     // ----------------------------------------------------------------------------------------------------
     virtual bool acceptsExtension(const std::string& extension) const
     {
-        return osgDB::equalCaseInsensitive(extension, "ppu");// || osgDB::equalCaseInsensitive(extension, "osgppu");      
+        return osgDB::equalCaseInsensitive(extension, "ppu") || osgDB::equalCaseInsensitive(extension, "osgppu");      
     }
 
 
@@ -61,30 +114,27 @@ public:
         std::string fileName = osgDB::findDataFile( file, options );
         if (fileName.empty()) return ReadResult::FILE_NOT_FOUND;
 
-        // code for setting up the database path so that internally referenced file are searched for on relative paths. 
         std::ifstream fin(fileName.c_str());
-        if (fin)
-        {
-            return readObject(fin, options);
-        }
-        return 0L;
-    }
-
-    // ----------------------------------------------------------------------------------------------------
-    virtual ReadResult readObject(std::istream& fin, const osgDB::ReaderWriter::Options* options) const
-    {
-        /*osgDB::Input fr;
+        if (!fin) return ReadResult("osgPPU::readObject - Unable to open file for reading");
+        
+        // read input 
+        osgDB::Input fr;
         fr.attach(&fin);
-        fr.setOptions(options);
 
-        // load all nodes in file, placing them in a group.
-        while(!fr.eof())
+        // here we store the readed result
+        osgPPU::Pipeline* pp = new osgPPU::Pipeline();
+    
+        // read all units in the file
+        osg::Object* object = NULL;
+        while((object=fr.readObject())!=NULL)
         {
-
-        }*/
-
-        return ReadResult::FILE_NOT_HANDLED;
+            osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(object);
+            if (unit) pp->push_back(unit);
+        }
+        
+        return pp;
     }
+
 
     // ----------------------------------------------------------------------------------------------------
     virtual WriteResult writeObject(const osg::Object& obj,const std::string& fileName, const osgDB::ReaderWriter::Options* options) const
@@ -99,31 +149,33 @@ public:
         // write to file 
         if (fout)
         {
-            fout << "IN DEVELOPMENT - please ignore this file !!!" << std::endl<< std::endl;
-
             // convert object to processor pipeline 
-            const osgPPU::Processor* ppu = dynamic_cast<const osgPPU::Processor*>(&obj);
-            if (ppu == NULL)
-                return WriteResult("osgPPU::writeObject - You have to provide osgPPU::Processor to write to file");
+            const osgPPU::Processor& ppu = static_cast<const osgPPU::Processor&>(obj);
             
             // write out information about the pipeline
-            fout.writeBeginObject("osgPPU::Processor");
+            fout.writeBeginObject(std::string(ppu.libraryName()) + std::string("::") + std::string(ppu.getPipeline().className()));
             fout.moveIn();
-
-                fout.indent() << "Name " <<  fout.wrapString(ppu->getName()) << std::endl;
-
+                
                 // for each unit in the pipeline write it to file 
-                osgPPU::Processor::Pipeline::const_iterator it = ppu->getPipeline().begin();
-                for (; it != ppu->getPipeline().end(); it++)
+                osgPPU::Pipeline::const_iterator it = ppu.getPipeline().begin();
+                for (; it != ppu.getPipeline().end(); it++)
                 {
-                    writeUnit(it->get(), fout, options);
+                    // setup options for this writer
+                    ListOptions* op = new ListOptions();
+                    fout.setOptions(op);
+
+                    // create a list of all input data to the ppu
+                    // this list will be used to map input to ppu and to store it correctly
+                    // if an external input is used a null will be stored
+                    op->setList(findInputs(ppu, it->get()));
+
+                    // write object, this would cause the plugin to find correct wrapper and to write 
+                    fout.writeObject(**it);
                 }
 
 
             fout.moveOut();
             fout.writeEndObject();
-
-            fout << std::endl << "IN DEVELOPMENT - please ignore this file !!!" << std::endl;
 
             return WriteResult::FILE_SAVED;
         }

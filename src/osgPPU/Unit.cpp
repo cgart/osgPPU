@@ -29,21 +29,20 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 Unit::Unit()
 {
-    assert(false && "This constructor shouldn't be used!!!");
+    initialize();
 }
 
 //------------------------------------------------------------------------------
-Unit::Unit(Processor* parent)
+Unit::Unit(osg::State* state)
 {
-    initialize(parent);
+    initialize();
+    setState(state);
+}
+
+//------------------------------------------------------------------------------
+void Unit::initialize()
+{
     setName("__Nameless_PPU_");
-}
-
-
-//------------------------------------------------------------------------------
-void Unit::initialize(Processor* parent)
-{
-    mParent = parent;
     mUserData = NULL;
     mInputTexIndexForViewportReference = 0;
     mbDirtyShader = false;
@@ -97,11 +96,6 @@ void Unit::initialize(Processor* parent)
     
     // setup default modelview matrix
     sModelviewMatrix = osg::Matrixf::identity();
-    
-    // setup per default local state equal to the parent state 
-    if (mParent.valid())
-        sState.setState(mParent->getState());
-
 }
 
 //------------------------------------------------------------------------------
@@ -135,7 +129,6 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mbDirtyShader(ppu.mbDirtyShader),
     mbOfflinePPU(ppu.mbOfflinePPU),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
-    mParent(ppu.mParent),
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
     mExpireTime(ppu.mExpireTime),
@@ -454,7 +447,7 @@ void Unit::setBlendMode(bool enable)
 }
 
 //--------------------------------------------------------------------------
-bool Unit::useBlendMode()
+bool Unit::useBlendMode() const 
 {
     osg::StateAttribute::GLModeValue mode = sScreenQuad->getOrCreateStateSet()->getMode(GL_BLEND);
     return (mode & osg::StateAttribute::ON) == osg::StateAttribute::ON;
