@@ -1,3 +1,55 @@
+2008-01-23 16:38  art
+
+	* [r38]
+	  - Small changes in the interface, Units are now not dependent of
+	  the Processor
+	  - Processor::Pipeline moved out as a stand alone class derived
+	  from osg::Object
+	  - osgPPU::Pipeline can be written to the files
+	  - Writing to files (.ppu) does work properly
+	  - Reading of .ppu files is in development
+	  - All the reading/writing methods are implemented in the way like
+	  osg plugins does, hence simple including into the .osg format is
+	  possible
+	  - Small changes in the example application, now user sees a
+	  texture in the PictureInPicture ppu before switching
+
+2008-01-21 16:42  art
+
+	* [r37]
+	  - Started development of osgdb_ppu Plugin to write and read
+	  pipeline to/from a file
+	  - CMake changes to support new building target (plugin)
+	  - Currently this is in development, hence it is disable in the
+	  svn
+	  
+	  
+
+2008-01-21 13:40  art
+
+	* [r36]
+	  - Just one script file to create changelogs from the svn
+
+2008-01-21 13:33  art
+
+	* [r35]
+	  - Uninstall rule to the CMake system added
+
+2008-01-17 14:27  art
+
+	* [r34]
+	  - ChangeLog file added
+
+2008-01-17 13:25  art
+
+	* [r33]
+	  Make directory removed
+
+2008-01-17 13:25  art
+
+	* [r32]
+	  Couple of old Makefiles removed
+
 2008-01-17 13:24  art
 
 	* [r31]
