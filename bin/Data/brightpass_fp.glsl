@@ -46,12 +46,12 @@ void main(void)
 	const float BRIGHT_PASS_OFFSET = 1.0;
 		
 	// get luminance and average (adapted) luminance value 
-	float fLuminance = texture2D(lumInput, gl_TexCoord[0]).r;
+	float fLuminance = texture2D(lumInput, gl_TexCoord[0].st).r;
 	float fAdaptedLum = texture2D(texAdaptedLuminance, vec2(0.5,0.5)).w;
     float fScaledLum = computeScaledLuminance(fAdaptedLum, fLuminance);
 
     // get color of the pixel 
-    vec3 vSample = texture2D(hdrInput, gl_TexCoord[0]).rgb;
+    vec3 vSample = texture2D(hdrInput, gl_TexCoord[0].st).rgb;
 
 	// Determine what the pixel's value will be after tone mapping occurs
     vSample *= fScaledLum;

@@ -30,7 +30,7 @@ void main(void)
 {
 	// store here resulting color
 	vec4 color;
-	float totalWeigth = 0;
+	float totalWeigth = 0.0;
 	float inputTexTexelWidth = 1.0 / g_ViewportWidth;
 	
 	// convolve by applying nsamples-time the texture lookup

@@ -29,8 +29,8 @@ uniform float g_MipmapLevelNum;
 void main(void)
 {
     // just some variables
-    const float epsilon = 0.001f;
-    float res = 0.0f;
+    const float epsilon = 0.001;
+    float res = 0.0;
     float c[4];
     
     // get texture sizes of the previous level
@@ -90,6 +90,6 @@ void main(void)
     }
 
     // result
-    gl_FragData[0].rgba = min(res, 65504.0);
+    gl_FragData[0].rgba = vec4( min(res, 65504.0) );
     //gl_FragData[0].a = 1.0;
 }

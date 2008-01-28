@@ -22,8 +22,8 @@ uniform float invFrameTime;
 // scaling factor which decides how fast to adapt for new luminance
 uniform float adaptScaleFactor;
 
-static const float TauCone = 0.01;
-static const float TauRod = 0.04;
+const float TauCone = 0.01;
+const float TauRod = 0.04;
 
 /**
  * Compute adapted luminance value.
@@ -40,11 +40,11 @@ void main(void)
 
     //determin if rods or cones are active
     //Perceptual Effects in Real-time Tone Mapping: Equ(7)    
-    float sigma = saturate(0.4/(0.04+current));
+    float sigma = clamp(0.4/(0.04+current),0.0,1.0);
 
     //interpolate tau from taurod and taucone depending on lum
     //Perceptual Effects in Real-time Tone Mapping: Equ(12)
-    float Tau = lerp(TauCone,TauRod,sigma) / adaptScaleFactor;
+    float Tau = mix(TauCone,TauRod,sigma) / adaptScaleFactor;
 
     // compute new adapted value
     //float lum = old + (current - old) * (1.0 - pow(0.98, adaptScaleFactor * invFrameTime));
@@ -53,12 +53,15 @@ void main(void)
     //gl_FragData[0].xyzw = lum;//clamp(lum, minLuminance, maxLuminance);
     //gl_FragData[0].a = 1.0;
 
-
+
+
+
+
     //calculate adaption
     //Perceptual Effects in Real-time Tone Mapping: Equ(5)
-    float lum  = old + (current - old) * (1 - exp(-(invFrameTime)/Tau));
+    float lum  = old + (current - old) * (1.0 - exp(-(invFrameTime)/Tau));
     //gl_FragData[0].x = current;
     //gl_FragData[0].y = old;
-    //gl_FragData[0].z = (1 - exp(-(invFrameTime)/Tau));
-    gl_FragData[0].xyzw = clamp(lum, minLuminance, maxLuminance);
+    //gl_FragData[0].z = (1.0 - exp(-(invFrameTime)/Tau));
+    gl_FragData[0].xyzw = vec4( clamp(lum, minLuminance, maxLuminance) );
 }

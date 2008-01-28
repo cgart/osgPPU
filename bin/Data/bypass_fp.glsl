@@ -15,7 +15,7 @@ uniform sampler2D texUnit0;
 void main(void)
 {
 	// get color from the texture
-	vec4 texColor0 = texture2D(texUnit0, gl_TexCoord[0]);
+	vec4 texColor0 = texture2D(texUnit0, gl_TexCoord[0].st);
 	
 	// combine texture color with the vertex color
 	gl_FragData[0] = texColor0;

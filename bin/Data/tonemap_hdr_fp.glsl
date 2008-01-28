@@ -48,7 +48,7 @@ float computeScaledLuminance(float avg, float lum)
  **/
 void main(void)
 {
-	vec2 inTex = gl_TexCoord[0];
+	vec2 inTex = gl_TexCoord[0].st;
 	
 	// get color from the texture blurred texture
 	vec4 blurColor = texture2D(blurInput, inTex);
