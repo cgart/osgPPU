@@ -1,3 +1,57 @@
+2008-01-29 15:37  art
+
+	* [r45]
+	  - osgdb_ppu Plugin added
+	  - You are now capable of storing and loading osgPPU pipelines
+	  directly from files.
+	  - The functionality is under heavy testing, hence it is not
+	  activated currently
+
+2008-01-29 15:34  art
+
+	* [r44]
+	  - Moved one unit per one source and header file
+	  - Cleaned up the code a little bit
+	  - Added META_Object for each of the unit
+	  - Processor does now check whenever Unit has a valid State
+	  associated if not it would be added in the setPipeline method
+	  - Shader is now capable of setting up Uniforms directly by giving
+	  Uniform* or RefUniformPair into osgPPU::Shader::add method
+	  - 3 PPU pipelines as files added (hdr pipeline, simple bypass
+	  pipeline and gauss blur pipeline)
+	  - Pipelines can be readed from files directly
+
+2008-01-29 15:31  art
+
+	* [r43]
+	  - Non-used Makefile removed
+
+2008-01-29 15:30  art
+
+	* [r42]
+	  - HDR example moved into own directory
+	  - Viewer example moved into "viewer" directory
+	  - HDR example now writes its pipeline into Data/hdr.ppu file
+
+2008-01-29 15:28  art
+
+	* [r41]
+	  - New example added
+	  - Viewer allows to read ppu pipeline from file and test it on an
+	  scene graph
+
+2008-01-28 23:20  art
+
+	* [r40]
+	  From "Bob Kuhne" :
+	  - Changes to the shader code to solve very strict compiler
+	  settings
+
+2008-01-23 16:53  art
+
+	* [r39]
+	  - Change log replaced and svn up added
+
 2008-01-23 16:38  art
 
 	* [r38]
