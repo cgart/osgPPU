@@ -451,6 +451,9 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
 
+        //! Check if unit does contain a valid state (hence i
+        bool isValidState() const { return sState.getState() != NULL; }
+
     private:
         bool mbActive;        
         float mExpireTime;

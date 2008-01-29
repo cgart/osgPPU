@@ -66,12 +66,24 @@ class OSGPPU_EXPORT Shader : public osg::Object
         osg::Program* getProgram() const { return mProgram.get(); }
 
         /**
+        * Set currently used program. This method does copy the program 
+        * instead of using the given pointer directly.
+        **/
+        void setProgram(osg::Program* program);
+
+        /**
         * Add new uniform. The uniform can also represent an array.
         * @param name Name of the uniform 
         * @param type Type of the uniform 
         * @param elementCount Number of elements if you add an array, otherwise 1
         **/
         void add(const std::string& name, osg::Uniform::Type type, unsigned int elementCount = 1);
+
+        /**
+        * Add new uniform. The uniform value will be copied.
+        **/
+        void add(osg::Uniform* uniform);
+        void add(osg::StateSet::RefUniformPair uniform);
 
         /**
         * Delete uniform. Uniforms which are deleted are removed from the statesets.

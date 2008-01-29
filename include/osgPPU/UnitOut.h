@@ -13,64 +13,48 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _C_UNITS_TEXT_HUD_H_
-#define _C_UNITS_TEXT_HUD_H_
+#ifndef _C_UNIT_OUT_IO_H_
+#define _C_UNIT_OUT_IO_H_
 
 
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
-#include <osgText/Text>
-
 #include <osgPPU/Export.h>
-#include <osgPPU/PPUInOut.h>
+#include <osgPPU/Unit.h>
 
 namespace osgPPU
 {
-    //! Smae as UnitInOut but do render a text onto the output
+    //! Output the input to the frame buffer instead to the output texture
     /**
-    * The text is displayed in 2D ortho mode. This class is also derived from the osgText::Text
-    * class. Hence check it for more information about the text support.
+    * Pass input texture to the frame buffer. Use this ppu
+    * to render results of the previous ppus into the framebuffer. So it is usual that
+    * this ppu is applied at the end of the pipeline
     **/
-    class OSGPPU_EXPORT UnitText : public UnitInOut, public osgText::Text
-    {
+    class OSGPPU_EXPORT UnitOut : public Unit {
         public:
-            virtual const char* className() const { return "UnitText" ;} 
-
-            //! Create default ppfx 
-            UnitText(osg::State* state);
-            UnitText();
+            META_Object(osgPPU,UnitOut);
+        
+            UnitOut(osg::State* state) : Unit(state) {}
+            UnitOut() : Unit() {}
+            UnitOut(const UnitOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
             //! Release it and used memory
-            ~UnitText();
+            virtual ~UnitOut();
             
-            //! Initialze the default postprocessing unit 
+            //! Initialze the default Processoring unit
             virtual void init();
-        
-            //! Set size of the characters (relative to viewport.width / 640)
-            inline void setSize(float size) { mSize= size;}
-
-            //! Get current size 
-            inline float getSize() const { return mSize; }
-        
-            //! Set 2D Screen positon
-            inline void setPosition(float x, float y) { osgText::Text::setPosition(osg::Vec3(x,y,0)); }
-
-            //! Redefine the setName method, because of diamond polymorphysm against osg::Object
-            inline void setName(const std::string& name)
-            {
-                UnitInOut::setName(name);
-            }
-
+            
         protected:
-
             //! Apply the defule unit 
             virtual void render(int mipmapLevel = 0);
             
-            //! Size of the font
-            float mSize;
+            //! Notice about end of rendering
+            virtual void noticeFinishRendering() {}
+        
+            //! Viewport changed
+            virtual void noticeChangeViewport() {}
     };
-
-}; // end namespace
+};
 
 #endif
