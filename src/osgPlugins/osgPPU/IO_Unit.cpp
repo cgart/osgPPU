@@ -241,14 +241,6 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
                 }else{
                     osg::notify(osg::WARN)<<"osgPPU::readObject - Something bad happens!" << std::endl;    
                 }
-                /*osgPPU::Unit* iunit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(ppuName));
-                if (iunit)
-                {
-                    local_itrAdvanced = true;
-                    unit.addInputPPU(iunit);
-                }else{
-                    osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot find input ppu " << ppuName << std::endl;    
-                }*/
             // if not ppu then texture
             }else
             {
@@ -291,7 +283,6 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
 
                 // read uniform
                 osg::Uniform* uniform = fr.readUniform();
-                //dynamic_cast<osg::Uniform*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Uniform>()));
     
                 // read state attribute
                 std::string stateAttribute;
@@ -356,7 +347,6 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
 
                 // read uniform
                 osg::Uniform* uniform = fr.readUniform();
-                //dynamic_cast<osg::Uniform*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Uniform>()));
     
                 // read state attribute
                 std::string stateAttribute;
