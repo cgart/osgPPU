@@ -28,7 +28,7 @@ directory alongside the OpenSceneGraph use:
 
     mkdir build
     cd build
-    cmake ../osgPPU -DCMAKE_BUILD_TYPE=Release
+    cmake ../ -DCMAKE_BUILD_TYPE=Release
     make
     sudo make install
 
@@ -53,8 +53,19 @@ The executable is then copied to the bin directory.
 All the data, which are used by the examples can be
 found also under bin/Data
 
-To run the examples go into the bin directory and run it:
-    cd bin
-    ./hdr 
+How to build osg plugin osgdb_ppu
+===============================
+The plugin is build together with the complete library.
+However to install the library file in correct plugin
+directory you have to specify the version of osg with:
 
+    cmake . -DOSG_VERSION=2.2
+
+The consecutive call of "make install" would install
+the ppu plugin under PREFIX/lib/osgPlugins-2.2/.
+If no version was specified then the installation path
+is PREFIX/lib/osgPlugins/
+
+
+   
 
