@@ -1,3 +1,28 @@
+2008-01-29 22:13  art
+
+	* [r52]
+	  - Very big changes in the interface
+	  - UnitInOut has now got the components about mipmapping which
+	  were moved from Unit
+	  - Unit is now pure abstract base class
+	  - UnitBypass added which do nothing as bypass the input to the
+	  output
+	  - osgdb_ppu plugin changed to support the new unit
+	  - .ppu files from bin/Data adapted to the new interface
+
+2008-01-29 19:48  art
+
+	* [r51]
+	  - Authors/Contributors list added to the svn. The authors are not
+	  sorted in any manner.
+
+2008-01-29 19:33  art
+
+	* [r50]
+	  - Licence text in all headers and source files changed
+	  - Now the LGPL should be seen everywhere
+	  - Readme file get new content about the osgPPU plugin to osg
+
 2008-01-29 19:07  art
 
 	* [r49]
