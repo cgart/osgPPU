@@ -25,26 +25,45 @@
 #include <osgPPU/Unit.h>
 
 //! Just options which we pass from the readerwriter to the object writer functions
-class ListOptions : public osgDB::ReaderWriter::Options
+class ListWriteOptions : public osgDB::ReaderWriter::Options
 {
 public:
     typedef std::list<std::pair<osgPPU::Unit*, osg::Texture*> > List;
 
     void setList(const List& l) { mList = l;}
-    const List& getList() const { return mList; }
+    const List& getList() const{ return mList; }
 
-    ListOptions() : osgDB::ReaderWriter::Options()
+    ListWriteOptions() : osgDB::ReaderWriter::Options()
     {}
 
-    ~ListOptions()
+    ~ListWriteOptions()
     {}
-
 
 private:
 
     List mList;
 };
 
+
+//! Read options to store connection between unit and its input
+class ListReadOptions : public osgDB::ReaderWriter::Options
+{
+public:
+    typedef std::map<osgPPU::Unit*, std::list<std::string> > List;
+
+    void setList(const List& l) { mList = l;}
+    List& getList() { return mList; }
+
+    ListReadOptions() : osgDB::ReaderWriter::Options()
+    {}
+
+    ~ListReadOptions()
+    {}
+
+private:
+
+    List mList;
+};
 
 
 extern bool StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mode);

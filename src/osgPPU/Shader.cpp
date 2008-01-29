@@ -64,6 +64,27 @@ Shader::Shader(const Shader& sh, const osg::CopyOp& copyop)
     }
 }
 
+
+//--------------------------------------------------------------------------
+void Shader::setProgram(osg::Program* program)
+{
+    if (program == NULL) return;
+
+    // copy program
+    mProgram = new osg::Program();//*(sh.mProgram), copyop);
+    mProgram->setName(program->getName());
+    for (unsigned int i=0; i < program->getNumShaders(); i++)
+    {
+        mProgram->addShader(new osg::Shader(*(program->getShader(i))));
+    }
+    
+    // copy attributes
+    osg::Program::AttribBindingList::const_iterator it = program->getAttribBindingList().begin();
+    for (; it != program->getAttribBindingList().end(); it ++)
+        mProgram->addBindAttribLocation(it->first, it->second);
+
+}
+
 #if 0
 //--------------------------------------------------------------------------
 void Shader::copyToShader(Shader* sh)
@@ -189,6 +210,38 @@ void Shader::addParameter(const std::string& name, osg::Uniform* param)
 void Shader::add(const std::string& name, osg::Uniform::Type type, unsigned int elementCount)
 {
     addParameter(name, new osg::Uniform(type, name, elementCount));
+}
+
+//--------------------------------------------------------------------------
+void Shader::add(osg::Uniform* uniform)
+{
+    if (!uniform) return;
+
+    // create a copy of the uniform
+    osg::Uniform* u = new osg::Uniform(
+                    uniform->getType(),
+                    uniform->getName(), 
+                    uniform->getNumElements()); 
+    u->copyData(*uniform);
+
+    addParameter(u->getName(), u); 
+}
+
+
+//--------------------------------------------------------------------------
+void Shader::add(osg::StateSet::RefUniformPair uniform)
+{
+    if (!uniform.first) return;
+
+    // create a copy of the uniform
+    osg::Uniform* u = new osg::Uniform(
+                    uniform.first->getType(),
+                    uniform.first->getName(), 
+                    uniform.first->getNumElements()); 
+    u->copyData(*(uniform.first));
+
+    mUniforms[u->getName()] = osg::StateSet::RefUniformPair(u, uniform.second);
+    onAddUniform(u);
 }
 
 //--------------------------------------------------------------------------

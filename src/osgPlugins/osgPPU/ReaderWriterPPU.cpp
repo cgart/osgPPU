@@ -29,9 +29,9 @@ class ReaderWriterPPU : public osgDB::ReaderWriter
 {
 private:
     // ----------------------------------------------------------------------------------------------------
-    std::list<std::pair<osgPPU::Unit*, osg::Texture*> > findInputs(const osgPPU::Processor& ppu, const osgPPU::Unit* unit) const
+    ListWriteOptions::List findInputs(const osgPPU::Pipeline& ppu, const osgPPU::Unit* unit) const
     {
-        std::list<std::pair<osgPPU::Unit*, osg::Texture*> > list;
+        ListWriteOptions::List list;
         int inputCount = 0;
 
         // get list of all inputs for this unit
@@ -45,8 +45,8 @@ private:
                 int found = -1;
 
                 // scan the pipeline and search for an unit which output is equal to this input 
-                osgPPU::Pipeline::const_iterator jt = ppu.getPipeline().begin();
-                for (; jt != ppu.getPipeline().end(); jt++)
+                osgPPU::Pipeline::const_iterator jt = ppu.begin();
+                for (; jt != ppu.end(); jt++)
                 {
                     // since we support multiple outputs we have to check each output 
                     const osgPPU::Unit::TextureMap& outmap = (*jt)->getOutputTextureMap();
@@ -117,21 +117,70 @@ public:
         std::ifstream fin(fileName.c_str());
         if (!fin) return ReadResult("osgPPU::readObject - Unable to open file for reading");
         
+        // during the reading we require to read some data from the osg plugin, hence preload this library 
+        std::string pluginLibraryName = osgDB::Registry::instance()->createLibraryNameForExtension("osg");
+        osgDB::Registry::instance()->loadLibrary(pluginLibraryName);
+
         // read input 
         osgDB::Input fr;
         fr.attach(&fin);
 
         // here we store the readed result
         osgPPU::Pipeline* pp = new osgPPU::Pipeline();
-    
-        // read all units in the file
-        osg::Object* object = NULL;
-        while((object=fr.readObject())!=NULL)
+
+        // first read the pipeline
+        if (fr.matchSequence((std::string(pp->libraryName()) + std::string("::") + std::string(pp->className())).c_str()))
         {
-            osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(object);
-            if (unit) pp->push_back(unit);
+            // move in
+            fr += 2;
+                
+            // setup the read options list
+            ListReadOptions* list = new ListReadOptions();
+            fr.setOptions(list);
+
+            // read all units in the file
+            osg::Object* object = NULL;
+            while((object=fr.readObject())!=NULL)
+            {
+                osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(object);
+                if (unit)
+                {
+                    pp->push_back(unit);
+                }
+            }
+            
+            // skip trailing '}'
+            ++fr;
+
+            // the option should contain now a mapping ppu to ppu of inputs
+            ListReadOptions::List::const_iterator it = list->getList().begin();
+            for (; it!= list->getList().end(); it++)
+            {
+                // find for each input ppu the input ppu 
+                for (std::list<std::string>::const_iterator kt=it->second.begin(); kt!=it->second.end(); kt++)
+                {
+                    bool found = false;
+
+                    // get ppu with the name
+                    for (osgPPU::Pipeline::const_iterator lt=pp->begin(); lt!=pp->end(); lt++)
+                    {
+                        if ((*lt)->getName() == *kt)
+                        {
+                            it->first->addInputPPU(lt->get());
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find input ppu " << *kt << std::endl;    
+                    }
+                }
+            }
+
         }
-        
+
         return pp;
     }
 
@@ -142,6 +191,16 @@ public:
         std::string ext = osgDB::getLowerCaseFileExtension(fileName);
         if (!acceptsExtension(ext)) return WriteResult::FILE_NOT_HANDLED;
 
+        // check if correct object was given
+        if (!dynamic_cast<const osgPPU::Pipeline*>(&obj))
+        {
+            return WriteResult("osgPPU::writeObject - Wrong object to write was given. Do only support osgPPU::Pipeline");
+        }
+
+        // during the writing we require to read some data from the osg plugin, hence preload this library 
+        std::string pluginLibraryName = osgDB::Registry::instance()->createLibraryNameForExtension("osg");
+        osgDB::Registry::instance()->loadLibrary(pluginLibraryName);
+
         // open file for writing
         osgDB::Output fout(fileName.c_str());
         fout.setOptions(options);
@@ -150,18 +209,18 @@ public:
         if (fout)
         {
             // convert object to processor pipeline 
-            const osgPPU::Processor& ppu = static_cast<const osgPPU::Processor&>(obj);
+            const osgPPU::Pipeline& ppu = static_cast<const osgPPU::Pipeline&>(obj);
             
             // write out information about the pipeline
-            fout.writeBeginObject(std::string(ppu.libraryName()) + std::string("::") + std::string(ppu.getPipeline().className()));
+            fout.writeBeginObject(std::string(ppu.libraryName()) + std::string("::") + std::string(ppu.className()));
             fout.moveIn();
                 
                 // for each unit in the pipeline write it to file 
-                osgPPU::Pipeline::const_iterator it = ppu.getPipeline().begin();
-                for (; it != ppu.getPipeline().end(); it++)
+                osgPPU::Pipeline::const_iterator it = ppu.begin();
+                for (; it != ppu.end(); it++)
                 {
                     // setup options for this writer
-                    ListOptions* op = new ListOptions();
+                    ListWriteOptions* op = new ListWriteOptions();
                     fout.setOptions(op);
 
                     // create a list of all input data to the ppu

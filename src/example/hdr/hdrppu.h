@@ -1,7 +1,9 @@
 #include <osgPPU/Processor.h>
 #include <osgPPU/Unit.h>
-#include <osgPPU/PPUInOut.h>
-#include <osgPPU/PPUText.h>
+#include <osgPPU/UnitInOut.h>
+#include <osgPPU/UnitText.h>
+#include <osgPPU/UnitInResampleOut.h>
+#include <osgPPU/UnitOut.h>
 
 
 //---------------------------------------------------------------
@@ -83,7 +85,8 @@ class HDRRendering
             {
                 resample->setIndex(10);
                 resample->setName("Resample");
-                resample->setFactor(0.5, 0.5);
+                resample->setFactorX(0.5);
+                resample->setFactorY(0.5);
                 resample->addInputPPU(bypass.get());
             }
             pipeline.push_back(osg::ref_ptr<osgPPU::Unit>(resample));

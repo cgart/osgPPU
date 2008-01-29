@@ -1,0 +1,96 @@
+/***************************************************************************
+ *   Copyright (c) 2008   Art Tevs                                         *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ ***************************************************************************/
+
+#include <osgPPU/Processor.h>
+#include <osgPPU/UnitOutCapture.h>
+
+#include <osg/Texture2D>
+#include <osgDB/WriteFile>
+#include <osgDB/Registry>
+
+#include <iostream>
+
+namespace osgPPU
+{
+    //------------------------------------------------------------------------------
+    UnitOutCapture::UnitOutCapture(const UnitOutCapture& unit, const osg::CopyOp& copyop) :
+        UnitOut(unit, copyop)
+    {
+    
+    }
+    //------------------------------------------------------------------------------
+    UnitOutCapture::UnitOutCapture() : UnitOut()
+    {
+        mPath = ".";
+        mCaptureNumber = 0;
+        mExtension = "png";
+    }
+    //------------------------------------------------------------------------------
+    UnitOutCapture::UnitOutCapture(osg::State* state) : UnitOut(state)
+    {
+        mPath = ".";
+        mCaptureNumber = 0;
+        mExtension = "png";
+    }
+    
+    //------------------------------------------------------------------------------
+    UnitOutCapture::~UnitOutCapture()
+    {
+    }
+    
+    
+    //------------------------------------------------------------------------------
+    void UnitOutCapture::noticeFinishRendering()
+    {
+        if (isActive() && sState.getState())
+        {
+            // if we want to capture the framebuffer
+            char filename[256];
+            
+            // for each input texture do
+            for (unsigned int i=0; i < mInputTex.size(); i++)
+            {
+                // create file name
+                sprintf( filename, "%s/%d_%04d.%s", mPath.c_str(), i, mCaptureNumber, mExtension.c_str());
+                std::cout << "Capture " << mCaptureNumber << " frame to " << filename << " ...";
+                std::cout.flush();
+            
+                mCaptureNumber++;
+    
+                // input texture 
+                osg::Texture* input = getInputTexture(i);
+    
+                // bind input texture, so that we can get image from it
+                if (input != NULL) input->apply(*sState.getState());
+                
+                // retrieve texture content
+                osg::ref_ptr<osg::Image> img = new osg::Image();
+                img->readImageFromCurrentTexture(sState.getContextID(), false); 
+                //img->readPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE);
+                osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
+                //write_png(filename, img->data(), w, h, 4, 8, PNG_COLOR_TYPE_RGBA, 1);
+                if (res.success())
+                    std::cout << " OK" << std::endl;
+                else
+                    std::cout << " failed! (" << res.message() << ")" << std::endl;
+                            
+                // unbind the texture back 
+                if (input != NULL)
+                    sState.getState()->applyTextureMode(0, input->getTextureTarget(), false);
+            }
+        }
+    }
+
+}; // end namespace

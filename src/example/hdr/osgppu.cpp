@@ -151,7 +151,6 @@ class Viewer : public osgViewer::Viewer
             ppuout->setName("PipelineResult");
             pipeline.push_back(ppuout);
 
-
             // now just as a gimmick do setup a text ppu, to render some info on the screen
             osgPPU::UnitText* pputext = new osgPPU::UnitText(mState.get());
             pputext->setIndex(999);
@@ -166,6 +165,9 @@ class Viewer : public osgViewer::Viewer
 
             // now after the pipeline is setted up, we add offline ppus to compute adapted luminace
             mHDRSetup.setupPPUsToComputeAdaptedLuminance(mProcessor.get());
+
+            // test writing to file 
+            osgDB::writeObjectFile(mProcessor->getPipeline(), "Data/hdr.ppu");        
             
             // This ppu just render a texture over the screen.
             // We do this after we have setted up the pipeline, so that we can
@@ -244,10 +246,6 @@ class Viewer : public osgViewer::Viewer
             // ppu pipeline is get rendered after the main camera is rendered and
             // before the main buffer swap take place
             mProcessor->initPostDrawCallback(getCamera());
-
-            // test writing to file 
-            //osgDB::writeObjectFile(*mProcessor, "hdr.ppu");        
-            //osgPPU::Pipeline* pp = static_cast<osgPPU::Pipeline*>(osgDB::readObjectFile("hdr.ppu"));            
         }
 
         //! Update the frames        

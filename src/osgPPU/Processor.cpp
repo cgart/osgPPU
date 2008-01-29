@@ -119,6 +119,10 @@ void Processor::setPipeline(const Pipeline& pipeline)
     Pipeline::const_iterator it = pipeline.begin();
     for (; it != pipeline.end(); it++)
     {
+        // set valid state if not specified before 
+        if ((*it)->isValidState() == false)
+            (*it)->setState(mState.get());
+
         // add the element into the pipeline
         if ((*it)->getOfflineMode() == false)
             mPipeline.push_back((*it));
@@ -155,8 +159,9 @@ void Processor::setPipeline(const Pipeline& pipeline)
 			// setup default settings
 			(*jt)->setViewport(vp);
             if (onPPUInit((*jt).get()))
+            {
     			(*jt)->init();
-	
+	        }
 			// set now the input texture for the next from the output tex of the current one
 			input = (*jt)->getOutputTexture(0);
 			vp = (*jt)->getViewport();

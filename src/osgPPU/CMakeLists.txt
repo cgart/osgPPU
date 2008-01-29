@@ -9,8 +9,11 @@ SET(HEADER_PATH ${osgPPU_SOURCE_DIR}/include/${LIB_NAME})
 
 SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Export.h
-    ${HEADER_PATH}/PPUInOut.h
-    ${HEADER_PATH}/PPUText.h
+    ${HEADER_PATH}/UnitText.h
+    ${HEADER_PATH}/UnitInOut.h
+    ${HEADER_PATH}/UnitInResampleOut.h
+    ${HEADER_PATH}/UnitOut.h
+    ${HEADER_PATH}/UnitOutCapture.h
     ${HEADER_PATH}/Processor.h
     ${HEADER_PATH}/Shader.h
     ${HEADER_PATH}/Unit.h
@@ -20,8 +23,11 @@ SET(LIB_PUBLIC_HEADERS
 ADD_LIBRARY(${LIB_NAME}
     ${OSGPPU_USER_DEFINED_DYNAMIC_OR_STATIC}
     ${LIB_PUBLIC_HEADERS}
-    PPUInOut.cpp
-    PPUText.cpp
+    UnitOut.cpp
+    UnitOutCapture.cpp
+    UnitInOut.cpp
+    UnitInResampleOut.cpp
+    UnitText.cpp
     Processor.cpp
     Shader.cpp
     Unit.cpp

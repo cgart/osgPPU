@@ -14,10 +14,17 @@
  ***************************************************************************/
 
 
-#include <osgPPU/PPUText.h>
+#include <osgPPU/UnitText.h>
 
 namespace osgPPU
 {
+    //------------------------------------------------------------------------------
+    UnitText::UnitText(const UnitText& unit, const osg::CopyOp& copyop) :
+        UnitInOut(unit, copyop)
+    {
+        mSize = unit.mSize;
+    }
+
     //------------------------------------------------------------------------------
     UnitText::UnitText(osg::State* state) : osgPPU::UnitInOut(state)
     {
