@@ -1,0 +1,14 @@
+This is a list of all contributors to the osgPPU library.
+Currently the list is not sorted in any manner (ok maybe 
+in the time when a patch was submitted ;-) ).
+
+
+4 Contributors:
+
+Firstname Surname
+----------------------------
+Art Tevs
+Stephane Lamoliatte
+Bob Kuhne
+Christian Heine
+ 
