@@ -176,7 +176,7 @@ class Viewer : public osgViewer::Viewer
             // demonstrate how to include ppus after pipeline setup
             {
                 // we need this to work on
-                osg::ref_ptr<osgPPU::Unit> bypass = mProcessor->getPPU("HDRBypass");
+                osg::ref_ptr<osgPPU::Unit> bypass = mProcessor->getUnit("HDRBypass");
 
                 // create picture in picture ppu 
                 osg::ref_ptr<osgPPU::Unit> bgppu = new osgPPU::UnitInOut(mState.get());
@@ -186,7 +186,7 @@ class Viewer : public osgViewer::Viewer
                 bgppu->setIndex(200);
 
                 // now we have to include this ppu into the pipeline
-                mProcessor->addPPUToPipeline(bgppu.get());
+                mProcessor->addUnitToPipeline(bgppu.get());
 
                 // after adding the ppu the input and output textures changes
                 // according to the pipeline. Hence we have to change this how we
@@ -238,7 +238,7 @@ class Viewer : public osgViewer::Viewer
                 fpstext->setText("FPS: ");
                 fpstext->setPosition(0.0, 0.95);
 
-                mProcessor->addPPUToPipeline(fpstext);
+                mProcessor->addUnitToPipeline(fpstext);
                 fpstext->init();
             }
             // the post processing is updated by the post draw callback of the main camera
@@ -276,14 +276,14 @@ class Viewer : public osgViewer::Viewer
             // I would suggest to solve this in another way
             {
                 // get ppu containing the shader with the variable
-                osgPPU::Unit* ppu = mProcessor->getPPU("AdaptedLuminance");
+                osgPPU::Unit* ppu = mProcessor->getUnit("AdaptedLuminance");
                 if (ppu)
                     ppu->getShader()->set("invFrameTime", frameTime);
             }
 
             // print also some info about the fps number
             {
-                osgPPU::UnitText* ppu = dynamic_cast<osgPPU::UnitText*>(mProcessor->getPPU("FPSTextPPU"));
+                osgPPU::UnitText* ppu = dynamic_cast<osgPPU::UnitText*>(mProcessor->getUnit("FPSTextPPU"));
                 if (ppu)
                 {
                     char txt[64];
@@ -316,43 +316,43 @@ public:
             case(osgGA::GUIEventAdapter::KEYDOWN):
             case(osgGA::GUIEventAdapter::KEYUP):
             {
-                osgPPU::Unit* ppu = viewer->getProcessor()->getPPU("PictureInPicturePPU");
-                osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->getPPU("TextPPU"));
+                osgPPU::Unit* ppu = viewer->getProcessor()->getUnit("PictureInPicturePPU");
+                osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->getUnit("TextPPU"));
 
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getPPU("HDRBypass")->getOutputTexture(0), 0);
+                    ppu->setInputTexture(viewer->getProcessor()->getUnit("HDRBypass")->getOutputTexture(0), 0);
                     textppu->setText("Original Input");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getPPU("ComputeLuminance")->getOutputTexture(0), 0);
+                    ppu->setInputTexture(viewer->getProcessor()->getUnit("ComputeLuminance")->getOutputTexture(0), 0);
                     textppu->setText("Per Pixel Luminance");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F3)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getPPU("Brightpass")->getOutputTexture(0), 0);
+                    ppu->setInputTexture(viewer->getProcessor()->getUnit("Brightpass")->getOutputTexture(0), 0);
                     textppu->setText("Brightpass");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F4)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getPPU("BlurVertical")->getOutputTexture(0), 0);
+                    ppu->setInputTexture(viewer->getProcessor()->getUnit("BlurVertical")->getOutputTexture(0), 0);
                     textppu->setText("Gauss Blur on Brightpass");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F5)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getPPU("AdaptedLuminanceCopy")->getOutputTexture(0), 0);
+                    ppu->setInputTexture(viewer->getProcessor()->getUnit("AdaptedLuminanceCopy")->getOutputTexture(0), 0);
                     textppu->setText("Adapted Luminance");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
                 {
-                    ppu->setStartBlendValue(1.0);
-                    ppu->setEndBlendValue(0.0);
-                    ppu->setStartBlendTimeToCurrent();
+                    ppu->setBlendStartValue(1.0);
+                    ppu->setBlendFinalValue(0.0);
+                    ppu->setBlendStartTimeToCurrent();
                     ppu->setBlendDuration(3.0);
-                    ppu->setBlendMode(true);
+                    ppu->setUseBlendMode(true);
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F7)
                 {
-                    ppu->setStartBlendValue(0.0);
-                    ppu->setEndBlendValue(1.0);
-                    ppu->setStartBlendTimeToCurrent();
+                    ppu->setBlendStartValue(0.0);
+                    ppu->setBlendFinalValue(1.0);
+                    ppu->setBlendStartTimeToCurrent();
                     ppu->setBlendDuration(3.0);
-                    ppu->setBlendMode(true);
+                    ppu->setUseBlendMode(true);
                 }
                 break;
             }

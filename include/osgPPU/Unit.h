@@ -41,19 +41,22 @@ namespace osgPPU
 // Forward declaration to simplify the work
 class Processor;
 
-//! Base class of any ppu which do work as a simple bypass ppu per default
+//! Base class of any unit which do work as a simple bypass unit per default
 /**
- * PostProcessing Effect. The effects
- * are used by PostProcess in their order to apply some
+ * PostProcessingUnit. The units
+ * are used by Processor in their order to apply some
  * processing computation onto the input data.
  * 
- * Per defualt the class PostProcessUnit is an empty effect, hence it just bypass
+ * Per defualt the class Unit has an empty effect, hence it just bypass
  * all the data (direct connection from input to output).
  **/
 class OSGPPU_EXPORT Unit : public osg::Object {
     public:
 
-        META_Object(osgPPU,Unit);
+        virtual const char* className() const { return "Unit" ;}
+        virtual const char* libraryName() const { return "osgPPU"; }
+        virtual bool isSameKindAs(const osg::Object* obj) const { return dynamic_cast<const Unit*>(obj) != 0; }
+        
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         
         /**
@@ -79,12 +82,6 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         virtual ~Unit();
         
         /**
-         * Get framebuffer object used by this ppu. Almost every ppu do work 
-         * with fbos. If there is no use in fbo, then NULL is returned.
-        **/
-        inline osg::FrameBufferObject* getFBO() { return mFBO.get(); }
-
-        /**
         * Set a texture as input texture.
         * @param inTex Texture which is handled as input 
         * @param inputIndex Index, will be used as texture unit to apply the input on
@@ -97,10 +94,14 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         inline osg::Texture* getInputTexture(int inputIndex) { return mInputTex[inputIndex].get(); }
 
-        //! Assign input textures directly by a index to texture map
+        /**
+         * Assign input textures directly by a index to texture map
+         **/
         inline void setInputTextureMap(const TextureMap& map) { mInputTex = map; }
 
-        //! Return complete index to texture mapping
+        /**
+        * Return complete index to texture mapping
+        **/
         const TextureMap& getInputTextureMap() const {return mInputTex;}
 
         /**
@@ -121,13 +122,19 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         void setOutputTexture(osg::Texture* outTex, int mrt = 0);
         
-        //! Get output texture of certain MRT index
+        /**
+        * Get output texture of certain MRT index
+        **/
         inline osg::Texture* getOutputTexture(int mrt = 0) { return mOutputTex[mrt].get(); }
 
-        //! Set a mrt to texture map for output textures
+        /**
+        * Set a mrt to texture map for output textures
+        **/
         inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map;}
 
-        //! Get mrt index to texture mapping
+        /**
+        * Get mrt index to texture mapping
+        **/
         inline const TextureMap& getOutputTextureMap() const {return mOutputTex;}
                 
         /**
@@ -135,22 +142,26 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         * input indicies. The output of the ppu added as second will be mapped
         * to the input indices 1 + number of output textures.
         * @param ppu PPU which will be used as input.
-        * @param bUsePPUsViewport Should we use the viewport of that ppu to setup our own.
+        * @param useUnitsViewport Should we use the viewport of that ppu to setup our own.
         **/
-        inline void addInputPPU(Unit* ppu, bool bUsePPUsViewport = false)
+        inline void addInputUnit(Unit* ppu, bool useUnitsViewport = false)
         {
             mInputPPU.push_back(ppu);
-            if (bUsePPUsViewport)
+            if (useUnitsViewport)
             {
                 mUseInputPPUViewport = ppu;
                 setInputTextureIndexForViewportReference(-1);
             }
         }
 
-        //! Return the index of this unit
+        /**
+        * Return the index of this unit
+        **/
         inline int getIndex() const { return mIndex; }
         
-        //! Set index of this ppu
+        /**
+        * Set index of this ppu
+        **/
         inline void setIndex(int i) { mIndex = i; }
         
         /**
@@ -175,38 +186,52 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         inline void setTime(float f) { mTime = f; }
 
-        //! Comparison operator for sorting. Compare by index value
+        /**
+        * Comparison operator for sorting. Compare by index value
+        **/
         inline bool operator < (const Unit& b)
         {
                return mIndex < b.mIndex;
         }
         
-        //! Set viewport which is used for this PPU while rendering 
+        /**
+        * Set viewport which is used for this Unit while rendering
+        **/
         void setViewport(osg::Viewport* vp);
 
-        //! Get viewport of this unit
+        /**
+        * Get viewport of this unit
+        **/
         inline osg::Viewport* getViewport() const { return mViewport.get(); }
         
-        inline void setEndBlendTime(float time) { mExpireTime = time; }
-        inline void setBlendDuration(float time) { mExpireTime = mStartTime + time; }
-        inline float getEndBlendTime() const { return mExpireTime; }
+        inline void  setBlendFinalTime(float time) { mExpireTime = time; }
+        inline float getBlendFinalTime() const { return mExpireTime; }
 
-        inline void setStartBlendTime(float time) { mStartTime = time; }
-        inline void setStartBlendTimeToCurrent() { mStartTime = mTime; }
-        inline float getStartBlendTime() const { return mStartTime ; }
+        inline void  setBlendFinalValue(float alpha) { mEndBlendValue = alpha; }
+        inline float getBlendFinalValue() const { return mEndBlendValue; }
 
-        inline void setStartBlendValue(float alpha) { mStartBlendValue = alpha; }
-        inline float getStartBlendValue() const { return mStartBlendValue; }
+        inline void  setBlendStartTime(float time) { mStartTime = time; }
+        inline float getBlendStartTime() const { return mStartTime ; }
+        inline void  setBlendStartTimeToCurrent() { mStartTime = mTime; }
+        inline void  setBlendDuration(float time) { mExpireTime = mStartTime + time; }
 
-        inline void setEndBlendValue(float alpha) { mEndBlendValue = alpha; }
-        inline float getEndBlendValue() const { return mEndBlendValue; }
-        inline float getCurrentBlendValue() const { return mCurrentBlendValue; }
+        inline void  setBlendStartValue(float alpha) { mStartBlendValue = alpha; }
+        inline float getBlendStartValue() const { return mStartBlendValue; }
 
-        //! Should the blend mode be activated or not        
-        void setBlendMode(bool enable);
+        inline float getBlendValue() const { return mCurrentBlendValue; }
 
-        //! Do we currently use blend mode
-        bool useBlendMode() const; 
+        /**
+        * Should the blend mode be activated for this Unit or not.
+        * Blending gives you the possibility of simple controling how
+        * the Unit is rendered. For example a unit displaying a black texture
+        * may be used for FadeIn/FadeOut effects.
+        **/
+        void setUseBlendMode(bool enable);
+
+        /**
+        * Do we currently use the blend mode.
+        **/
+        bool getUseBlendMode() const;
         
         /**
          * Activate or deactive the ppu. An active ppu is updated during the update 
@@ -215,16 +240,20 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         inline void setActive(bool b) { mbActive = b; }
 
-        //! Check active status
-        inline bool isActive() const { return mbActive; }
+        /**
+        * Check if the Unit's active flag
+        **/
+        inline bool getActive() const { return mbActive; }
         
         /**
-         * Change drawing position and size of this ppu. This changes the projection matrix,
+         * Change drawing position and size of this ppu by using the
+         * new frustum planes in the orthogonal projection matrix.
+         * This changes the projection matrix,
          * therefor it is better not to change this parameters until you really 
          * need this. If you just want to place the ppu on another position, then just 
          * play with the viewport.
         **/
-        void setRenderingPosAndSize(float left, float top, float right, float bottom);
+        void setRenderingFrustum(float left, float top, float right, float bottom);
         
 		/**
 		* Set this ppu in the mode, so that it is not combined into the rendering graph.
@@ -235,7 +264,9 @@ class OSGPPU_EXPORT Unit : public osg::Object {
 		**/
 		inline void setOfflineMode(bool mode) {mbOfflinePPU = mode;}
 
-		//! Check whenever this ppu runs in an offline mode 
+		/**
+        * Check whenever this ppu runs in an offline mode
+        **/
 		inline bool getOfflineMode() const { return mbOfflinePPU; }
 
         /**
@@ -245,7 +276,9 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         void setOutputInternalFormat(GLenum format);
 
-        //! Get internal format which is used by the output textures
+        /**
+        * Get internal format which is used by the output textures
+        **/
         inline GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
 
         /**
@@ -257,35 +290,12 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         { 
             mShader = sh;
             mbDirtyShader = true;
-            //assignShader(); 
         }
 
-        //! Get currently assigned shader
-        inline Shader* getShader() const { return mShader.get(); }
-
         /**
-         * Assign a mipmap shader. A mipmap shader is used when generating mipmaps
-         * on the output data. Hence this shader is only applied to all the mipmap levels
-         * except of level 0, where a normal shader specified by setShader() is applied.
+        * Get currently assigned shader
         **/
-        inline void setMipmapShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
-
-        //! Return current mipmap shader
-        inline Shader* getMipmapShader() const { return mMipmapShader.get(); }
-        
-        //! Shall we use mipmap shader to generate mipmaps
-        inline void setUseMipmapShader(bool b) { mbUseMipmapShader = b; }
-        inline bool getUseMipmapShader() const { return mbUseMipmapShader; }
-
-        //! Shall we use mipmaps at all 
-        inline void setUseMipmaps(bool b) { mbUseMipmaps = b; if (b) enableMipmapGeneration(); }
-        inline bool getUseMipmaps() const { return mbUseMipmaps; }
-
-        //! Set user data
-        inline void setUserData(void* data) { mUserData = data; }
-
-        //! get user data
-        inline void* getUserData() { return mUserData; }
+        inline Shader* getShader() const { return mShader.get(); }
 
         /**
         * Set index of an input texture which size is used as reference 
@@ -297,10 +307,14 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         void setInputTextureIndexForViewportReference(int index);
 
-        //! Get index of the viewport reference texture 
+        /**
+        * Get index of the input texture which dimension is used for setting up the viewport.
+        **/
         inline int getInputTextureIndexForViewportReference() const { return mInputTexIndexForViewportReference; }
 
-        //! Get stateset of the ppu 
+        /**
+        * Get stateset of the ppu
+        **/
         inline osg::StateSet* getStateSet() { return sScreenQuad->getOrCreateStateSet(); }
 
         /**
@@ -332,7 +346,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         virtual void noticeRemoveShader() {}
 
         //! Unit specific rendering function 
-        virtual void render(int mipmapLevel = -1);
+        virtual void render(int mipmapLevel = -1) = 0;
                     
         //! Assign the input texture to the quad object 
         virtual void assignInputTexture();
@@ -351,19 +365,10 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         
         //! disable shader
         void removeShader();
-
-        //! Call this method to initilization the base class properties (i.e. in init() before return)
-        void initializeBase();
         
         //! Call this method after the apply method in derived classes
         void applyBase();
         
-        //! Generate mipmaps (for specified output texture)
-        void generateMipmaps(osg::Texture* output, int mrt);
-        
-        //! Enable mipmap generation on all output textures
-        void enableMipmapGeneration();
-
         /**
          * Set camera which is used for this ppu. The camera attachments might be used as inputs.
          * However it is up to the definition of the ppu to use camera inputs or not.
@@ -373,9 +378,6 @@ class OSGPPU_EXPORT Unit : public osg::Object {
 
         //! Return camera associated with this ppu.
         inline osg::Camera* getCamera() { return mCamera.get(); }
-
-        //! Each ppfx use its own framebuffer object where results are written
-        osg::ref_ptr<osg::FrameBufferObject>    mFBO;
         
         //! Input texture
         TextureMap  mInputTex;
@@ -406,28 +408,10 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         
         //! Resource pointer to the ppu which is used as input (if such is specified)
         std::vector<osg::ref_ptr<Unit> > mInputPPU;
-        
-        //! Resource pointer to the ppu which is used as output (if such is specified)
-        std::vector<osg::ref_ptr<Unit> > mOutputPPU;
-                
+                        
         //! Name of the ppu wich viewport should be used
         Unit* mUseInputPPUViewport;
-        
-        //! Should we use mipmapping on the output texture
-        bool mbUseMipmaps;
-        
-        //! Should we use our own mipmapping shader 
-        bool mbUseMipmapShader;
-        
-        //! Pointer to the shader which is used to generate mipmaps
-        osg::ref_ptr<Shader> mMipmapShader;
-
-        //! FBOs for different mipmap levels
-        std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
-        
-        //! Viewports for each mipmap level 
-        std::vector<osg::ref_ptr<osg::Viewport> > mMipmapViewport;
-        
+                
         //! Camera which is used for this post process
         osg::ref_ptr<osg::Camera> mCamera;
 
@@ -452,7 +436,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
 
-        //! Check if unit does contain a valid state (hence i
+        //! Check if unit does contain a valid state
         bool isValidState() const { return sState.getState() != NULL; }
 
     private:

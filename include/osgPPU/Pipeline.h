@@ -53,6 +53,20 @@ class OSGPPU_EXPORT Pipeline : public std::list<osg::ref_ptr<Unit> >, public osg
 
         }
 
+        /**
+        * Find a unit with by its name.
+        * @param name Name of the unit to search in the pipeline
+        * @return Pointer to the unit or NULL if not found.
+        **/
+        inline Unit* findUnit(const std::string& name)
+        {
+            iterator jt = begin();
+            for (; jt != end(); jt++ )
+                if ((*jt)->getName() == name)
+                    return (*jt).get();
+
+            return NULL;
+        }
 };
 
 }; // end namespace

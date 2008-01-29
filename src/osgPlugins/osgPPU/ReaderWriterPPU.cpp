@@ -166,7 +166,7 @@ public:
                     {
                         if ((*lt)->getName() == *kt)
                         {
-                            it->first->addInputPPU(lt->get());
+                            it->first->addInputUnit(lt->get());
                             found = true;
                             break;
                         }

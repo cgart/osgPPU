@@ -33,17 +33,6 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
-    void UnitOut::init()
-    {
-        // assign the input texture and shader if they are valid
-        //assignInputTexture();
-        //assignShader();
-        
-        initializeBase();
-    }
-    
-    
-    //------------------------------------------------------------------------------
     void UnitOut::render(int mipmapLevel)
     {
         // return if we do not get valid state
@@ -65,14 +54,14 @@ namespace osgPPU
         if (mViewport.valid()) mViewport->apply(*sState.getState());
     
         // render the content of the input texture into the frame buffer
-        if (useBlendMode())
+        if (getUseBlendMode())
         {
             glEnable(GL_BLEND);
-            glColor4f(1,1,1, getCurrentBlendValue());
+            glColor4f(1,1,1, getBlendValue());
         }
 
         sScreenQuad->draw(sState);
-        if (useBlendMode())
+        if (getUseBlendMode())
         {
             glDisable(GL_BLEND);
             glColor4f(1,1,1,1);

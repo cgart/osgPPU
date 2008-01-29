@@ -67,6 +67,7 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         
         /**
          * This should be called every frame to update the system.
+         * The rendering is also performed in this method.
          * @param dTime Time (in seconds) of one frame.
         **/
         virtual void update(float dTime = 0.0f);
@@ -77,15 +78,18 @@ class OSGPPU_EXPORT Processor : public osg::Object {
          * A bypass ppu (Unit) as first in the pipeline can bypass
          * the camera attachment into the pipeline.
          * @param camera Camera object to use input from.
+         * @param setupCallback Set to true if you wish to add the processor to
+         *  the post draw callback of the given camera.
          **/
-        void setCamera(osg::Camera* camera);
+        void setCamera(osg::Camera* camera, bool setupCallback = false);
         
         /**
          * Get camera used for this pipeline. This method returns the camera object
          * specified with setCamera().
         **/
         inline osg::Camera* getCamera() { return mCamera.get(); }
-
+        inline const osg::Camera* getCamera() const { return mCamera.get(); }
+        
         /**
          * This method do set up the pipeline. The ppus are inserted into the pipeline
          * according to their indices. Input and outputs are setted up according 
@@ -95,7 +99,9 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         **/
         void setPipeline(const Pipeline& pipeline);
         
-        //! Get currently used pipeline 
+        /**
+         * Return pipeline used currently in the processor
+         **/
         const Pipeline& getPipeline() const { return mPipeline; }
  
         /**
@@ -105,7 +111,7 @@ class OSGPPU_EXPORT Processor : public osg::Object {
          * @param ppuName Unique name of the ppu in the pipeline.
          * @return Iterator of the pipeline list which can be used to resetup the list manually.
         **/
-        Pipeline::iterator removePPUFromPipeline(const std::string& ppuName);
+        Pipeline::iterator removeUnitFromPipeline(const std::string& ppuName);
     
         /**
          * Add new ppu to the pipeline. The ppu will be sorted in to the pipeline according
@@ -114,7 +120,7 @@ class OSGPPU_EXPORT Processor : public osg::Object {
          * hence do this after you have added it into a pipeline.
          * @param ppu Pointer to the ppu 
         **/
-        void addPPUToPipeline(Unit* ppu);
+        void addUnitToPipeline(Unit* ppu);
         
         /**
          * Get stateset of the post processor. This is the working stateset. You can 
@@ -131,10 +137,10 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         inline void setTime(float t) { mTime = t; }
 
         /**
-         * Get a ppu.
+         * Get a unit by its name.
          * @param name Unique name of the ppu in the pipeline
         **/
-        Unit* getPPU(const std::string& name);
+        inline Unit* getUnit(const std::string& name) { return mPipeline.findUnit(name); }
 
         /**
          * Setup a post draw callback to update post processor.
@@ -145,15 +151,15 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         void initPostDrawCallback(osg::Camera* camera);
         
         /**
+         * Return current state assigned with the post process.
+        **/
+        inline osg::State* getState() { return mState.get(); }
+
+        /**
          * Utility function to derive source texture format from the internal format.
          * For example GL_RGB16F_ARB corresponds to GL_FLOAT
         **/
         static GLenum createSourceTextureFormat(GLenum internalFormat);
-
-        /**
-         * Return current state assigned with the post process.
-        **/
-        inline osg::State* getState() { return mState.get(); }
 
     protected:
 
@@ -165,15 +171,18 @@ class OSGPPU_EXPORT Processor : public osg::Object {
          * @param ppu Pointer to the ppu, which was applied 
          * @return The caller should return true if to apply the ppu or false if not
          **/
-        virtual bool onPPUApply(Unit* ppu) {return true;}
+        virtual bool onUnitApply(Unit* ppu) {return true;}
 
         /**
-        * Callback function which will be called, if ppu is initialized
+        * Callback function which will be called, before ppu is initialized
         * @return The caller should return true if to continue to initialize the ppu or false if not
         **/
-        virtual bool onPPUInit(Unit* ppu) {return true;};
+        virtual bool onUnitInit(Unit* ppu) {return true;};
 
-
+        /**
+        * Callback structure derived from osg::Camera::DrawCallback
+        * to update the processor when called.
+        **/
         struct Callback : osg::Camera::DrawCallback
         {
             Callback(Processor* parent) : mParent(parent) {}

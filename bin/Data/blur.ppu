@@ -1,18 +1,16 @@
 osgPPU::Pipeline {
-  osgPPU::Unit {
-    UniqueID Unit_0
+  osgPPU::UnitBypass {
+    UniqueID UnitBypass_0
     name "Bypass"
     index 9
-    blendEndTime 0
+    blendFinalTime 0
     blendStartTime 0
     blendStartValue 1
-    blendEndValue 1
+    blendFinalValue 1
     blendEnabled 0
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference 0
-    useMipmapShader 0
-    useMipmaps 0
     outputInternalFormat GL_RGBA16F_ARB
 
     Input {
@@ -32,16 +30,14 @@ osgPPU::Pipeline {
     UniqueID UnitInOut_8
     name "BlurHorizontal"
     index 40
-    blendEndTime 0
+    blendFinalTime 0
     blendStartTime 0
     blendStartValue 1
-    blendEndValue 1
+    blendFinalValue 1
     blendEnabled 0
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference 0
-    useMipmapShader 0
-    useMipmaps 0
     outputInternalFormat GL_RGBA16F_ARB
 
     Input {
@@ -206,22 +202,22 @@ osgPPU::Pipeline {
         }
       }
     }
-    isMipmappedIO 0
+    isMipmappedInOut 0
+    useMipmapShader 0
+    useMipmaps 0
   }
   osgPPU::UnitInOut {
     UniqueID UnitInOut_11
     name "BlurVertical"
     index 41
-    blendEndTime 0
+    blendFinalTime 0
     blendStartTime 0
     blendStartValue 1
-    blendEndValue 1
+    blendFinalValue 1
     blendEnabled 0
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference 0
-    useMipmapShader 0
-    useMipmaps 0
     outputInternalFormat GL_RGBA16F_ARB
 
     Input {
@@ -347,23 +343,24 @@ osgPPU::Pipeline {
         }
       }
     }
-    isMipmappedIO 0
+    isMipmappedInOut 0
+    useMipmapShader 0
+    useMipmaps 0
   }
+
 
   osgPPU::UnitOut {
     UniqueID UnitOut_17
     name "PipelineResult"
     index 1000
-    blendEndTime 0
+    blendFinalTime 0
     blendStartTime 0
     blendStartValue 1
-    blendEndValue 1
+    blendFinalValue 1
     blendEnabled 0
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference 0
-    useMipmapShader 0
-    useMipmaps 0
     outputInternalFormat GL_RGBA16F_ARB
 
     Input {
@@ -378,4 +375,5 @@ osgPPU::Pipeline {
       height 512
     }
   }
+
 }

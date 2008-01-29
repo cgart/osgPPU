@@ -40,8 +40,6 @@ namespace osgPPU
             virtual osg::Object* cloneType() const { return dynamic_cast<UnitInOut*>(new UnitText());} 
             virtual osg::Object* clone(const osg::CopyOp& copyop) const { UnitText* u = new UnitText(*this, copyop); return dynamic_cast<UnitInOut*>(u);} 
 
-            //META_Object(osgPPU,UnitText);
-
             //! Create default ppfx 
             UnitText(osg::State* state);
             UnitText();

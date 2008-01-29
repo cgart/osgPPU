@@ -21,7 +21,6 @@
 #include <osgDB/WriteFile>
 #include <osgDB/Registry>
 #include <osg/Image>
-#include <assert.h>
 #include <math.h>
 
 namespace osgPPU
@@ -49,10 +48,10 @@ void Unit::initialize()
     mbDirtyShader = false;
 
     // we do steup defaults
-    setStartBlendTime(0);
-    setEndBlendTime(0);
-    setStartBlendValue(1);
-    setEndBlendValue(1);
+    setBlendStartTime(0);
+    setBlendFinalTime(0);
+    setBlendStartValue(1);
+    setBlendFinalValue(1);
     setActive(true);
     setOfflineMode(false);
     mCurrentBlendValue = 1.0;
@@ -85,11 +84,9 @@ void Unit::initialize()
     // assign empty state set
     sScreenQuad->setStateSet(new osg::StateSet());
     sScreenQuad->setUseDisplayList(false);
-    setBlendMode(false);
+    setUseBlendMode(false);
 
-    // disable mipmapping per default
-    mbUseMipmaps = false;
-    mbUseMipmapShader = false;
+    // the viewport is dirty, hence it will be resetted by the next apply
     mbDirtyViewport = true;
         
     // initialze projection matrix
@@ -102,13 +99,9 @@ void Unit::initialize()
 //------------------------------------------------------------------------------
 Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     osg::Object(ppu, copyop),
-    mFBO(ppu.mFBO),
     mInputTex(ppu.mInputTex),
     mOutputTex(ppu.mOutputTex),
-    //mUniformMap(ppu.mUniformMap),
-    //mUniforms(ppu.mUniforms),
     mShader(ppu.mShader),
-    //mShaderMipmapLevelUniform(ppu.mShaderMipmapLevelUniform),
     mIndex(ppu.mIndex),
     sScreenQuad(ppu.sScreenQuad),
     sProjectionMatrix(ppu.sProjectionMatrix),
@@ -116,13 +109,7 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     sState(ppu.sState),
     mViewport(ppu.mViewport),
     mInputPPU(ppu.mInputPPU),
-    mOutputPPU(ppu.mOutputPPU),
     mUseInputPPUViewport(ppu.mUseInputPPUViewport),
-    mbUseMipmaps(ppu.mbUseMipmaps),
-    mbUseMipmapShader(ppu.mbUseMipmapShader),
-    mMipmapShader(ppu.mMipmapShader),
-    mMipmapFBO(ppu.mMipmapFBO),
-    mMipmapViewport(ppu.mMipmapViewport),
     mCamera(ppu.mCamera),
     mbDirtyViewport(ppu.mbDirtyViewport),
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
@@ -149,14 +136,7 @@ Unit::~Unit()
 }
 
 //------------------------------------------------------------------------------
-/*void Unit::setState(osg::State* state)
-{
-    if (state != NULL)
-        sState.setState(state);
-}*/
-
-//------------------------------------------------------------------------------
-void Unit::setRenderingPosAndSize(float left, float top, float right, float bottom)
+void Unit::setRenderingFrustum(float left, float top, float right, float bottom)
 {
     sProjectionMatrix = osg::Matrix::ortho2D(left, right, bottom, top);
 }
@@ -210,15 +190,6 @@ void Unit::bindInputTextureToUniform(int index, const std::string& name)
 }
 
 //------------------------------------------------------------------------------
-/*void Unit::setUniformList(const osg::StateSet::UniformList& list)
-{
-    mUniforms = list;
-    osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
-    ss->setUniformList(mUniforms);
-    mbDirtyUniforms = false;    
-}*/
-
-//------------------------------------------------------------------------------
 void Unit::setOutputTexture(osg::Texture* outTex, int mrt)
 {
     if (outTex)
@@ -229,92 +200,11 @@ void Unit::setOutputTexture(osg::Texture* outTex, int mrt)
 	mbDirtyOutputTextures = true;
 }
 
-
-//--------------------------------------------------------------------------
-void Unit::initializeBase()
-{    
-    // check if input PPU is specified
-    for (int i=0; i < (int)mInputPPU.size(); i++)
-    {
-        if (mInputPPU[i] != NULL)
-        {
-            setInputTexture(mInputPPU[i]->getOutputTexture(0), i);
-        }
-    }
-    //assignInputTexture();
-    
-    // update viewport if we have one bound
-    if (mUseInputPPUViewport != NULL)
-    {
-        setViewport(mUseInputPPUViewport->getViewport());
-    }
-
-    // check if we have input reference size 
-    setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
-
-    // check if mipmapping is enabled, then enable mipmapping on output textures
-    if (mbUseMipmaps) enableMipmapGeneration();    
-
-    // mark all textures as dirty, so that they get reassigned later
-    mbDirtyInputTextures = true;
-    mbDirtyOutputTextures = true;
-}
-
-//--------------------------------------------------------------------------
-void Unit::enableMipmapGeneration()
-{
-    mbUseMipmaps = true;
-    
-    std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-    for (; it != mOutputTex.end(); it++)
-    {
-        // set texture if it is valid
-        if (it->second.valid())
-        {
-            it->second->setUseHardwareMipMapGeneration(false);
-
-			// get filter
-			osg::Texture::FilterMode filter = it->second->getFilter(osg::Texture2D::MIN_FILTER);
-			if (filter == osg::Texture2D::LINEAR)
-	            it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_NEAREST);
-			else if (filter == osg::Texture2D::NEAREST)
-	            it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::NEAREST_MIPMAP_NEAREST);
-
-            it->second->allocateMipmapLevels();
-        }
-    }
-
-}
-
-
 //--------------------------------------------------------------------------
 void Unit::apply(float dTime)
 {
     // update time value 
     mTime += dTime;
-
-    // if uniforms are dirty
-    /*if (mbDirtyUniforms)
-    {
-        mUniforms.clear();
-
-        // iterate through all uniforms
-        UniformMap::const_iterator it = mUniformMap.begin();
-        for (; it != mUniformMap.end(); it++)
-        {
-            // add new uniform into the map
-            osg::Uniform* uniform = new osg::Uniform(it->second.c_str(), it->first);
-            mUniforms[it->second] = osg::StateSet::RefUniformPair(uniform, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);         
-        }
-
-        // assign new uniform map to the stateset
-        osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
-        ss->setUniformList(mUniforms);
-
-        // not dirty anymore
-        mbDirtyUniforms = false;
-    }*/
-
 
     // if viewport is dirty, so resetup it
     if (mbDirtyViewport)
@@ -331,10 +221,6 @@ void Unit::apply(float dTime)
         }
         mbDirtyViewport = false;
     }
-
-    // in case input or output textures changes
-    //if (mbDirtyInputTextures || mbDirtyOutputTextures)
-    //    assignShader();
 
 	// check if input textures are dirty
 	if (mbDirtyInputTextures || mbDirtyShader)
@@ -372,31 +258,9 @@ void Unit::apply(float dTime)
             // call rendering method if apply was successfull
             if (applyBaseRenderParameters()) render();
     
-            // generate mipmaps if such are required (for each output texture)
-		    if (mbUseMipmaps)
-		    {
-			    std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-			    for (; it != mOutputTex.end(); it++)
-			    {
-				    generateMipmaps(it->second.get(), it->first);
-			    }
-		    }
-
             // this is enough to do this once, hence break here
             break;
         }
-    }
-
-    //  unbind the framebuffers and reset the opengl states to default
-    if (mFBO.valid() && sState.getState())
-    {
-        // disable the fbo
-        osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
-        assert(fbo_ext != NULL);
-        fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-        
-        // set default texture unit to 0
-        sState.getState()->setActiveTextureUnit(0); 
     }
 
     // notice we are done
@@ -407,24 +271,24 @@ void Unit::apply(float dTime)
 bool Unit::applyBaseRenderParameters()
 {
     // only update if active 
-    if (!isActive()) return false;
+    if (!getActive()) return false;
     
     // the fx should be shown
-    if (getStartBlendTime() <= mTime)
+    if (getBlendStartTime() <= mTime)
     {
         // blending factor
         float factor = 1.0;
         
         // if we get 0 as expire time, so the factor is the start value 
-        if (getEndBlendTime() < 0.0001)
+        if (getBlendFinalTime() < 0.0001)
             factor = 0;
         else
-            factor = (mTime - getStartBlendTime()) / (getEndBlendTime() - getStartBlendTime());
+            factor = (mTime - getBlendStartTime()) / (getBlendFinalTime() - getBlendFinalTime());
         
         // compute blend value for the ppu
-        float alpha = getStartBlendValue()*(1-factor) + factor*getEndBlendValue();
-        if (alpha > 1.0 ) { alpha = 1.0; setEndBlendTime(0); setStartBlendValue(1.0); }
-        if (alpha < 0.0 ) { alpha = 0.0; setEndBlendTime(0); setStartBlendValue(0.0); }
+        float alpha = getBlendStartValue()*(1-factor) + factor*getBlendFinalValue();
+        if (alpha > 1.0 ) { alpha = 1.0; setBlendFinalTime(0); setBlendStartValue(1.0); }
+        if (alpha < 0.0 ) { alpha = 0.0; setBlendFinalTime(0); setBlendStartValue(0.0); }
         
         // setup new alpha value 
         mCurrentBlendValue = alpha;
@@ -440,7 +304,7 @@ bool Unit::applyBaseRenderParameters()
 }
 
 //--------------------------------------------------------------------------
-void Unit::setBlendMode(bool enable)
+void Unit::setUseBlendMode(bool enable)
 {
     osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
     ss->setAttribute(mBlendFunc.get(), enable ? osg::StateAttribute::ON : osg::StateAttribute::OFF);
@@ -448,111 +312,11 @@ void Unit::setBlendMode(bool enable)
 }
 
 //--------------------------------------------------------------------------
-bool Unit::useBlendMode() const 
+bool Unit::getUseBlendMode() const
 {
     osg::StateAttribute::GLModeValue mode = sScreenQuad->getOrCreateStateSet()->getMode(GL_BLEND);
     return (mode & osg::StateAttribute::ON) == osg::StateAttribute::ON;
 }
-
-//--------------------------------------------------------------------------
-void Unit::generateMipmaps(osg::Texture* output, int mrt)
-{
-    // if ppu doesn't use mipmapping so return 
-    if (!mbUseMipmaps || output == NULL
-         || !sState.getState()) return;
-        
-    // check if we need to generate hardware mipmaps
-    if (!mbUseMipmapShader)
-    {
-        osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
-        sState.getState()->applyTextureAttribute(0, output);
-        fbo_ext->glGenerateMipmapEXT(output->getTextureTarget());
-        return;
-    }
-    
-    //
-    // ok we generate now mipmaps by hand with the shader 
-    //
-    // does mipmap shader exists
-    if (!mMipmapShader.valid()) return;
-    assert (dynamic_cast<osg::Texture2D*>(output) != NULL);
-    
-    // check if we have generated all the fbo's for each mipmap level
-    int width = output->getTextureWidth();
-    int height = output->getTextureHeight();
-    int numLevel = 1 + (int)floor(log((float)std::max(width, height))/(float)M_LN2);
-    
-    // before we start generating of mipmaps we save some data 
-    osg::ref_ptr<osg::FrameBufferObject> currentFBO = mFBO;
-    osg::ref_ptr<osg::Viewport> currentViewport = mViewport;
-    osg::ref_ptr<osg::Texture> currentInputTex = mInputTex[0];
-    osg::ref_ptr<Shader> currentShader = mShader;
-
-    // generate fbo for each mipmap level 
-    if ((int)mMipmapFBO.size() != numLevel)
-    {
-        // generate mipmap levels
-        mMipmapFBO.clear();
-        mMipmapViewport.clear();
-        for (int i=0; i < numLevel; i++)
-        {
-            // generate viewport 
-            osg::Viewport* vp = new osg::Viewport();
-            int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)i)) ));
-            int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)i)) ));
-            vp->setViewport(0,0, w, h);
-            mMipmapViewport.push_back(osg::ref_ptr<osg::Viewport>(vp));
-            
-            // generate fbo and assign a mipmap level to it
-            osg::FrameBufferObject* fbo = new osg::FrameBufferObject();
-            fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT, osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
-            mMipmapFBO.push_back(osg::ref_ptr<osg::FrameBufferObject>(fbo));
-        }
-
-        // reallocate mipmap levels
-        enableMipmapGeneration();
-    }
-
-    // also we assign special shader which will generate mipmaps
-    removeShader();
-    mShader = mMipmapShader;
-    assignShader();
-        
-    // now we assign input texture as our result texture, so we can generate mipmaps
-    mInputTex[0] = output;
-    assignInputTexture();
-
-    // set global shader variable    
-    if (mShader.valid()) mShader->set("g_MipmapLevelNum", float(numLevel));
-
-    // now we render the result in a loop to generate mipmaps 
-    for (int i=1; i < numLevel; i++)
-    {
-        // set mipmap level
-        if (mShader.valid()) mShader->set("g_MipmapLevel", float(i));
-
-        // assign new viewport 
-        mViewport = mMipmapViewport[i];
-        mFBO = mMipmapFBO[i];
-
-        // render the content
-        render(i);
-    }
-
-    // restore current shader 
-    removeShader();
-    mShader = currentShader;
-    assignShader();
-    
-    // restore current input texture 
-    mInputTex[0] = currentInputTex;
-    assignInputTexture();
-    
-    // restore old viewport and fbo 
-    mViewport = currentViewport;
-    mFBO = currentFBO;
-}
-
 
 //--------------------------------------------------------------------------
 void Unit::assignInputTexture()
@@ -649,15 +413,27 @@ void Unit::setOutputInternalFormat(GLenum format)
 //------------------------------------------------------------------------------
 void Unit::init()
 {
-    // just copy input to the output
-    mOutputTex = mInputTex;
-}
+    // check if input PPU is specified
+    for (int i=0; i < (int)mInputPPU.size(); i++)
+    {
+        if (mInputPPU[i] != NULL)
+        {
+            setInputTexture(mInputPPU[i]->getOutputTexture(0), i);
+        }
+    }
+    
+    // update viewport if we have one bound
+    if (mUseInputPPUViewport != NULL)
+    {
+        setViewport(mUseInputPPUViewport->getViewport());
+    }
 
-//------------------------------------------------------------------------------
-void Unit::render(int mipmapLevel)
-{
-    // do nothing just copy the data
-    mOutputTex = mInputTex;
+    // check if we have input reference size 
+    setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
+
+    // mark all textures as dirty, so that they get reassigned later
+    mbDirtyInputTextures = true;
+    mbDirtyOutputTextures = true;
 }
 
 

@@ -61,7 +61,7 @@ namespace osgPPU
     
         // init inout ppu
         mOutputTex[0] = mInputTex[0];
-        osgPPU::UnitInOut::init();
+        UnitInOut::init();
     
         // setup projection matrix
         sProjectionMatrix = osg::Matrix::ortho2D(0,1,0,1);
@@ -81,7 +81,7 @@ namespace osgPPU
             setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
 
             // compute new color, change alpha acording to the blend value
-            _color.a() = getCurrentBlendValue();
+            _color.a() = getBlendValue();
 
             // aplly stateset
             sState.getState()->apply(sScreenQuad->getStateSet());

@@ -14,8 +14,8 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#ifndef _C_UNIT_OUT_IO_H_
-#define _C_UNIT_OUT_IO_H_
+#ifndef _C_UNIT_BYPASS_H_
+#define _C_UNIT_BYPASS_H_
 
 
 //-------------------------------------------------------------------------
@@ -26,35 +26,23 @@
 
 namespace osgPPU
 {
-    //! Output the input to the frame buffer instead to the output texture
+    //! Unit which do simply bypass input to the output
     /**
-    * Pass input texture to the frame buffer. Use this ppu
-    * to render results of the previous ppus into the framebuffer. So it is usual that
-    * this ppu is applied at the end of the pipeline
     **/
-    class OSGPPU_EXPORT UnitOut : public Unit {
+    class OSGPPU_EXPORT UnitBypass : public Unit {
         public:
-            META_Object(osgPPU,UnitOut);
+            META_Object(osgPPU,UnitBypass);
         
-            UnitOut(osg::State* state) : Unit(state) {}
-            UnitOut() : Unit() {}
-            UnitOut(const UnitOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+            UnitBypass(osg::State* state) : Unit(state) {}
+            UnitBypass() : Unit() {}
+            UnitBypass(const UnitBypass& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) : Unit(u, copyop) {}
             
-            //! Release it and used memory
-            virtual ~UnitOut();
+            ~UnitBypass(){}
             
-            //! Initialze the default Processoring unit
-            virtual void init() { Unit::init(); }
+            void init() { Unit::init(); mOutputTex = mInputTex; }
             
         protected:
-            //! Apply the defule unit 
-            virtual void render(int mipmapLevel = 0);
-            
-            //! Notice about end of rendering
-            virtual void noticeFinishRendering() {}
-        
-            //! Viewport changed
-            virtual void noticeChangeViewport() {}
+            void render(int mipmapLevel = 0) { mOutputTex = mInputTex; }
     };
 };
 

@@ -34,7 +34,6 @@ namespace osgPPU
     **/
     class OSGPPU_EXPORT UnitInOut : public Unit {
         public:
-            //virtual const char* className() const { return "UnitInOut" ;} 
             META_Object(osgPPU,UnitInOut);
         
             //! Create default ppfx 
@@ -56,11 +55,42 @@ namespace osgPPU
             * texture. This method assumes the input and output textures 
             * do have the same number of mipmap levels.
             **/
-            void setMipmappedIO(bool b);
+            void setMipmappedInOut(bool b);
         
-            //! Are we using IO also for mipmap-levels
-            bool getMipmappedIO() const { return mbMipmappedIO; }
+            /**
+            * Check whenever we using IO also for mipmap-levels
+            **/
+            bool getMipmappedInOut() const { return mbMipmappedIO; }
     
+            /**
+            * Assign a mipmap shader. A mipmap shader is used when generating mipmaps
+            * on the output data. Hence this shader is only applied to all the mipmap levels
+            * except of level 0, where a normal shader specified by setShader() is applied.
+            **/
+            inline void setGenerateMipmapsShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
+
+            /**
+            * Return currently used mipmap shader.
+            **/
+            inline Shader* getGenerateMipmapsShader() const { return mMipmapShader.get(); }
+            
+            /**
+            * Shall we use mipmap shader to generate mipmaps
+            **/
+            inline void setUseGenerateMipmapsShader(bool b) { mbUseMipmapShader = b; }
+            inline bool getUseGenerateMipmapsShader() const { return mbUseMipmapShader; }
+
+            /**
+            * Shall we use mipmapping at all, hence shall we generate mipmaps on the output textures.
+            **/
+            inline void setUseMipmaps(bool b) { mbUseMipmaps = b; if (b) enableMipmapGeneration(); }
+            inline bool getUseMipmaps() const { return mbUseMipmaps; }
+    
+            /**
+            * Get framebuffer object used by this ppu. 
+            **/
+            inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
+
         protected:
         
             //! Apply the defule unit 
@@ -68,7 +98,7 @@ namespace osgPPU
             virtual void doRender(int mipmapLevel);
         
             //! Notice about end of rendering
-            virtual void noticeFinishRendering() {}
+            virtual void noticeFinishRendering();
             
             //! Viewport changed
             virtual void noticeChangeViewport();
@@ -81,9 +111,15 @@ namespace osgPPU
     
             virtual void noticeAssignShader() {}
             virtual void noticeRemoveShader() {}
-    
+
             //! regenerate io mapmapped data structures
             void checkIOMipmappedData();
+
+            //! Generate mipmaps (for specified output texture)
+            void generateMipmaps(osg::Texture* output, int mrt);
+            
+            //! Enable mipmap generation on all output textures
+            void enableMipmapGeneration();
     
             //! Should we do in/out also on mipmap levels
             bool mbMipmappedIO;
@@ -93,9 +129,28 @@ namespace osgPPU
             
             //! Fbos for each mipmap level 
             std::vector<osg::ref_ptr<osg::FrameBufferObject> > mIOMipmapFBO;
+            
+            //! Framebuffer object where results are written
+            osg::ref_ptr<osg::FrameBufferObject>    mFBO;
     
             //! Store number of mipmap levels
             int mNumLevels;
+    
+            //! Should we use mipmapping on the output texture
+            bool mbUseMipmaps;
+            
+            //! Should we use our own mipmapping shader
+            bool mbUseMipmapShader;
+            
+            //! Pointer to the shader which is used to generate mipmaps
+            osg::ref_ptr<Shader> mMipmapShader;
+
+            //! FBOs for different mipmap levels
+            std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
+            
+            //! Viewports for each mipmap level
+            std::vector<osg::ref_ptr<osg::Viewport> > mMipmapViewport;
+
     };
 
 };

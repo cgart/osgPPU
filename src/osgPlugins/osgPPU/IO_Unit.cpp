@@ -23,6 +23,7 @@
 #include <osgPPU/UnitOutCapture.h>
 #include <osgPPU/UnitInResampleOut.h>
 #include <osgPPU/UnitText.h>
+#include <osgPPU/UnitBypass.h>
 
 #include <osg/Notify>
 
@@ -37,9 +38,86 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
     bool itAdvanced = false;
 
     int isMipmappedIO = 0;
-    if (fr.readSequence("isMipmappedIO", isMipmappedIO))
+    if (fr.readSequence("isMipmappedInOut", isMipmappedIO))
     { 
-        unit.setMipmappedIO(isMipmappedIO);
+        unit.setMipmappedInOut(isMipmappedIO);
+        itAdvanced = true;
+    }
+
+    // read shader input 
+    if (fr.matchSequence("MipmapShader {"))
+    {
+        int entry = fr[0].getNoNestedBrackets();
+
+        fr += 2;
+
+        // create shader
+        osgPPU::Shader* shader = new osgPPU::Shader();
+
+        // read data associated with the shader
+        while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
+        {
+            bool local_itrAdvanced = false;
+
+            // read uniform
+            if (fr.matchSequence("RefUniformPair {"))
+            {
+                fr += 2;
+
+                // read uniform
+                osg::Uniform* uniform = fr.readUniform();
+    
+                // read state attribute
+                std::string stateAttribute;
+                osg::StateAttribute::GLModeValue mode = osg::StateAttribute::ON;
+                if (fr.readSequence("StateAttribute", stateAttribute))
+                {
+                    StateSet_matchModeStr(stateAttribute.c_str(),mode);
+                }
+                
+                ++fr;
+                local_itrAdvanced = true;
+
+                // create refuniformpair
+                osg::StateSet::RefUniformPair pair (uniform, mode);
+
+                // add uniform to the shader 
+                shader->add(pair);
+            }
+
+            // read program
+            osg::Program* program = dynamic_cast<osg::Program*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Program>()));
+            if (program)
+            {
+                shader->setProgram(program);
+                local_itrAdvanced = true;
+            }
+
+
+            if (!local_itrAdvanced) ++fr;
+        }
+        
+        // set new shader to the unit 
+        unit.setGenerateMipmapsShader(shader);
+
+        // skip trailing '}'
+        ++fr;
+        
+        itAdvanced = true;
+    }
+
+
+    int useMipmapShader = 0;
+    if (fr.readSequence("useMipmapShader", useMipmapShader))
+    { 
+        unit.setUseGenerateMipmapsShader(useMipmapShader);
+        itAdvanced = true;
+    }
+
+    int useMipmaps = 0;
+    if (fr.readSequence("useMipmaps", useMipmaps))
+    { 
+        unit.setUseMipmaps(useMipmaps);
         itAdvanced = true;
     }
 
@@ -137,37 +215,37 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
     }
 
     float blendEndTime = 0.0;
-    if (fr.readSequence("blendEndTime", blendEndTime))
+    if (fr.readSequence("blendFinalTime", blendEndTime))
     { 
-        unit.setEndBlendTime(blendEndTime);
+        unit.setBlendFinalTime(blendEndTime);
         itAdvanced = true;
     }
 
     float blendStartTime = 0.0;
     if (fr.readSequence("blendStartTime", blendStartTime))
     { 
-        unit.setStartBlendTime(blendStartTime);
+        unit.setBlendStartTime(blendStartTime);
         itAdvanced = true;
     }
 
     float blendStartValue = 0.0;
     if (fr.readSequence("blendStartValue", blendStartValue))
     { 
-        unit.setStartBlendValue(blendStartValue);
+        unit.setBlendStartValue(blendStartValue);
         itAdvanced = true;
     }
 
     float blendEndValue = 0.0;
-    if (fr.readSequence("blendEndValue", blendEndValue))
+    if (fr.readSequence("blendFinalValue", blendEndValue))
     { 
-        unit.setEndBlendValue(blendEndValue);
+        unit.setBlendFinalValue(blendEndValue);
         itAdvanced = true;
     }
 
     int blendEnabled = 0;
     if (fr.readSequence("blendEnabled", blendEnabled))
     { 
-        unit.setBlendMode(blendEnabled);
+        unit.setUseBlendMode(blendEnabled);
         itAdvanced = true;
     }
 
@@ -326,83 +404,6 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
 
 
 
-    // read shader input 
-    if (fr.matchSequence("MipmapShader {"))
-    {
-        int entry = fr[0].getNoNestedBrackets();
-
-        fr += 2;
-
-        // create shader
-        osgPPU::Shader* shader = new osgPPU::Shader();
-
-        // read data associated with the shader
-        while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
-        {
-            bool local_itrAdvanced = false;
-
-            // read uniform
-            if (fr.matchSequence("RefUniformPair {"))
-            {
-                fr += 2;
-
-                // read uniform
-                osg::Uniform* uniform = fr.readUniform();
-    
-                // read state attribute
-                std::string stateAttribute;
-                osg::StateAttribute::GLModeValue mode = osg::StateAttribute::ON;
-                if (fr.readSequence("StateAttribute", stateAttribute))
-                {
-                    StateSet_matchModeStr(stateAttribute.c_str(),mode);
-                }
-                
-                ++fr;
-                local_itrAdvanced = true;
-
-                // create refuniformpair
-                osg::StateSet::RefUniformPair pair (uniform, mode);
-
-                // add uniform to the shader 
-                shader->add(pair);
-            }
-
-            // read program
-            osg::Program* program = dynamic_cast<osg::Program*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Program>()));
-            if (program)
-            {
-                shader->setProgram(program);
-                local_itrAdvanced = true;
-            }
-
-
-            if (!local_itrAdvanced) ++fr;
-        }
-        
-        // set new shader to the unit 
-        unit.setMipmapShader(shader);
-
-        // skip trailing '}'
-        ++fr;
-        
-        itAdvanced = true;
-    }
-
-
-    int useMipmapShader = 0;
-    if (fr.readSequence("useMipmapShader", useMipmapShader))
-    { 
-        unit.setUseMipmapShader(useMipmapShader);
-        itAdvanced = true;
-    }
-
-    int useMipmaps = 0;
-    if (fr.readSequence("useMipmaps", useMipmaps))
-    { 
-        unit.setUseMipmaps(useMipmaps);
-        itAdvanced = true;
-    }
-
     return itAdvanced;
 }
 
@@ -453,17 +454,15 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     // retrieve default parameters and sotre them
     fout.indent() << "name " <<  fout.wrapString(unit.getName()) << std::endl;
     fout.indent() << "index " <<  unit.getIndex() << std::endl;
-    fout.indent() << "blendEndTime " <<  unit.getEndBlendTime() << std::endl;
-    fout.indent() << "blendStartTime " <<  unit.getStartBlendTime() << std::endl;
-    fout.indent() << "blendStartValue " <<  unit.getStartBlendValue() << std::endl;
-    fout.indent() << "blendEndValue " <<  unit.getEndBlendValue() << std::endl;
-    fout.indent() << "blendEnabled " <<  unit.useBlendMode() << std::endl;
-    fout.indent() << "isActive " <<  unit.isActive() << std::endl;
+    fout.indent() << "blendFinalTime " <<  unit.getBlendFinalTime() << std::endl;
+    fout.indent() << "blendStartTime " <<  unit.getBlendStartTime() << std::endl;
+    fout.indent() << "blendStartValue " <<  unit.getBlendStartValue() << std::endl;
+    fout.indent() << "blendFinalValue " <<  unit.getBlendFinalValue() << std::endl;
+    fout.indent() << "blendEnabled " <<  unit.getUseBlendMode() << std::endl;
+    fout.indent() << "isActive " <<  unit.getActive() << std::endl;
     fout.indent() << "isOffline " <<  unit.getOfflineMode() << std::endl;
     fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
-    fout.indent() << "useMipmapShader " << unit.getUseMipmapShader() << std::endl;
-    fout.indent() << "useMipmaps " << unit.getUseMipmaps() << std::endl;
-
+    
     // write internal format
     {
         const char* str = Texture_getInternalFormatStr(unit.getOutputInternalFormat());
@@ -527,16 +526,6 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
         fout.writeEndObject();
     }
 
-    if (unit.getMipmapShader())
-    {
-        fout << std::endl;
-        fout.writeBeginObject("MipmapShader");
-        fout.moveIn();
-            writeShader(unit.getMipmapShader(), fout);
-        fout.moveOut();
-        fout.writeEndObject();
-    }
-
     return true;
 }
 
@@ -563,7 +552,19 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
     // convert given object to unit 
     const osgPPU::UnitInOut& unit = static_cast<const osgPPU::UnitInOut&>(obj);
 
-    fout.indent() << "isMipmappedIO " <<  unit.getMipmappedIO() << std::endl;
+    fout.indent() << "isMipmappedInOut " <<  unit.getMipmappedInOut() << std::endl;
+    fout.indent() << "useMipmapShader " << unit.getUseGenerateMipmapsShader() << std::endl;
+    fout.indent() << "useMipmaps " << unit.getUseMipmaps() << std::endl;
+
+    if (unit.getGenerateMipmapsShader())
+    {
+        fout << std::endl;
+        fout.writeBeginObject("MipmapShader");
+        fout.moveIn();
+            writeShader(unit.getGenerateMipmapsShader(), fout);
+        fout.moveOut();
+        fout.writeEndObject();
+    }
 
     return true;
 }
@@ -598,7 +599,7 @@ bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
 // register the read and write functions with the osgDB::Registry.
 osgDB::RegisterDotOsgWrapperProxy g_UnitProxy
 (
-    new osgPPU::Unit,
+    NULL,
     "Unit",
     "Unit",
     &readUnit,
@@ -611,6 +612,16 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitOutProxy
     new osgPPU::UnitOut,
     "UnitOut",
     "UnitOut",
+    &readUnit,
+    &writeUnit
+);
+
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_UnitBypassProxy
+(
+    new osgPPU::UnitBypass,
+    "UnitBypass",
+    "UnitBypass",
     &readUnit,
     &writeUnit
 );

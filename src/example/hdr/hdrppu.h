@@ -4,6 +4,7 @@
 #include <osgPPU/UnitText.h>
 #include <osgPPU/UnitInResampleOut.h>
 #include <osgPPU/UnitOut.h>
+#include <osgPPU/UnitBypass.h>
 
 
 //---------------------------------------------------------------
@@ -70,7 +71,7 @@ class HDRRendering
             // first a simple bypass to get the data from somewhere
             // there must be a camera bypass already specified
             // You need this ppu to relay on it with following ppus
-                osg::ref_ptr<osgPPU::Unit> bypass = new osgPPU::Unit(parent->getState());
+                osg::ref_ptr<osgPPU::Unit> bypass = new osgPPU::UnitBypass(parent->getState());
                 bypass->setIndex(9);
                 bypass->setName("HDRBypass");
                 
@@ -87,7 +88,7 @@ class HDRRendering
                 resample->setName("Resample");
                 resample->setFactorX(0.5);
                 resample->setFactorY(0.5);
-                resample->addInputPPU(bypass.get());
+                resample->addInputUnit(bypass.get());
             }
             pipeline.push_back(osg::ref_ptr<osgPPU::Unit>(resample));
             
@@ -98,7 +99,7 @@ class HDRRendering
             // For the second case we use the concept of mipmaps and store the
             // resulting luminance in the last mipmap level. For more info about
             // this step take a look into the according shaders.
-            osg::ref_ptr<osgPPU::Unit> luminance = new osgPPU::UnitInOut(parent->getState());
+            osg::ref_ptr<osgPPU::UnitInOut> luminance = new osgPPU::UnitInOut(parent->getState());
             luminance->setIndex(15);
             luminance->setName("ComputeLuminance");
             luminance->setUseMipmaps(true);
@@ -134,9 +135,9 @@ class HDRRendering
 
                 // set both shaders
                 luminance->setShader(lumShader);
-                luminance->setMipmapShader(lumShaderMipmap);            
+                luminance->setGenerateMipmapsShader(lumShaderMipmap);            
             }
-            pipeline.push_back(luminance);
+            pipeline.push_back(luminance.get());
 
             // Now we need to setup a ppu which do pass only bright values
             // This ppu has two inputs, one is the original hdr scene data
@@ -167,8 +168,8 @@ class HDRRendering
                 brightpass->setShader(brightpassSh);
 
                 // brightpass ppu does get two input textures, hence add them
-                brightpass->addInputPPU(resample, true);
-                brightpass->addInputPPU(luminance.get());
+                brightpass->addInputUnit(resample, true);
+                brightpass->addInputUnit(luminance.get());
             }
             pipeline.push_back(brightpass);
 
@@ -243,9 +244,9 @@ class HDRRendering
                 // setup inputs, name and index
                 hdr->setIndex(50);
                 hdr->setName("HDR-Result");
-                hdr->addInputPPU(blury.get());
-                hdr->addInputPPU(bypass.get(), true);
-                hdr->addInputPPU(luminance.get());
+                hdr->addInputUnit(blury.get());
+                hdr->addInputUnit(bypass.get(), true);
+                hdr->addInputUnit(luminance.get());
 
                 // setup shader
                 osgPPU::Shader* sh = new osgPPU::Shader();
@@ -331,7 +332,7 @@ class HDRRendering
                 // first input is the output of the luminance ppu
                 // the second input is currently just NULL
                 adaptedlum->setInputTexture(NULL, 0);
-                adaptedlum->setInputTexture(parent->getPPU("ComputeLuminance")->getOutputTexture(0), 1);
+                adaptedlum->setInputTexture(parent->getUnit("ComputeLuminance")->getOutputTexture(0), 1);
 
                 // we do not want to have any referenced viewport
                 adaptedlum->setInputTextureIndexForViewportReference(-1);
@@ -339,7 +340,7 @@ class HDRRendering
                 // we have to initilize by ourself
                 adaptedlum->init();
             }
-            parent->addPPUToPipeline(adaptedlum.get());
+            parent->addUnitToPipeline(adaptedlum.get());
                 
             // The adapted luminance ppu do compute it. However if you
             // can follow me for now, you maybe encounter, that this ppu do
@@ -366,7 +367,7 @@ class HDRRendering
                 shader->set("texUnit0", 0);
                 adaptedlumCopy->setShader(shader);*/
             }
-            parent->addPPUToPipeline(adaptedlumCopy.get());
+            parent->addUnitToPipeline(adaptedlumCopy.get());
 
             // do connect both ppus, so that the output of the second
             // is the input for the first.
@@ -378,8 +379,8 @@ class HDRRendering
             // have to connect the output of the copy ppu as the input
             // to the ppus which require information about the adapted luminance.
             // This are Brightpass and Tonemapping.
-            parent->getPPU("Brightpass")->setInputTexture(adaptedlumCopy->getOutputTexture(0), 2);
-            parent->getPPU("HDR-Result")->setInputTexture(adaptedlumCopy->getOutputTexture(0), 3);
+            parent->getUnit("Brightpass")->setInputTexture(adaptedlumCopy->getOutputTexture(0), 2);
+            parent->getUnit("HDR-Result")->setInputTexture(adaptedlumCopy->getOutputTexture(0), 3);
         }
 };
 

@@ -55,7 +55,7 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitOutCapture::noticeFinishRendering()
     {
-        if (isActive() && sState.getState())
+        if (getActive() && sState.getState())
         {
             // if we want to capture the framebuffer
             char filename[256];
@@ -92,6 +92,7 @@ namespace osgPPU
                     sState.getState()->applyTextureMode(0, input->getTextureTarget(), false);
             }
         }
+        UnitOut::noticeFinishRendering();
     }
 
 }; // end namespace

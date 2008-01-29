@@ -20,11 +20,11 @@
 #include <osg/Image>
 #include <osg/Texture2D>
 #include <osg/Depth>
+#include <osg/Notify>
 
 #include <assert.h>
 
 
-#define DEBUG_PPU 0
 
 namespace osgPPU
 {
@@ -75,14 +75,15 @@ Processor::~Processor(){
 }*/
 
 //------------------------------------------------------------------------------
-void Processor::setCamera(osg::Camera* camera)
+void Processor::setCamera(osg::Camera* camera, bool setupCallback)
 {
     // setup camera
     mCamera = camera;
     mStateSet->setAttribute(const_cast<osg::Viewport*>(mCamera->getViewport()), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
     // we have to setup a post draw callback to get all things updated
-    //mCamera->setPostDrawCallback(new Callback(this));
+    if (setupCallback)
+        mCamera->setPostDrawCallback(new Callback(this));
 }
 
 //------------------------------------------------------------------------------
@@ -159,7 +160,7 @@ void Processor::setPipeline(const Pipeline& pipeline)
 
 			// setup default settings
 			(*jt)->setViewport(vp);
-            if (onPPUInit((*jt).get()))
+            if (onUnitInit((*jt).get()))
             {
     			(*jt)->init();
 	        }
@@ -175,33 +176,22 @@ void Processor::setPipeline(const Pipeline& pipeline)
         // check if we have an online ppu, then do connect it 
         if ((*jt)->getOfflineMode() == true)
         {
-            if (onPPUInit((*jt).get()))
+            if (onUnitInit((*jt).get()))
                 (*jt)->init();            
-            addPPUToPipeline((*jt).get());
+            addUnitToPipeline((*jt).get());
         }
     }
 }
 
-//------------------------------------------------------------------------------
-Unit* Processor::getPPU(const std::string& ppuName)
-{
-    // iterate through pipeline
-    Pipeline::iterator jt = mPipeline.begin();
-    for (; jt != mPipeline.end(); jt++ )
-        if ((*jt)->getName() == ppuName)
-            return (*jt).get();
-
-    return NULL;
-}
 
 //------------------------------------------------------------------------------
-Pipeline::iterator Processor::removePPUFromPipeline(const std::string& ppuName)
+Pipeline::iterator Processor::removeUnitFromPipeline(const std::string& name)
 {
     // iterate through pipeline
     Pipeline::iterator jt = mPipeline.begin();
     for (; jt != mPipeline.end(); jt++ )
     {
-        if ((*jt)->getName() == ppuName)
+        if ((*jt)->getName() == name)
         {
             // check if we have only one ppu, so just clean pipeline
             if (mPipeline.size()  <= 1)
@@ -247,7 +237,7 @@ Pipeline::iterator Processor::removePPUFromPipeline(const std::string& ppuName)
 }
 
 //------------------------------------------------------------------------------
-void Processor::addPPUToPipeline(Unit* ppu)
+void Processor::addUnitToPipeline(Unit* ppu)
 {
     // check for the case if pipeline is empty
     if (mPipeline.size() == 0) mPipeline.push_back(ppu);
@@ -311,103 +301,98 @@ void Processor::update(float dTime)
 {
     mTime += dTime;
 
-    float texmat[16];
-    float projmat[16];
-    float mvmat[16];
-    
-    // save current matricies
-    glGetFloatv(GL_TEXTURE_MATRIX, texmat);
-    glGetFloatv(GL_PROJECTION_MATRIX, projmat);
-    glGetFloatv(GL_MODELVIEW_MATRIX, mvmat);
-
-    // push some attributes, TODO: should be avoided since we are using StateSet's
-    //glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_VIEWPORT_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT);
-    //glClearColor(0,1,0,0);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //glDepthMask(GL_FALSE);
-
-    // apply state set 
+    // apply state set
     mState->apply(mStateSet.get());
 
-    #if DEBUG_PPU    
-    printf("--------------------------------------------------------------------\n");
-    printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
-    printf("--------------------------------------------------------------------\n");
-    #endif
+    // debug information
+    if (osg::isNotifyEnabled(osg::DEBUG_INFO))
+    {
+        printf("--------------------------------------------------------------------\n");
+        printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
+        printf("--------------------------------------------------------------------\n");
+    }
+    
     // iterate through Processoring units
     for (Pipeline::iterator it = mPipeline.begin(); it != mPipeline.end(); it ++)
     {
-        if ((*it)->isActive())
+        if ((*it)->getActive())
         {
-            #if DEBUG_PPU
-            printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
-            printf("\t vp (ref %d): %d %d %d %d\n", (*it)->getInputTextureIndexForViewportReference(), (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
-            printf("\t alpha: %f (%f %f)\n", (*it)->getCurrentBlendValue(), (*it)->getStartBlendValue(), (*it)->getEndBlendValue());
-            printf("\t time: %f-%f\n", (*it)->getStartBlendTime(), (*it)->getEndBlendTime());//, Engine::sClock()->getTime());
-            printf("\t shader: %p\n", (*it)->getShader());
-
-            if ((*it)->getShader() != NULL)
+            // push current matricies
+            glPushAttrib(GL_TRANSFORM_BIT);
+            glMatrixMode(GL_PROJECTION); glPushMatrix();
+            glMatrixMode(GL_MODELVIEW); glPushMatrix();
+        
+            // debug information
+            if (osg::isNotifyEnabled(osg::DEBUG_INFO))
             {
-                osg::StateSet::UniformList::const_iterator jt = (*it)->getShader()->getUniformList().begin();
-                for (; jt != (*it)->getShader()->getUniformList().end(); jt++)
+                printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
+                printf("\t vp (ref %d): %d %d %d %d\n", (*it)->getInputTextureIndexForViewportReference(), (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
+                printf("\t alpha: %f (%f %f)\n", (*it)->getBlendValue(), (*it)->getBlendStartValue(), (*it)->getBlendFinalValue());
+                printf("\t time: %f-%f\n", (*it)->getBlendStartTime(), (*it)->getBlendFinalTime());
+                printf("\t shader: %p\n", (*it)->getShader());
+
+                if ((*it)->getShader() != NULL)
                 {
-                    float fval = -1.0;
-                    int ival = -1;
-                    if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
+                    osg::StateSet::UniformList::const_iterator jt = (*it)->getShader()->getUniformList().begin();
+                    for (; jt != (*it)->getShader()->getUniformList().end(); jt++)
                     {
-                        jt->second.first->get(ival);
-                        printf("\t\t%s : %d \n", jt->first.c_str(), ival);//, (jt->second.second & osg::StateAttribute::ON) != 0);
-                    }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
-                        jt->second.first->get(fval);
-                        printf("\t\t%s : %f \n", jt->first.c_str(), fval);//, (jt->second.second & osg::StateAttribute::ON) != 0);
+                        float fval = -1.0;
+                        int ival = -1;
+                        if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
+                        {
+                            jt->second.first->get(ival);
+                            printf("\t\t%s : %d \n", jt->first.c_str(), ival);//, (jt->second.second & osg::StateAttribute::ON) != 0);
+                        }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
+                            jt->second.first->get(fval);
+                            printf("\t\t%s : %f \n", jt->first.c_str(), fval);//, (jt->second.second & osg::StateAttribute::ON) != 0);
+                        }
                     }
                 }
-            }
 
-			printf("\t input: ");
-			for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
-			{
-                osg::Texture* tex = (*it)->getInputTexture(i);
-                printf(" %p", tex);
-                if (tex)
-                {
-                    if ((*it)->getStateSet()->getTextureAttribute(i, osg::StateAttribute::TEXTURE))
-                        printf("-attr");
-                    printf(" (%dx%d), ", tex->getTextureWidth(), tex->getTextureHeight());
+			    printf("\t input: ");
+			    for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
+			    {
+                    osg::Texture* tex = (*it)->getInputTexture(i);
+                    printf(" %p", tex);
+                    if (tex)
+                    {
+                        if ((*it)->getStateSet()->getTextureAttribute(i, osg::StateAttribute::TEXTURE))
+                            printf("-attr");
+                        printf(" (%dx%d), ", tex->getTextureWidth(), tex->getTextureHeight());
+                    }
                 }
-            }
 
-			printf("\n\t output: ");
-			for (unsigned int i=0; i < (*it)->getOutputTextureMap().size(); i++)
-			{
-                osg::Texture* tex = (*it)->getOutputTexture(i);
-				printf(" %p ", tex);
-                if (tex) printf("(%dx%d)", tex->getTextureWidth(), tex->getTextureHeight());
-            }
+			    printf("\n\t output: ");
+			    for (unsigned int i=0; i < (*it)->getOutputTextureMap().size(); i++)
+			    {
+                    osg::Texture* tex = (*it)->getOutputTexture(i);
+				    printf(" %p ", tex);
+                    if (tex) printf("(%dx%d)", tex->getTextureWidth(), tex->getTextureHeight());
+                }
 
-            printf("\n");
-			#endif
+                printf("\n");
+			}
 
             // apply the post processing unit
-            if (onPPUApply(it->get()))
+            if (onUnitApply(it->get()))
             {
                 (*it)->setTime(mTime);
                 (*it)->apply(0.0f);
             }
 
             // restore the matricies 
-            glMatrixMode(GL_TEXTURE); glLoadMatrixf(texmat);
-            glMatrixMode(GL_PROJECTION); glLoadMatrixf(projmat);
-            glMatrixMode(GL_MODELVIEW); glLoadMatrixf(mvmat);
+            glMatrixMode(GL_PROJECTION); glPopMatrix();
+            glMatrixMode(GL_MODELVIEW); glPopMatrix();
+            glPopAttrib();
         }
         
     }
-    #if DEBUG_PPU
-    printf("\n\n");
-    #endif
-
-    // give me all things back
-    //glPopAttrib();
+    
+    // debug information
+    if (osg::isNotifyEnabled(osg::DEBUG_INFO))
+    {
+        printf("\n\n");
+    }
 }
 
 
