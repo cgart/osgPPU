@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 
     // just make it singlethreaded since I get some problems if not in this mode
     viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    viewer->setUpViewInWindow(0,0,1024,1024);
+    viewer->setUpViewInWindow(0,0,640,480);
 
     // setup scene
     osg::Group* node = new osg::Group();

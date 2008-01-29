@@ -1,3 +1,20 @@
+2008-01-29 16:02  art
+
+	* [r48]
+	  - Currently disabling the viewer application because a proper ppu
+	  loading system is required
+
+2008-01-29 15:52  art
+
+	* [r47]
+	  - CMake FindOSG macro changed a little bit to be able to find osg
+	  on non standard installation paths
+
+2008-01-29 15:38  art
+
+	* [r46]
+	  - ChangeLog commited
+
 2008-01-29 15:37  art
 
 	* [r45]
