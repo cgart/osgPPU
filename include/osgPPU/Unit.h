@@ -41,14 +41,8 @@ namespace osgPPU
 // Forward declaration to simplify the work
 class Processor;
 
-//! Base class of any unit which do work as a simple bypass unit per default
+//! Abstract base class of any unit
 /**
- * PostProcessingUnit. The units
- * are used by Processor in their order to apply some
- * processing computation onto the input data.
- * 
- * Per defualt the class Unit has an empty effect, hence it just bypass
- * all the data (direct connection from input to output).
  **/
 class OSGPPU_EXPORT Unit : public osg::Object {
     public:
