@@ -40,6 +40,10 @@ FIND_PATH(OSG_INCLUDE_DIR osg/Node
 	$ENV{OSG_ROOT}/include
     $ENV{OSG_DIR}/include
     $ENV{OSG_DIR}
+    ${OSG_DIR}
+    ${OSG_DIR}/include
+    ${CMAKE_INSTALL_PREFIX}/include
+    ${CMAKE_INSTALL_PREFIX}
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local/include
@@ -57,6 +61,10 @@ MACRO(FIND_OSG_LIBRARY MYLIBRARY MYLIBRARYNAME)
     FIND_LIBRARY(${MYLIBRARY}
         NAMES ${MYLIBRARYNAME}
         PATHS
+        ${OSG_DIR}
+        ${OSG_DIR}/lib
+        ${OSG_DIR}/lib/debug
+        ${OSG_DIR}/lib/release
 		$ENV{OSG_BUILD}
 		$ENV{OSG_BUILD}/lib
 		$ENV{OSG_BUILD}/lib/debug
@@ -73,6 +81,10 @@ MACRO(FIND_OSG_LIBRARY MYLIBRARY MYLIBRARYNAME)
         $ENV{OSG_ROOT}/lib
 		$ENV{OSG_ROOT}/lib/debug
 		$ENV{OSG_ROOT}/lib/release
+        ${CMAKE_INSTALL_PREFIX}
+        ${CMAKE_INSTALL_PREFIX}/lib
+        ${CMAKE_INSTALL_PREFIX}/lib/debug
+        ${CMAKE_INSTALL_PREFIX}/lib/release
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/lib
