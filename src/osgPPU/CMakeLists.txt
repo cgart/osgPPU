@@ -32,6 +32,7 @@ ADD_LIBRARY(${LIB_NAME}
     Processor.cpp
     Shader.cpp
     Unit.cpp
+    UnitBypass.cpp
 )
 
 LINK_WITH_VARIABLES(${LIB_NAME}     

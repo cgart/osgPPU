@@ -59,7 +59,7 @@ class Viewer : public osgViewer::Viewer
             osg::Camera* camera = new osg::Camera();
                         
             // set up the background color and clear mask.
-            camera->setClearColor(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+            camera->setClearColor(osg::Vec4(0.5f,0.5f,0.5f,1.0f));
             camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             // set viewport

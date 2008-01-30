@@ -14,36 +14,46 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#ifndef _C_UNIT_BYPASS_H_
-#define _C_UNIT_BYPASS_H_
-
-
-//-------------------------------------------------------------------------
-// Includes
-//-------------------------------------------------------------------------
-#include <osgPPU/Export.h>
-#include <osgPPU/Unit.h>
+#include <osgPPU/UnitBypass.h>
+#include <osgPPU/Processor.h>
 
 namespace osgPPU
 {
-    //! Unit which do simply bypass input to the output
-    /**
-    **/
-    class OSGPPU_EXPORT UnitBypass : public Unit {
-        public:
-            META_Object(osgPPU,UnitBypass);
-        
-            UnitBypass(osg::State* state);
-            UnitBypass();
-            UnitBypass(const UnitBypass& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
-            
-            ~UnitBypass();
-            
-            void init();
+    //------------------------------------------------------------------------------
+    UnitBypass::UnitBypass(osg::State* state) : Unit(state)
+    {
+    }
 
-        protected:
-            void render(int mipmapLevel = 0);
-    };
-};
+    //------------------------------------------------------------------------------
+    UnitBypass::UnitBypass() : Unit()
+    {
+    }
 
-#endif
+    //------------------------------------------------------------------------------
+    UnitBypass::UnitBypass(const UnitBypass& u, const osg::CopyOp& copyop) : 
+        Unit(u, copyop) 
+    {
+
+    }
+    
+    //------------------------------------------------------------------------------
+    UnitBypass::~UnitBypass()
+    {
+
+    }
+
+
+    //------------------------------------------------------------------------------
+    void UnitBypass::init()
+    {
+        Unit::init(); 
+        mOutputTex = mInputTex;
+    }
+
+    //------------------------------------------------------------------------------
+    void UnitBypass::render(int mipmapLevel)
+    {
+        mOutputTex = mInputTex;
+    }
+
+}; // end namespace
