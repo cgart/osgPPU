@@ -61,6 +61,10 @@ MACRO(FIND_OSG_LIBRARY MYLIBRARY MYLIBRARYNAME)
     FIND_LIBRARY(${MYLIBRARY}
         NAMES ${MYLIBRARYNAME}
         PATHS
+        ${OSG_LIBRARY_DIR}
+        ${OSG_LIBRARY_DIR}/lib
+        ${OSG_LIBRARY_DIR}/lib/debug
+        ${OSG_LIBRARY_DIR}/lib/release
         ${OSG_DIR}
         ${OSG_DIR}/lib
         ${OSG_DIR}/lib/debug

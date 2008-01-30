@@ -28,6 +28,7 @@ namespace osgPPU
 {
     //! Unit which do simply bypass input to the output
     /**
+    * The result of this ppu is similar to Unit::setOutputTextreMap(Unit::getInputTextureMap());
     **/
     class OSGPPU_EXPORT UnitBypass : public Unit {
         public:
