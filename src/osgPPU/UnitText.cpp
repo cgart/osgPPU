@@ -87,7 +87,7 @@ namespace osgPPU
             sState.getState()->apply(sScreenQuad->getStateSet());
 
             // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
-            mFBO->apply(*sState.getState());
+            sState.getState()->applyAttribute(mFBO.get());
     
             // draw the text                
             draw(sState);

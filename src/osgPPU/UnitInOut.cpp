@@ -449,7 +449,7 @@ namespace osgPPU
             sState.getState()->apply(sScreenQuad->getStateSet());
 
             // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
-            mFBO->apply(*sState.getState());
+            sState.getState()->applyAttribute(mFBO.get());
 
             // render the content of the input texture into the frame buffer
             if (getUseBlendMode() && getOfflineMode() == false)
