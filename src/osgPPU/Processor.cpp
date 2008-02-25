@@ -312,15 +312,16 @@ void Processor::update(float dTime)
         printf("--------------------------------------------------------------------\n");
     }
     
+    // push current matricies
+    glPushAttrib(GL_TRANSFORM_BIT | GL_TEXTURE_BIT);
+    glMatrixMode(GL_PROJECTION); glPushMatrix();
+    glMatrixMode(GL_MODELVIEW); glPushMatrix();
+
     // iterate through Processoring units
     for (Pipeline::iterator it = mPipeline.begin(); it != mPipeline.end(); it ++)
     {
         if ((*it)->getActive())
         {
-            // push current matricies
-            glPushAttrib(GL_TRANSFORM_BIT);
-            glMatrixMode(GL_PROJECTION); glPushMatrix();
-            glMatrixMode(GL_MODELVIEW); glPushMatrix();
         
             // debug information
             if (osg::isNotifyEnabled(osg::DEBUG_INFO))
@@ -380,13 +381,13 @@ void Processor::update(float dTime)
                 (*it)->apply(0.0f);
             }
 
-            // restore the matricies 
-            glMatrixMode(GL_PROJECTION); glPopMatrix();
-            glMatrixMode(GL_MODELVIEW); glPopMatrix();
-            glPopAttrib();
         }
         
     }
+    // restore the matricies
+    glMatrixMode(GL_PROJECTION); glPopMatrix();
+    glMatrixMode(GL_MODELVIEW); glPopMatrix();
+    glPopAttrib();
     
     // debug information
     if (osg::isNotifyEnabled(osg::DEBUG_INFO))

@@ -1,3 +1,17 @@
+2008-02-25 17:38  art
+
+	* [r60]
+	  - Just a small change in UnitInOut and UnitText
+
+2008-02-25 17:03  art
+
+	* [r59]
+	  - Different changes in the CMakeFiles to support static build of
+	  osgPPU
+	  - Viewport of the Unit is now not applied directly but through
+	  the StateSet
+	  - Some small optimizations
+
 2008-01-30 20:48  art
 
 	* [r58]
