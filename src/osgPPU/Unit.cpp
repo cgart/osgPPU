@@ -389,8 +389,17 @@ void Unit::setViewport(osg::Viewport* vp)
 
     // otherwise setup new viewport
     mViewport = new osg::Viewport(*vp);
-    sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
     mbDirtyViewport = true;
+    assignViewport();
+}
+
+//--------------------------------------------------------------------------
+void Unit::assignViewport()
+{
+    if (mViewport.valid())
+    {
+        sScreenQuad->getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON);// | osg::StateAttribute::OVERRIDE);
+    }
 }
 
 //--------------------------------------------------------------------------

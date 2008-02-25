@@ -21,11 +21,11 @@ namespace osgPPU
 {
     //------------------------------------------------------------------------------
     UnitInResampleOut::UnitInResampleOut(const UnitInResampleOut& unit, const osg::CopyOp& copyop) :
+        mWidthFactor(unit.mWidthFactor),
+        mHeightFactor(unit.mHeightFactor),
+        mDirtyFactor(unit.mDirtyFactor),
         UnitInOut(unit, copyop)
     {
-        mWidthFactor = unit.mWidthFactor;
-        mHeightFactor = unit.mHeightFactor;
-        mDirtyFactor = unit.mDirtyFactor;
     }
     //------------------------------------------------------------------------------
     UnitInResampleOut::UnitInResampleOut(osg::State* state) : UnitInOut(state)

@@ -1,3 +1,36 @@
+2008-01-30 20:48  art
+
+	* [r58]
+	  - build.vc8 directory removed, sinc it is not needed for a proper
+	  build on windows. Build on windows tested with Visual C++ 2008
+	  Express (VC9) and with CMake 2.4
+
+2008-01-30 20:13  art
+
+	* [r57]
+	  - CMake listing changed to support osg version as option
+
+2008-01-30 19:23  art
+
+	* [r56]
+	  - Non-used makefile removed
+
+2008-01-30 15:08  art
+
+	* [r55]
+	  - UnitBypass.cpp added instead of inlined functions in
+	  UnitBypass.h
+
+2008-01-29 22:16  art
+
+	* [r54]
+	  - just come docs changed
+
+2008-01-29 22:14  art
+
+	* [r53]
+	  - just the changelog
+
 2008-01-29 22:13  art
 
 	* [r52]

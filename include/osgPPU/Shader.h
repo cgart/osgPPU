@@ -246,15 +246,15 @@ class OSGPPU_EXPORT Shader : public osg::Object
          **/
         void addParameter(const std::string& name, osg::Uniform* param);
 
-        virtual void onAddUniform(osg::Uniform* u) {};
-        virtual void onDelUniform(osg::Uniform* u) {};
-        virtual void onSetUniform(osg::Uniform* u) {};
-        virtual void onEnable(osg::StateSet* ss) {};
-        virtual void onDisable(osg::StateSet* ss) {};
-        virtual void onAddSource(osg::Shader* s) {};
-        virtual void onBindTexture(TexUnit& tu) {};
-        virtual void onBindAttribute(const std::string& an, int index) {};
-        virtual void onBindFragData(const std::string& an, int index) {};
+        virtual void onAddUniform(osg::Uniform* ) {};
+        virtual void onDelUniform(osg::Uniform* ) {};
+        virtual void onSetUniform(osg::Uniform* ) {};
+        virtual void onEnable(osg::StateSet* ) {};
+        virtual void onDisable(osg::StateSet* ) {};
+        virtual void onAddSource(osg::Shader* ) {};
+        virtual void onBindTexture(TexUnit& ) {};
+        virtual void onBindAttribute(const std::string& , int ) {};
+        virtual void onBindFragData(const std::string& , int ) {};
                 
         //! Convert string type name into type
         osg::Uniform::Type convertToUniformType(const std::string& name);

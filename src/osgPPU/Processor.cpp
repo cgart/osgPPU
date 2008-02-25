@@ -79,7 +79,7 @@ void Processor::setCamera(osg::Camera* camera, bool setupCallback)
 {
     // setup camera
     mCamera = camera;
-    mStateSet->setAttribute(const_cast<osg::Viewport*>(mCamera->getViewport()), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+    //mStateSet->setAttribute(const_cast<osg::Viewport*>(mCamera->getViewport()), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
     // we have to setup a post draw callback to get all things updated
     if (setupCallback)

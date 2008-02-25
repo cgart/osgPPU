@@ -112,6 +112,8 @@ namespace osgPPU
             virtual void noticeAssignShader() {}
             virtual void noticeRemoveShader() {}
 
+            void assignFBO();
+
             //! regenerate io mapmapped data structures
             void checkIOMipmappedData();
 

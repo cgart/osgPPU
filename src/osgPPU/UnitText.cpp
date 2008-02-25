@@ -85,13 +85,10 @@ namespace osgPPU
 
             // aplly stateset
             sState.getState()->apply(sScreenQuad->getStateSet());
-    
-            // apply framebuffer object, this will bind it, so we can use it
+
+            // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
             mFBO->apply(*sState.getState());
     
-            // apply viewport
-            mViewport->apply(*sState.getState());
-
             // draw the text                
             draw(sState);
         }

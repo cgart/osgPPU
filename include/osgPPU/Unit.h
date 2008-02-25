@@ -357,6 +357,9 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         //! Assign a shader to the input texture to the quad object 
         void assignShader();
         
+        //! Assign currently choosen viewport to the stateset
+        void assignViewport();
+
         //! disable shader
         void removeShader();
         

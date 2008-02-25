@@ -73,10 +73,21 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
+    void UnitInOut::assignFBO()
+    {
+        if (mFBO.valid())
+        {
+            // TODO: currently disabled, because there are some unresolved bugs if using fbo here
+            //sScreenQuad->getOrCreateStateSet()->setAttribute(mFBO.get(), osg::StateAttribute::ON);
+        }
+    }
+
+    //------------------------------------------------------------------------------
     void UnitInOut::init()
     {
         // setup output textures, which will change the size
         assignOutputTexture();
+        assignFBO();
 
         // check if mipmapping is enabled, then enable mipmapping on output textures
         if (mbUseMipmaps) enableMipmapGeneration();
@@ -194,7 +205,11 @@ namespace osgPPU
 
             // assign new viewport
             mViewport = mMipmapViewport[i];
+            assignViewport();
+
+            // assign new fbo
             mFBO = mMipmapFBO[i];
+            assignFBO();
 
             // render the content
             render(i);
@@ -211,7 +226,10 @@ namespace osgPPU
         
         // restore old viewport and fbo
         mViewport = currentViewport;
+        assignViewport();
+
         mFBO = currentFBO;
+        assignFBO();
     }
     
     //------------------------------------------------------------------------------
@@ -226,14 +244,13 @@ namespace osgPPU
                 generateMipmaps(it->second.get(), it->first);
             }
         }
-        
-        //  unbind the framebuffers and reset the opengl states to default
-        if (mFBO.valid() && sState.getState())
+
+        // TODO: remove this later. Have no real idea why it is required, it seems that somehwere it is not restored properly        
+        if (sState.getState())
         {
-            // disable the fbo
             osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
             fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-            
+
             // set default texture unit to 0
             sState.getState()->setActiveTextureUnit(0);
         }
@@ -369,16 +386,19 @@ namespace osgPPU
         if (getMipmappedInOut())
         {
             // store current viewport 
-            osg::ref_ptr<osg::Viewport> currentViewport = mViewport;
-            osg::ref_ptr<osg::FrameBufferObject> currentFBO = mFBO;
+            osg::Viewport* currentViewport = mViewport.get();
+            osg::FrameBufferObject* currentFBO = mFBO.get();
     
             // otherwise we want to bypass mipmaps, thus do following for each mipmap level
             for (int i=0; i < mNumLevels; i++)
             {
                 // assign new viewport and fbo
-                mViewport = mIOMipmapViewport[i];
-                mFBO = mIOMipmapFBO[i];
-        
+                mViewport = mIOMipmapViewport[i].get();
+                mFBO = mIOMipmapFBO[i].get();
+
+                assignViewport();
+                assignFBO();
+
                 // render the content
                 doRender(i);
             }
@@ -386,6 +406,9 @@ namespace osgPPU
             // restore current viewport and fbo 
             mFBO = currentFBO;
             mViewport = currentViewport;
+
+            assignViewport();
+            assignFBO();
     
         // otherwise just render
         }else{
@@ -424,13 +447,10 @@ namespace osgPPU
     
             // aplly stateset
             sState.getState()->apply(sScreenQuad->getStateSet());
-    
-            // apply framebuffer object, this will bind it, so we can use it
+
+            // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
             mFBO->apply(*sState.getState());
-            
-            // apply viewport
-            mViewport->apply(*sState.getState());
-    
+
             // render the content of the input texture into the frame buffer
             if (getUseBlendMode() && getOfflineMode() == false)
             {

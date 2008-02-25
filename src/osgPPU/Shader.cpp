@@ -264,7 +264,7 @@ bool Shader::isUniformExists(const std::string& name)
 //--------------------------------------------------------------------------
 osg::Uniform* Shader::get(const std::string& name)
 {
-    osg::StateSet::UniformList::iterator it = mUniforms.begin();
+    osg::StateSet::UniformList::const_iterator it = mUniforms.begin();
     for (; it != mUniforms.end(); it++)
     {
         if (it->first == name) return it->second.first.get();    

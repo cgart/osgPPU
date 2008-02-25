@@ -50,9 +50,6 @@ namespace osgPPU
         // aplly stateset
         sState.getState()->apply(sScreenQuad->getStateSet());
     
-        // apply viewport if such is valid
-        if (mViewport.valid()) mViewport->apply(*sState.getState());
-    
         // render the content of the input texture into the frame buffer
         if (getUseBlendMode())
         {
