@@ -140,40 +140,47 @@ void Processor::setPipeline(const Pipeline& pipeline)
     // and combining hte output texture of ppu_i with the input texture
     // of ppu_i+1
     
-    // get texture attachment from the camera
-    osg::Camera::BufferAttachmentMap& map = mCamera->getBufferAttachmentMap();
-
-    // save pointer to the previous texture
-    osg::Texture* input = map[osg::Camera::COLOR_BUFFER]._texture.get();
-    osg::Viewport* vp = const_cast<osg::Viewport*>(mCamera->getViewport());
-        
-    // iterate through the whole pipeline
-    Pipeline::iterator jt = mPipeline.begin();
-    for (; jt != mPipeline.end(); jt++)
+    // check whenever we have a non offline ppus but no camera
+    if (!mCamera.valid() && mPipeline.size() > 0)
     {
-		// check if we have an online ppu, then do connect it
-		if ((*jt)->getOfflineMode() == false)
-		{
-			// set input texture
-			(*jt)->setInputTexture(input, 0);
-			(*jt)->setCamera(mCamera.get());
-
-			// setup default settings
-			(*jt)->setViewport(vp);
-            if (onUnitInit((*jt).get()))
-            {
-    			(*jt)->init();
-	        }
-			// set now the input texture for the next from the output tex of the current one
-			input = (*jt)->getOutputTexture(0);
-			vp = (*jt)->getViewport();
+        osg::notify(osg::FATAL) << "osgPPU::Processor::setPipeline() - you have non-offline units in the pipeline but no valid camera specified." << std::endl;
+        osg::notify(osg::WARN) << "osgPPU::Processor::setPipeline() - All non-offline ppus will be ignored." << std::endl;
+    }else if (mCamera.valid() && mPipeline.size() > 0)
+    {
+        // get texture attachment from the camera
+        osg::Camera::BufferAttachmentMap& map = mCamera->getBufferAttachmentMap();
+    
+        // save pointer to the previous texture
+        osg::Texture* input = map[osg::Camera::COLOR_BUFFER]._texture.get();
+        osg::Viewport* vp = const_cast<osg::Viewport*>(mCamera->getViewport());
+            
+        // iterate through the whole pipeline
+        Pipeline::iterator jt = mPipeline.begin();
+        for (; jt != mPipeline.end(); jt++)
+        {
+		    // check if we have an online ppu, then do connect it
+		    if ((*jt)->getOfflineMode() == false)
+		    {
+			    // set input texture
+			    (*jt)->setInputTexture(input, 0);
+    
+			    // setup default settings
+			    (*jt)->setViewport(vp);
+                if (onUnitInit((*jt).get()))
+                {
+                    (*jt)->init();
+	            }
+			    // set now the input texture for the next from the output tex of the current one
+			    input = (*jt)->getOutputTexture(0);
+			    vp = (*jt)->getViewport();
+            }
         }
     }
     
     // add now offline ppus
-    for (jt = offlinePPUs.begin(); jt != offlinePPUs.end(); jt++)
+    for (Pipeline::iterator jt = offlinePPUs.begin(); jt != offlinePPUs.end(); jt++)
     {
-        // check if we have an online ppu, then do connect it 
+        // for offline ppus do
         if ((*jt)->getOfflineMode() == true)
         {
             if (onUnitInit((*jt).get()))
@@ -240,7 +247,11 @@ Pipeline::iterator Processor::removeUnitFromPipeline(const std::string& name)
 void Processor::addUnitToPipeline(Unit* ppu)
 {
     // check for the case if pipeline is empty
-    if (mPipeline.size() == 0) mPipeline.push_back(ppu);
+    if (mPipeline.size() == 0)
+    {
+        mPipeline.push_back(ppu);
+        return;
+    }
 
     // offscreen ppus are inserted from the end
     if (ppu->getOfflineMode())

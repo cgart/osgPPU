@@ -110,7 +110,7 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mViewport(ppu.mViewport),
     mInputPPU(ppu.mInputPPU),
     mUseInputPPUViewport(ppu.mUseInputPPUViewport),
-    mCamera(ppu.mCamera),
+    mUpdateCallback(ppu.mUpdateCallback),
     mbDirtyViewport(ppu.mbDirtyViewport),
     mbDirtyInputTextures(ppu.mbDirtyInputTextures),
     mbDirtyOutputTextures(ppu.mbDirtyOutputTextures),
@@ -203,6 +203,9 @@ void Unit::setOutputTexture(osg::Texture* outTex, int mrt)
 //--------------------------------------------------------------------------
 void Unit::apply(float dTime)
 {
+    // call update callback of the ppu
+    if (mUpdateCallback.valid()) (*mUpdateCallback)(this);
+
     // update time value 
     mTime += dTime;
 

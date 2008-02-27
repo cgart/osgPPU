@@ -54,6 +54,24 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         
         /**
+        * Update callback which will be called before the ppu will be rendered.
+        * This can be used to update certain data of the ppu.
+        **/
+        class UpdateCallback : public osg::Object
+        {
+            public:
+                META_Object(osgPPU, UpdateCallback);
+
+                UpdateCallback(){}
+                UpdateCallback(const UpdateCallback& uc, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) :
+                    osg::Object(uc, copyop)
+                {}
+
+                virtual void operator()(osgPPU::Unit*){}
+        };
+
+
+        /**
         * Empty constructor. The unit will be initialized with default values.
         * Call setState() or setParentProcessor() afterwards to provide the unit with correct 
         * state data otherwise strange things can happen.
@@ -319,6 +337,17 @@ class OSGPPU_EXPORT Unit : public osg::Object {
             if (state) sState.setState(state);
         }
 
+        /**
+        * Set update callback. The callback will be called as the first in the apply method.
+        * You can use this callback to specify certain data before rendering the ppu.
+        **/
+        inline void setUpdateCallback(UpdateCallback* callback) { mUpdateCallback = callback; }
+
+        /**
+        * Return currently assigned update callback.
+        **/
+        inline UpdateCallback* getUpdateCallback() const { return mUpdateCallback.get(); }
+
     protected:
 
         //! it is good to have friends
@@ -365,17 +394,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         
         //! Call this method after the apply method in derived classes
         void applyBase();
-        
-        /**
-         * Set camera which is used for this ppu. The camera attachments might be used as inputs.
-         * However it is up to the definition of the ppu to use camera inputs or not.
-         * @param camera Camera for a potential use of inputs from.
-        **/
-        inline void setCamera(osg::Camera* camera) { mCamera = camera; }
-
-        //! Return camera associated with this ppu.
-        inline osg::Camera* getCamera() { return mCamera.get(); }
-        
+                
         //! Input texture
         TextureMap  mInputTex;
         
@@ -408,9 +427,9 @@ class OSGPPU_EXPORT Unit : public osg::Object {
                         
         //! Name of the ppu wich viewport should be used
         Unit* mUseInputPPUViewport;
-                
-        //! Camera which is used for this post process
-        osg::ref_ptr<osg::Camera> mCamera;
+
+        //! Update callback to be called back just before applying
+        osg::ref_ptr<UpdateCallback> mUpdateCallback;
 
         //! Mark if the viewport is dirty (so have changed)
         bool mbDirtyViewport;

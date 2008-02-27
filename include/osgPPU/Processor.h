@@ -103,6 +103,11 @@ class OSGPPU_EXPORT Processor : public osg::Object {
          * Return pipeline used currently in the processor
          **/
         const Pipeline& getPipeline() const { return mPipeline; }
+
+        /**
+         * Return pipeline used currently in the processor
+         **/
+        Pipeline& getPipeline() { return mPipeline; }
  
         /**
          * Remove a ppu from the pipeline. An offline ppu is just removed.  

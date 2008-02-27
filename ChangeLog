@@ -1,3 +1,8 @@
+2008-02-25 19:38  art
+
+	* [r61]
+	  - Bug with still bounded texture after a PPU run is fixed
+
 2008-02-25 17:38  art
 
 	* [r60]
