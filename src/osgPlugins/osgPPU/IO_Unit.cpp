@@ -121,6 +121,13 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
+    int mrtCount = -1;
+    if (fr.readSequence("mrtCount", mrtCount))
+    { 
+        unit.setMRTNumber(mrtCount);
+        itAdvanced = true;
+    }
+
     return itAdvanced;
 }
 
@@ -555,6 +562,7 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
     fout.indent() << "isMipmappedInOut " <<  unit.getMipmappedInOut() << std::endl;
     fout.indent() << "useMipmapShader " << unit.getUseGenerateMipmapsShader() << std::endl;
     fout.indent() << "useMipmaps " << unit.getUseMipmaps() << std::endl;
+    fout.indent() << "mrtCount" << unit.getMRTNumber() << std::endl;
 
     if (unit.getGenerateMipmapsShader())
     {

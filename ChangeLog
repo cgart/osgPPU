@@ -1,3 +1,11 @@
+2008-02-27 17:38  art
+
+	* [r62]
+	  - There was a seg fault if a pipeline containing only offline
+	  units were added, this is fixed now.
+	  - Some compiler warnings fixed
+	  - Small bugfixes
+
 2008-02-25 19:38  art
 
 	* [r61]

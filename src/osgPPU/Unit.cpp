@@ -94,6 +94,7 @@ void Unit::initialize()
     
     // setup default modelview matrix
     sModelviewMatrix = osg::Matrixf::identity();
+
 }
 
 //------------------------------------------------------------------------------
@@ -127,7 +128,7 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mBlendFunc(ppu.mBlendFunc),
     mUserData(ppu.mUserData)
 {
-    
+
 }
 
 //------------------------------------------------------------------------------
@@ -246,13 +247,13 @@ void Unit::apply(float dTime)
     noticeOnApply();
 
     // check if any valid input texture exists
-    TextureMap::const_iterator it = mInputTex.begin();
-    for (; it != mInputTex.end(); it++)
-    {
-        if (it->second.valid())
-        {
+    //TextureMap::const_iterator it = mInputTex.begin();
+    //for (; it != mInputTex.end(); it++)
+    //{
+    //    if (it->second.valid())
+    //    {
             // apply local state if it differs from parent state 
-            if (sState.getState()) sState.getState()->apply(sScreenQuad->getStateSet());
+    //        if (sState.getState()) sState.getState()->apply(sScreenQuad->getStateSet());
             
             // apply current opengl matrix
             glMatrixMode( GL_PROJECTION ); glLoadMatrixf(sProjectionMatrix.ptr());
@@ -262,9 +263,9 @@ void Unit::apply(float dTime)
             if (applyBaseRenderParameters()) render();
     
             // this is enough to do this once, hence break here
-            break;
-        }
-    }
+    //        break;
+    //    }
+    //}
 
     // notice we are done
     noticeFinishRendering();

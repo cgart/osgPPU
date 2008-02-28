@@ -67,7 +67,7 @@ private:
                                 {
                                     list.back() = std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), it->second.get()); 
                                 }else{
-                                    if (inputCount < map.size())
+                                    if ((unsigned int)inputCount < map.size())
                                     {
                                         list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), it->second.get())); 
                                         inputCount ++;

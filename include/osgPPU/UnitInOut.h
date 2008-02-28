@@ -91,6 +91,21 @@ namespace osgPPU
             **/
             inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
 
+            /**
+            * Specify the number of active draw buffers during the rendering.
+            * In the normal case only the rendering targets are active for those an output
+            * texture was specified. However you can overwrite this behaviour and
+            * enable a fix number of mrt outputs. For example specify here 3 and
+            * the MRT 0, 1 and 2 will be activated.
+            * @param mrtCount Number of active mrt (-1 for default)
+            **/
+            inline void setMRTNumber(int mrtCount) { mMRTCount = mrtCount; }
+
+            /**
+            * Return current value setted with setMRTNumber()
+            **/
+            inline int getMRTNumber() const { return mMRTCount; }
+
         protected:
         
             //! Apply the defule unit 
@@ -135,6 +150,9 @@ namespace osgPPU
             //! Framebuffer object where results are written
             osg::ref_ptr<osg::FrameBufferObject>    mFBO;
     
+            //! Number of active draw buffers
+            int mMRTCount;
+
             //! Store number of mipmap levels
             int mNumLevels;
     

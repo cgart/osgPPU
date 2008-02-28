@@ -25,6 +25,7 @@ namespace osgPPU
     UnitInOut::UnitInOut(const UnitInOut& unit, const osg::CopyOp& copyop) :
         Unit(unit, copyop),
         mFBO(unit.mFBO),
+        mMRTCount(unit.mMRTCount),
         mNumLevels(unit.mNumLevels),
         mbUseMipmaps(unit.mbUseMipmaps),
         mbUseMipmapShader(unit.mbUseMipmapShader),
@@ -42,13 +43,13 @@ namespace osgPPU
         mbUseMipmaps = false;
         mbUseMipmapShader = false;
         mNumLevels = 0;
+        mMRTCount = -1;
             
         // create FBO because we need it
         mFBO = new osg::FrameBufferObject();
     
         // if the input does have mipmaps, then they will be passed to the output
         setMipmappedInOut(false);
-        mNumLevels = 0;
     }
     
     //------------------------------------------------------------------------------
@@ -58,7 +59,8 @@ namespace osgPPU
         mbUseMipmaps = false;
         mbUseMipmapShader = false;
         mNumLevels = 0;
-        
+        mMRTCount = -1;
+
         // create FBO because we need it
         mFBO = new osg::FrameBufferObject();
     
@@ -265,10 +267,18 @@ namespace osgPPU
             std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
             for (int i = 0; it != mOutputTex.end(); it++, i++)
             {
-                // initialze the resulting texture
-                osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
-                if (mTex == NULL)
+                // if the output texture is a 2D texture 
+                if (dynamic_cast<osg::Texture2D*>(it->second.get()) != NULL)
                 {
+                    // attach the 2D texture to the fbo
+                    mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, 
+                        osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(it->second.get())));
+
+                // if the output texture is NULL, hence generate one
+                }else if (it->second.get() == NULL)
+                {
+                    osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
+
                     mTex = new osg::Texture2D();
                     mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
                     mTex->setResizeNonPowerOfTwoHint(false);
@@ -294,10 +304,9 @@ namespace osgPPU
         
                     it->second = mTex;
             
+                    // attach the texture to the fbo
+                    mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
                 }
-    
-                // attach the texture to the fbo
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
             }
     
             // clean mipmap data for output
@@ -444,12 +453,42 @@ namespace osgPPU
                 mShader->set("g_MipmapLevel", float(mipmapLevel));
                 mShader->update();
             }
-    
+
             // aplly stateset
             sState.getState()->apply(sScreenQuad->getStateSet());
 
             // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
             sState.getState()->applyAttribute(mFBO.get());
+
+            // enable MRT if we use more than one rendering target
+            {
+                // this should store the value of the current draw buffer
+                glPushAttrib(GL_COLOR_BUFFER_BIT);
+
+                // get current extensions 
+                osg::GL2Extensions* glext = osg::GL2Extensions::Get(sState.getState()->getContextID(), true);
+
+                // enable as much buffers as we have output textures set
+                GLenum mrtBuffers[8] = {GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE};
+                TextureMap::iterator it = mOutputTex.begin();
+                for (int i = 0; i < 8; i++)
+                {
+                    if (it != mOutputTex.end())
+                    {
+                        if (it->first >=0 && it->first < 8)
+                            mrtBuffers[it->first] = GL_COLOR_ATTACHMENT0_EXT + it->first;
+                        else
+                            osg::notify(osg::FATAL) << "osgPPU::UnitInOut::doRender() - wrong MRT index specified" << std::endl;
+
+                        it ++;
+                    }
+                    if (i < mMRTCount)
+                        mrtBuffers[i] = GL_COLOR_ATTACHMENT0_EXT + i;
+                }
+
+                // enable draw buffers
+                glext->glDrawBuffers(mMRTCount < 0 ? mOutputTex.size() : mMRTCount, mrtBuffers);
+            }
 
             // render the content of the input texture into the frame buffer
             if (getUseBlendMode() && getOfflineMode() == false)
@@ -465,6 +504,11 @@ namespace osgPPU
                 sScreenQuad->draw(sState);
                 glColor4f(1,1,1,1);
             }
+
+            // disable MRT
+            {
+                glPopAttrib();   
+            }
         }    
     }
     
@@ -479,10 +523,10 @@ namespace osgPPU
             if (it->second.valid())
             {
                 // currently we are working only with 2D textures
-                if (dynamic_cast<osg::Texture2D*>(it->second.get()) == NULL)
+                if (dynamic_cast<osg::Texture2D*>(it->second.get()) != NULL)
                 {
-                    osg::notify(osg::WARN)<<"Unit " << getName() << " support only Texture2D " << std::endl;    
-                }else{
+                //    osg::notify(osg::WARN)<<"Unit " << getName() << " support only Texture2D " << std::endl;    
+                //}else{
                     // change size
                     osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
                     mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
