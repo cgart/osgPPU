@@ -1,3 +1,18 @@
+2008-02-29 16:29  art
+
+	* [r64]
+	  - Small bugfixies
+
+2008-02-28 15:14  art
+
+	* [r63]
+	  - Units are now executed also if no input was specified
+	  - True MRT support added:
+	  -- UnitInOut is now capable of rendering to all of its outputs.
+	  -- The behaviour was tested by creating an only offline unit
+	  pipeline with 3d texture as output and specifying the zoffsets
+	  explicitely
+
 2008-02-27 17:38  art
 
 	* [r62]
