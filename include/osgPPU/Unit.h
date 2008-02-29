@@ -142,10 +142,22 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         void setOutputTexture(osg::Texture* outTex, int mrt = 0);
         
         /**
-        * Get output texture of certain MRT index
+        * Get output texture of certain MRT index.
+        * NOTE: If you haven't initialized the Unit before calling this method
+        * it might end up in a NULL as output texture. For this purpose do use
+        * the getOrCreateOutputTexture().
         **/
         inline osg::Texture* getOutputTexture(int mrt = 0) { return mOutputTex[mrt].get(); }
 
+        /**
+        * Return an output texture of the certain MRT index.
+        * If there is no output texture for that index is specified, then
+        * it will be allocated. The method should be overwriten by the derived
+        * Units if they use any Output texture. Otherwise the result is always
+        * the same as from getOutputTexture().
+        **/
+        virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0) { return getOutputTexture(mrt); }
+        
         /**
         * Set a mrt to texture map for output textures
         **/

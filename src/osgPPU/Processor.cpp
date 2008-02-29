@@ -326,7 +326,7 @@ void Processor::update(float dTime)
         printf("--------------------------------------------------------------------\n");
     }
     
-    // push current matricies
+    // push current matricies and texture data
     glPushAttrib(GL_TRANSFORM_BIT | GL_TEXTURE_BIT);
     glMatrixMode(GL_PROJECTION); glPushMatrix();
     glMatrixMode(GL_MODELVIEW); glPushMatrix();
@@ -398,6 +398,7 @@ void Processor::update(float dTime)
         }
         
     }
+
     // restore the matricies
     glMatrixMode(GL_PROJECTION); glPopMatrix();
     glMatrixMode(GL_MODELVIEW); glPopMatrix();

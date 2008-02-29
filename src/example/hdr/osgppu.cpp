@@ -133,16 +133,6 @@ class Viewer : public osgViewer::Viewer
             // for the hdr rendering
             osgPPU::Pipeline pipeline = mHDRSetup.createHDRPipeline(mProcessor.get());
 
-            // This ppu do get the input from the camera and bypass it
-            // You MUST have this ppu to get the data from the camera into the pipeline
-            // A simple bypass ppu doesn't cost too much performance, since there is no
-            // rendering. It is just a copying of input to output data.
-            /*osg::ref_ptr<osgPPU::Unit> bypass = new osgPPU::Unit(mState.get());
-            bypass->setIndex(0);
-            bypass->setName("CameraBypass");
-            pipeline.push_back(bypass);*/
-
-
             // next we setup a ppu which do render the content of the result
             // on the screenbuffer. This ppu MUST be as one of the last, otherwise you
             // will not be able to get results from the ppu pipeline
@@ -174,7 +164,7 @@ class Viewer : public osgViewer::Viewer
             // seamless include this into the pipeline.
             // This ppu could be setted up before, but in this way we just 
             // demonstrate how to include ppus after pipeline setup
-            {
+            if (1){
                 // we need this to work on
                 osg::ref_ptr<osgPPU::Unit> bypass = mProcessor->getUnit("HDRBypass");
 
@@ -214,10 +204,10 @@ class Viewer : public osgViewer::Viewer
 
                 // setup new viewport, which will change the rendering position
                 osg::Viewport* vp = new osg::Viewport(*bypass->getViewport());
-                vp->x() = 0;
-                vp->y() = 0;
+                vp->x() = 50;
+                vp->y() = 50;
                 vp->width() = bypass->getViewport()->width() * 0.4;
-                vp->height() = bypass->getViewport()->height() * 0.4;
+                vp->height() = bypass->getViewport()->height() * 0.4;                
                 bgppu->setViewport(vp);
 
                 osg::Shader* sh = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/bypass_fp.glsl");

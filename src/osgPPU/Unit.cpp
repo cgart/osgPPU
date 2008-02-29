@@ -451,7 +451,7 @@ void Unit::init()
     {
         if (mInputPPU[i] != NULL)
         {
-            setInputTexture(mInputPPU[i]->getOutputTexture(0), i);
+            setInputTexture(mInputPPU[i]->getOrCreateOutputTexture(0), i);
         }
     }
     

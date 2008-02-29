@@ -53,7 +53,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
     factorX 0.5
     factorY 0.5
   }
@@ -128,7 +128,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 1
     useMipmaps 1
-    mrtCount-1
+    mrtCount -1
 
     MipmapShader {
       RefUniformPair {
@@ -441,7 +441,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
   }
   osgPPU::UnitInOut {
     UniqueID UnitInOut_8
@@ -622,7 +622,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
   }
   osgPPU::UnitInOut {
     UniqueID UnitInOut_11
@@ -764,7 +764,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
   }
   osgPPU::UnitInOut {
     UniqueID UnitInOut_13
@@ -938,7 +938,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
   }
   osgPPU::UnitText {
     UniqueID UnitText_15
@@ -968,7 +968,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
     size 26
   }
   osgPPU::UnitOut {
@@ -1163,7 +1163,7 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
   }
   osgPPU::UnitInOut {
     name "AdaptedLuminanceCopy"
@@ -1192,6 +1192,6 @@ osgPPU::Pipeline {
     isMipmappedInOut 0
     useMipmapShader 0
     useMipmaps 0
-    mrtCount-1
+    mrtCount -1
   }
 }

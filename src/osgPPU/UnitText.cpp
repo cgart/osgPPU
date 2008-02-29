@@ -60,7 +60,7 @@ namespace osgPPU
         stateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
     
         // init inout ppu
-        mOutputTex[0] = mInputTex[0];
+        mOutputTex = mInputTex;
         UnitInOut::init();
     
         // setup projection matrix

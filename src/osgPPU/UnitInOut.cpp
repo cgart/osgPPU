@@ -259,6 +259,37 @@ namespace osgPPU
     }
      
     //------------------------------------------------------------------------------
+    osg::Texture* UnitInOut::getOrCreateOutputTexture(int mrt)
+    {
+        // if already exists, then return back
+        osg::Texture* tex = mOutputTex[mrt].get();
+        if (tex) return tex;
+
+        // if not exists, then do allocate it
+        osg::Texture2D* mTex = new osg::Texture2D();
+        mTex->setResizeNonPowerOfTwoHint(false);
+        mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+        mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+        mTex->setInternalFormat(getOutputInternalFormat());
+        mTex->setSourceFormat(Processor::createSourceTextureFormat(getOutputInternalFormat()));
+
+        // check if the input texture was in nearest mode
+        if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MIN_FILTER) == osg::Texture2D::NEAREST)
+            mTex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::NEAREST);
+        else
+            mTex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR);
+
+        if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MAG_FILTER) == osg::Texture2D::NEAREST)
+            mTex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::NEAREST);
+        else
+            mTex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+
+        // set new texture
+        mOutputTex[mrt] = mTex;
+        return mTex;
+    }
+
+    //------------------------------------------------------------------------------
     void UnitInOut::assignOutputTexture()
     {
         if (mFBO.valid())
@@ -277,32 +308,9 @@ namespace osgPPU
                 // if the output texture is NULL, hence generate one
                 }else if (it->second.get() == NULL)
                 {
-                    osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
-
-                    mTex = new osg::Texture2D();
+                    // preallocate the texture
+                    osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(getOrCreateOutputTexture(it->first));
                     mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
-                    mTex->setResizeNonPowerOfTwoHint(false);
-                    mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
-                    mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);               
-                    mTex->setInternalFormat(getOutputInternalFormat());
-                    mTex->setSourceFormat(Processor::createSourceTextureFormat(getOutputInternalFormat()));
-    
-                    //mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_BORDER);
-                    //mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_BORDER);
-                    //mTex->setBorderColor(osg::Vec4(0,0,0,0));
-    
-                    // check if the input texture was in nearest mode 
-                    if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MIN_FILTER) == osg::Texture2D::NEAREST)
-                        mTex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::NEAREST);
-                    else
-                        mTex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR);
-        
-                    if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MAG_FILTER) == osg::Texture2D::NEAREST)
-                        mTex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::NEAREST);
-                    else
-                        mTex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-        
-                    it->second = mTex;
             
                     // attach the texture to the fbo
                     mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
