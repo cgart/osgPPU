@@ -49,6 +49,9 @@ Processor::Processor(osg::State* state) : mState(state)
     osg::Depth* ds = new osg::Depth();
     ds->setWriteMask(false);
     mStateSet->setAttribute(ds, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+
+    // the processor is of fixed function pipeline, however the childs (units) might not 
+    mStateSet->setAttribute(new osg::Program());
 }
 
 //------------------------------------------------------------------------------
@@ -365,7 +368,7 @@ void Processor::update(float dTime)
 			    for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
 			    {
                     osg::Texture* tex = (*it)->getInputTexture(i);
-                    printf(" %p", tex);
+                    printf(" %d:%p", i, tex);
                     if (tex)
                     {
                         if ((*it)->getStateSet()->getTextureAttribute(i, osg::StateAttribute::TEXTURE))

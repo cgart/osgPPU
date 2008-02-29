@@ -128,6 +128,13 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         void bindInputTextureToUniform(int index, const std::string& name);
 
         /**
+        * Clean all input textures. This will clean up the input texture map and
+        * unbind all input textures from the StateSet.
+        * The settings of setInputTextureIndexForViewportReference() will be setted to -1.
+        **/
+        void cleanInputTextureMap();
+
+        /**
         * Set an output texture.
         * @param outTex Texture used as output of this ppu 
         * @param mrt MRT (multiple rendering target) index of this output

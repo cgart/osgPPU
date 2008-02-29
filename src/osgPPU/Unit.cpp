@@ -191,6 +191,26 @@ void Unit::bindInputTextureToUniform(int index, const std::string& name)
 }
 
 //------------------------------------------------------------------------------
+void Unit::cleanInputTextureMap()
+{
+    osg::StateSet* ss = sScreenQuad->getOrCreateStateSet();
+
+    // iterate through the map as we have it
+    TextureMap::iterator it = mInputTex.begin();
+    for (; it != mInputTex.end(); it++)
+        if (it->second.valid())
+            ss->removeAttribute(it->second.get());
+
+    mInputTex.clear();
+
+    // if we have to check for size, hence do
+    if (mInputTexIndexForViewportReference >= 0)
+        setInputTextureIndexForViewportReference(-1);
+
+    mbDirtyInputTextures = false;    
+}
+
+//------------------------------------------------------------------------------
 void Unit::setOutputTexture(osg::Texture* outTex, int mrt)
 {
     if (outTex)
