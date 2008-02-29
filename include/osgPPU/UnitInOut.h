@@ -110,7 +110,7 @@ namespace osgPPU
             * Return output texture for the specified MRT index.
             * If no such exists, then it will be allocated.
             **/
-            osg::Texture* getOrCreateOutputTexture(int mrt = 0);
+            virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0);
 
         protected:
         

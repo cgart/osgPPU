@@ -66,6 +66,9 @@ namespace osgPPU
                 UnitInOut::setName(name);
             }
 
+            //! Text Unit does work as a simple bypass, hence return here always the input
+            inline osg::Texture* getOrCreateOutputTexture(int mrt = 0) { return mInputTex[mrt].get(); }
+
         protected:
 
             //! Apply the defule unit 
