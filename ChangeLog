@@ -1,3 +1,23 @@
+2008-02-29 19:45  art
+
+	* [r67]
+	  - changelog
+
+2008-02-29 19:45  art
+
+	* [r66]
+	  - motionblur.ppu added under bin/Data/. Now you can use viewer to
+	  check this effect.
+
+2008-02-29 19:23  art
+
+	* [r65]
+	  - Unit::getOrCreateOutputTexture() method added. This allows to
+	  preallocate the output texture even if the Unit was not
+	  initialiyed before.
+	  - Unit::addInputPPU does now work intuitively correct. You can
+	  now also add input PPUs without initialiying them first.
+
 2008-02-29 16:29  art
 
 	* [r64]
