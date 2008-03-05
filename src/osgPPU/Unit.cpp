@@ -199,7 +199,7 @@ void Unit::cleanInputTextureMap()
     TextureMap::iterator it = mInputTex.begin();
     for (; it != mInputTex.end(); it++)
         if (it->second.valid())
-            ss->removeAttribute(it->second.get());
+            ss->removeTextureAttribute(it->first, it->second.get());
 
     mInputTex.clear();
 

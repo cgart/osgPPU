@@ -353,7 +353,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         **/
         inline void setState(osg::State* state)
         {
-            if (state) sState.setState(state);
+            sState.setState(state);
         }
 
         /**
