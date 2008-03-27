@@ -47,7 +47,6 @@ namespace osgPPU
     {
         // initialize text
         setColor(osg::Vec4(1,1,1,1));
-        setStateSet(sScreenQuad->getOrCreateStateSet());
 
         // setup some defaults parameters
         setLayout(osgText::Text::LEFT_TO_RIGHT);
@@ -60,11 +59,12 @@ namespace osgPPU
         stateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
     
         // init inout ppu
-        mOutputTex = mInputTex;
+        setOutputTextureMap(getInputTextureMap());
         UnitInOut::init();
     
         // setup projection matrix
         sProjectionMatrix = osg::Matrix::ortho2D(0,1,0,1);
+        osgText::Text::setStateSet(stateSet);
     }
     
     

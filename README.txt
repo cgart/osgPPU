@@ -1,3 +1,18 @@
+How to use examples
+===============================
+The bin/ irectory does contain some examples and tools coming together
+witht the osgPPU package. Use them to see how all the things are setted up.
+Use the viewer to see the .ppu files which you can find in the bin/Data/
+directory.
+For example:
+  cd bin
+  ./viewer Data/motionblur.ppu 
+will show you how the motionblur effect can be realized with the osgPPU.
+The corresponding .ppu file does contain a main setup for the correct
+effect pipeline.
+
+
+
 How to build the osgPPU
 ===============================
 

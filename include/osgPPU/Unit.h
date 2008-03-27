@@ -109,7 +109,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         /**
          * Assign input textures directly by a index to texture map
          **/
-        inline void setInputTextureMap(const TextureMap& map) { mInputTex = map; }
+        inline void setInputTextureMap(const TextureMap& map) { mInputTex = map; mbDirtyInputTextures = true;}
 
         /**
         * Return complete index to texture mapping
@@ -161,7 +161,7 @@ class OSGPPU_EXPORT Unit : public osg::Object {
         /**
         * Set a mrt to texture map for output textures
         **/
-        inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map;}
+        inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map; mbDirtyOutputTextures = true;}
 
         /**
         * Get mrt index to texture mapping
