@@ -164,15 +164,18 @@ void Processor::setPipeline(const Pipeline& pipeline)
 		    // check if we have an online ppu, then do connect it
 		    if ((*jt)->getOfflineMode() == false)
 		    {
-			    // set input texture
-			    (*jt)->setInputTexture(input, 0);
+			    // set input texture only if it is not set already
+			    if ((*jt)->getInputTexture(0) == NULL)
+                    (*jt)->setInputTexture(input, 0);
     
-			    // setup default settings
-			    (*jt)->setViewport(vp);
+			    // setup viewport if not setted up before
+                if ((*jt)->getViewport() == NULL)
+    			    (*jt)->setViewport(vp);
+                    
+                // initialize unit
                 if (onUnitInit((*jt).get()))
-                {
                     (*jt)->init();
-	            }
+
 			    // set now the input texture for the next from the output tex of the current one
 			    input = (*jt)->getOutputTexture(0);
 			    vp = (*jt)->getViewport();

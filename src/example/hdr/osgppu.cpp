@@ -106,8 +106,13 @@ class Viewer : public osgViewer::Viewer
             mCamera = setupCamera(getCamera()->getViewport());
 
             // we need to work on valid state, hence retrieve it
-            mState = dynamic_cast<osgViewer::Renderer*>(getCamera()->getRenderer())->getSceneView(0)->getState();
-        
+            //mState = dynamic_cast<osgViewer::Renderer*>(getCamera()->getRenderer())->getSceneView(0)->getState();
+            // we need to work on valid state, hence retrieve it
+            // since we are working with SingelThreaded model the first one should be correct
+            Viewer::Contexts contexts;
+            getContexts(contexts);
+            mState = (*contexts.begin())->getState();
+
             // this will setup the scene as child of the camera and camera as child of viewer
             setSceneData(getSceneData());
         }
@@ -387,7 +392,7 @@ int main(int argc, char **argv)
     viewer->setSceneData( node );
         
     // give some info in the console
-    printf("osgppu [filename]\n");
+    printf("hdr [filename]\n");
     printf("Keys:\n");
     printf("\tF1 - Show original input\n");
     printf("\tF2 - Show luminance per pixel\n");
