@@ -1,3 +1,59 @@
+2008-04-22 22:17  art
+
+	* [r93]
+	  - sandbox merged with trunk
+	  - completly changed the way how Units are managed.
+	  - Unit and Processor are now derived from osg::Group which
+	  enables to combine them in a graph in an usual fashion
+	  - The subgraph under the processor represents the unit pipeline
+	  - No State is dierectly involved anymore, the state is acquired
+	  automatically during the rendering
+	  - Each parent node do provide its output to the children
+	  - Each child collects its inputs from all direct parents and
+	  hence setup itself in this way
+	  - Cycles in the unit graph are allowed, giving the possibility of
+	  reusing computed data in the next frames
+	  - Cycles are resolved by adding special kind of node
+	  BarrierNodes, which disables the traversion at them
+	  - Processor uses now a special kind of Visitor to Setup,
+	  Initialize, Resolve Cycle, Optimize, Update and Draw the subgraph
+	  of units
+	  - The .ppu files has not to contain fixed Viewports, allowing
+	  reusing of the same .ppu file for different camera resolutions
+	  - New UnitTexture unit allowing passing an external texture as
+	  input into the ppu graph
+	  - Shader uniforms are setted up automatically based on the input
+	  textures
+	  - The .ppu file can now write and read every kind of Unit
+	  including external texture referencies
+	  - All examples were updated and changed to the new interface
+
+2008-04-03 17:19  art
+
+	* [r77]
+	  - Depth Of Filed example just added, but it does not work at now
+	  - inprogress branch directory added. I need this to work on
+	  before submitting to the trunk directory
+
+2008-04-03 17:14  art
+
+	* [r76]
+	  
+
+2008-03-28 10:16  art
+
+	* [r74]
+	  - Small changes to the CMakeLists of the examples, now pthread
+	  library is linked only if static build
+
+2008-03-27 13:27  art
+
+	* [r70]
+	  - Simple changes in the text unit (there still some strange bugs,
+	  however for now it seems to work)
+	  - Readme file changed
+	  - I am gonna go now to tag a first developer release version
+
 2008-03-05 17:11  art
 
 	* [r69]

@@ -228,19 +228,19 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         **/
         void setRenderingFrustum(float left, float top, float right, float bottom);
         
-		/**
-		* Set this ppu in the mode, so that it is not combined into the rendering graph.
-		* This means its output will not be connected to input of the next ppu. Thus the 
-		* rendering is done offline in the manner of ppu graph. You have to setup
+        /**
+        * Set this ppu in the mode, so that it is not combined into the rendering graph.
+        * This means its output will not be connected to input of the next ppu. Thus the 
+        * rendering is done offline in the manner of ppu graph. You have to setup
         * the input and the output of the offline ppus by yourself. Offline ppus
         * are used for a pipeline independent computation on the input data.
-		**/
-		inline void setOfflineMode(bool mode) {mbOfflinePPU = mode;}
+        **/
+        inline void setOfflineMode(bool mode) {mbOfflinePPU = mode;}
 
-		/**
+        /**
         * Check whenever this ppu runs in an offline mode
         **/
-		inline bool getOfflineMode() const { return mbOfflinePPU; }
+        inline bool getOfflineMode() const { return mbOfflinePPU; }
 
         /**
          * Set internal format which will be used by creating the textures. The format
@@ -321,10 +321,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
                     // only if parent is valid
                     if (_parent->getActive())
                     {
-_parent->printDebugInfo();
                         // unit should know that we are about to render it
                         _parent->noticeBeginRendering(ri, dr);
-                        glFogf(GL_FOG_START, 1.0);
 
                         // set matricies used for the unit
                         ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
@@ -390,7 +388,7 @@ _parent->printDebugInfo();
         virtual void assignInputTexture();
 
         //! Assign output textures (is handled only in derived classes)
-		virtual void assignOutputTexture() {};
+        virtual void assignOutputTexture() {};
         
         //! Helper function to create screen sized quads
         osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0), float l=0.0, float b=0.0, float r=1.0, float t=1.0);
@@ -440,8 +438,8 @@ _parent->printDebugInfo();
         //! Is the unit dirty
         bool mbDirty;
         
-		//! This ppu is marked as not to be included into the rendering graph 
-		bool mbOfflinePPU;
+        //! This ppu is marked as not to be included into the rendering graph 
+        bool mbOfflinePPU;
 
         //! Internal format of the output texture
         GLenum mOutputInternalFormat;
