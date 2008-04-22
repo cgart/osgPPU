@@ -30,50 +30,54 @@ namespace osgPPU
 {
     //! Smae as UnitInOut but do render a text onto the output
     /**
-    * The text is displayed in 2D ortho mode. This class is also derived from the osgText::Text
-    * class. Hence check it for more information about the text support.
+    * The text is displayed in 2D ortho mode. This class is wrapper for the 
+    * osgText::Text class, so check it for more information about the text support.
     **/
-    class OSGPPU_EXPORT UnitText : public UnitInOut, public osgText::Text
+    class OSGPPU_EXPORT UnitText : public UnitInOut
     {
         public:
-            virtual const char* className() const { return "UnitText" ;} 
-            virtual osg::Object* cloneType() const { return dynamic_cast<UnitInOut*>(new UnitText());} 
-            virtual osg::Object* clone(const osg::CopyOp& copyop) const { UnitText* u = new UnitText(*this, copyop); return dynamic_cast<UnitInOut*>(u);} 
+            META_Node(osgPPU, UnitText);
 
             //! Create default ppfx 
-            UnitText(osg::State* state);
             UnitText();
             UnitText(const UnitText&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
             //! Release it and used memory
-            ~UnitText();
+            virtual ~UnitText();
             
             //! Initialze the default postprocessing unit 
             virtual void init();
         
             //! Set size of the characters (relative to viewport.width / 640)
-            inline void setSize(float size) { mSize= size;}
-
-            //! Get current size 
-            inline float getSize() const { return mSize; }
-        
-            //! Set 2D Screen positon
-            inline void setPosition(float x, float y) { osgText::Text::setPosition(osg::Vec3(x,y,0)); }
-
-            //! Redefine the setName method, because of diamond polymorphysm against osg::Object
-            inline void setName(const std::string& name)
+            inline void setSize(float size)
             {
-                UnitInOut::setName(name);
+                mSize= size;
+                if (getViewport())
+                    mText->setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
             }
+            inline float getSize() const { return mSize; }
+
+            //! Set text position in 2D coordinates        
+            inline void setPosition(float x, float y) { mText->setPosition(osg::Vec3(x,y,0)); }
 
             //! Text Unit does work as a simple bypass, hence return here always the input
             inline osg::Texture* getOrCreateOutputTexture(int mrt = 0) { return mInputTex[mrt].get(); }
 
+            //! Get text assigned with this unit
+            osgText::Text& getText() { return *mText; }
+            const osgText::Text& getText() const { return *mText; }
+
+            //! Set string drawed by the text
+            void setText(const std::string& txt) { mText->setText(txt); }
+
+            //! Set the text pointer used for the rendering
+            void setText(osgText::Text* text);
+
         protected:
 
-            //! Apply the defule unit 
-            virtual void render(int mipmapLevel = 0);
-            
+            //! Text class holder
+            osg::ref_ptr<osgText::Text> mText;
+
             //! Size of the font
             float mSize;
     };

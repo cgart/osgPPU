@@ -35,10 +35,9 @@ namespace osgPPU
     **/
     class OSGPPU_EXPORT UnitOutCapture : public UnitOut {
         public:
-            META_Object(osgPPU,UnitOutCapture);
+            META_Node(osgPPU,UnitOutCapture);
         
             //! Create default ppfx 
-            UnitOutCapture(osg::State* state);
             UnitOutCapture();
             UnitOutCapture(const UnitOutCapture&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
@@ -60,7 +59,7 @@ namespace osgPPU
         protected:
             
             //! Here we are capturing the input to file
-            void noticeFinishRendering();
+            void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*);
         
             //! path were to store the files
             std::string mPath;

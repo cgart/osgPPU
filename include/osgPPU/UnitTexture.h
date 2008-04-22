@@ -14,55 +14,51 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#ifndef _C_UNIT_INRESAMPLEOUT_H_
-#define _C_UNIT_INRESAMPLEOUT_H_
+#ifndef _C_UNIT_TEXTURE_H_
+#define _C_UNIT_TEXTURE_H_
 
 
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
 #include <osgPPU/Export.h>
-#include <osgPPU/UnitInOut.h>
+#include <osgPPU/Unit.h>
 
 namespace osgPPU
 {
-    //! Same as UnitInOut but do resampling inbetween
+    //! Texture unit is used to setup external textures in the unit graph
     /**
-    * Resample the input. This PPU will 
-    * render the input data resampled to the output. Next PPU will work 
-    * on the resampled one. NOTE: You loose information in your data after 
-    * appling this PPU.
+    * If you like to have an external texture as input to any unit in the unit graph,
+    * then you have to setup this behaviour with the help of this unit. Place
+    * this unit as a parent of any other unit and its output, the texture,
+    * will became input to that unit.
     **/
-    class OSGPPU_EXPORT UnitInResampleOut : public UnitInOut {
+    class OSGPPU_EXPORT UnitTexture : public Unit {
         public:
-            META_Node(osgPPU,UnitInResampleOut);
+            META_Node(osgPPU,UnitTexture);
         
-            //! Create default ppfx 
-            UnitInResampleOut();
-            UnitInResampleOut(const UnitInResampleOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+            UnitTexture();
+            UnitTexture(const UnitTexture& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+            UnitTexture(osg::Texture* tex);
             
-            //! Release it and used memory
-            virtual ~UnitInResampleOut();
+            ~UnitTexture();
             
-            //! Set resampling factor
-            void setFactorX(float x);
-    
-            //! Set resampling factor
-            void setFactorY(float Y);
-    
-            //! Get resampling factor
-            float getFactorX() const { return mWidthFactor; }
-    
-            //! Get resampling factor
-            float getFactorY() const { return mHeightFactor; }
-    
             void init();
 
-        protected:
-            float mWidthFactor, mHeightFactor;
-            bool mDirtyFactor;
-    };
+            /**
+            * Set a texture which is used as output of this unit.
+            * The children will get this texture as input atomatically.
+            **/
+            void setTexture(osg::Texture* tex);
 
+            /**
+            * Get texture which is used as output of this unit.
+            **/
+            inline osg::Texture* getTexture() { return getOutputTexture(0); }
+
+        private:
+            class DrawCallback;
+    };
 };
 
 #endif

@@ -13,14 +13,10 @@ class Viewer : public osgViewer::Viewer
 {
     private:
         osg::ref_ptr<osgPPU::Processor> mProcessor;
-        osg::ref_ptr<osg::Camera> mCamera;
-        osg::ref_ptr<osg::State> mState;
-        osg::ref_ptr<osg::Node> mSceneData;
 
-        bool mbInitialized;
         float mOldTime;
         HDRRendering mHDRSetup;
-
+        bool mbInitialized;
                 
     public:
         //! Default construcotr
@@ -34,7 +30,7 @@ class Viewer : public osgViewer::Viewer
         osgPPU::Processor* getProcessor() { return mProcessor.get(); }
         
         //! Create camera resulting texture
-        osg::Texture* createRenderTexture(int tex_width, int tex_height)
+        static osg::Texture* createRenderTexture(int tex_width, int tex_height)
         {
             // create simple 2D texture
             osg::Texture2D* texture2D = new osg::Texture2D;
@@ -52,195 +48,151 @@ class Viewer : public osgViewer::Viewer
         }
 
         //! Setup the camera to do the render to texture
-        osg::Camera* setupCamera(osg::Viewport* vp)
+        void setupCamera(osg::Viewport* vp)
         {
+            // setup viewer's default camera
+            osg::Camera* camera = getCamera();
+
             // create texture to render to
             osg::Texture* texture = createRenderTexture((int)vp->width(), (int)vp->height());
-            osg::Camera* camera = new osg::Camera();
-                        
+
             // set up the background color and clear mask.
-            camera->setClearColor(osg::Vec4(0.5f,0.5f,0.5f,1.0f));
+            camera->setClearColor(osg::Vec4(0.0f,0.0f,0.0f,0.0f));
             camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             // set viewport
             camera->setViewport(vp);
             camera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
-            camera->setProjectionMatrix(getCamera()->getProjectionMatrix());
-
-            // set the camera to render after the main camera.
-            camera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-            camera->setRenderOrder(osg::Camera::PRE_RENDER);
 
             // tell the camera to use OpenGL frame buffer object where supported.
             camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 
             // attach the texture and use it as the color buffer.
             camera->attach(osg::Camera::COLOR_BUFFER, texture);
-
-            return camera;
         }
 
-        //! Add scene data
-        void setSceneData(osg::Node* n)
-        {
-            // if valid camera, then add new node to the camera and camera to the viewer
-            if (mCamera.valid())
-            {
-                mCamera->removeChildren(0, mCamera->getNumChildren());
-                mCamera->addChild(n);
-                osgViewer::Viewer::setSceneData(mCamera.get());
-
-            // if not then add node to the viewer
-            }else
-                osgViewer::Viewer::setSceneData(n);
-        }
-        
         //! Just setup some stuff
         void viewerInit()
         {
             // propagate the method
             osgViewer::Viewer::viewerInit();
 
-            // we create our own camera instead of using osgViewer's master camera
-            // since it gets somehow problematic (black screen)
-            mCamera = setupCamera(getCamera()->getViewport());
+            // setup data
+            setupCamera(getCamera()->getViewport());
 
-            // we need to work on valid state, hence retrieve it
-            //mState = dynamic_cast<osgViewer::Renderer*>(getCamera()->getRenderer())->getSceneView(0)->getState();
-            // we need to work on valid state, hence retrieve it
-            // since we are working with SingelThreaded model the first one should be correct
-            Viewer::Contexts contexts;
-            getContexts(contexts);
-            mState = (*contexts.begin())->getState();
-
-            // this will setup the scene as child of the camera and camera as child of viewer
-            setSceneData(getSceneData());
+            // add ppu processor into the scene graph
+            osg::Group* group = new osg::Group();
+            group->addChild(getSceneData());
+            setSceneData(group);
         }
 
         //! Setup osgppu for rendering
         void initialize()
         {
-            // if already initialized then just do nothing
+           // if already initialized then just do nothing
             if (mbInitialized == false)
                 mbInitialized = true;
             else
                 return;
 
-            // I do not know why, but we have to place this here!!!
-            mState->initializeExtensionProcs();
+            mProcessor = new osgPPU::Processor();
+            dynamic_cast<osg::Group*>(getSceneData())->addChild(mProcessor.get());
 
             // initialize the post process
-            mProcessor = new osgPPU::Processor(mState.get());
-            mProcessor->setCamera(mCamera.get());
+            mProcessor->setCamera(getCamera());
             mProcessor->setName("Processor");
-            
+            mProcessor->dirtyUnitSubgraph();
+                            
             // we want to simulate hdr rendering, hence setup the pipeline
             // for the hdr rendering
-            osgPPU::Pipeline pipeline = mHDRSetup.createHDRPipeline(mProcessor.get());
+            osgPPU::Unit* firstUnit = NULL;
+            osgPPU::Unit* lastUnit = NULL;
 
-            // next we setup a ppu which do render the content of the result
-            // on the screenbuffer. This ppu MUST be as one of the last, otherwise you
-            // will not be able to get results from the ppu pipeline
-            osg::ref_ptr<osgPPU::Unit> ppuout = new osgPPU::UnitOut(mState.get());
-            ppuout->setIndex(1000);
-            ppuout->setName("PipelineResult");
-            pipeline.push_back(ppuout);
+            mHDRSetup.createHDRPipeline(mProcessor.get(), firstUnit, lastUnit);
+            mProcessor->addChild(firstUnit);
+
+            // add a text ppu after the pipeline is setted up
+            {
+                osgPPU::UnitText* fpstext = new osgPPU::UnitText();
+                fpstext->setName("FPSTextPPU");
+                fpstext->setSize(44);
+                fpstext->setText("Example HDR-pipeline from a .ppu file (note: no change in adaptive luminance)");
+                fpstext->setPosition(0.01, 0.95);
+                lastUnit->addChild(fpstext);
+            }
+            
+
+            // write pipeline to a file
+            //osgDB::writeObjectFile(*mProcessor, "Data/hdr.ppu");
 
             // now just as a gimmick do setup a text ppu, to render some info on the screen
-            osgPPU::UnitText* pputext = new osgPPU::UnitText(mState.get());
-            pputext->setIndex(999);
+            osgPPU::UnitText* pputext = new osgPPU::UnitText();
             pputext->setName("TextPPU");
-            pputext->setSize(26);
+            pputext->setSize(46);
             pputext->setText("osgPPU rocks!");
-            pputext->setPosition(0.0, 0.4);
-            pipeline.push_back(osg::ref_ptr<osgPPU::Unit>(pputext));
+            pputext->setPosition(0.025, 0.425);
+            lastUnit->addChild(pputext);
 
-            // finally we add the list of the ppus to the pipeline
-            mProcessor->setPipeline(pipeline);
+            // This is a simple texture unit, which do just provide a given texture 
+            // to the output, so that all children units can access this texture as input.
+            osgPPU::UnitTexture* unittex = new osgPPU::UnitTexture();
+            {
+                // it doesn't matter where to put this unit in the graph, because it 
+                // does not use any input. However so that this unit is updated every 
+                // frame we put it somewhere, in this case under the processor
+                mProcessor->addChild(unittex);
 
-            // now after the pipeline is setted up, we add offline ppus to compute adapted luminace
-            mHDRSetup.setupPPUsToComputeAdaptedLuminance(mProcessor.get());
+                // just to find it later in the graph
+                unittex->setName("TextureUnit");
 
-            // test writing to file 
-            osgDB::writeObjectFile(mProcessor->getPipeline(), "Data/hdr.ppu");        
-            
-            // This ppu just render a texture over the screen.
-            // We do this after we have setted up the pipeline, so that we can
-            // seamless include this into the pipeline.
-            // This ppu could be setted up before, but in this way we just 
-            // demonstrate how to include ppus after pipeline setup
-            if (1){
-                // we need this to work on
-                osg::ref_ptr<osgPPU::Unit> bypass = mProcessor->getUnit("HDRBypass");
-
-                // create picture in picture ppu 
-                osg::ref_ptr<osgPPU::Unit> bgppu = new osgPPU::UnitInOut(mState.get());
-                bgppu->setName("PictureInPicturePPU");
-
-                // set index two 200, so that this ppu does get updated after the hdr pipeline
-                bgppu->setIndex(200);
-
-                // now we have to include this ppu into the pipeline
-                mProcessor->addUnitToPipeline(bgppu.get());
-
-                // after adding the ppu the input and output textures changes
-                // according to the pipeline. Hence we have to change this how we
-                // we want to have it
-                
                 // input texture is output of the camera bypass, so that we see original scene view
                 osg::Texture2D* img = new osg::Texture2D();
                 img->setImage(osgDB::readImageFile("Images/reflect.rgb"));
-                bgppu->setInputTexture(img, 0);
-                //bgppu->setInputTexture(bypass->getOutputTexture(0), 0);
+                unittex->setTexture(img);
+            }
+            
+            // The following setup does show how to include an offline ppu into the graph
+            // This unit will just render the content of the input unit in a small window 
+            // over the screen.
+            if (1)
+            {
+                // create picture in picture ppu 
+                osgPPU::UnitInOut* bgppu = new osgPPU::UnitInOut();
+                bgppu->setName("PictureInPicturePPU");
 
-                // output texture will be the same as the output of the text ppu,
+                // at the beginning we setup the unittex as input to this unit
+                unittex->addChild(bgppu);
+
+                // this ppu has to be rendered after the hdr pipeline output
+                // however it shouldn't take the input of hdr output.
+                lastUnit->addChild(bgppu);
+
+                // hence ignore the input of the parent with index 1, which is hdr output
+                bgppu->setIgnoreInput(1, true);
+
+                // output texture will be the same as the output of the last ppu,
                 // which is the same as the output of the hdr ppu.
-                bgppu->setOutputTexture(pputext->getOutputTexture(0), 0);
+                bgppu->setInputBypass(1);
 
                 // we do not want to use any ppu for viewport reference because we setted up our own viewport
                 bgppu->setInputTextureIndexForViewportReference(-1);
 
-                // we also disable viewport reference on the textppu, so that
-                // after adding this ppu the text ppu doesn't get new viewport assigned
-                pputext->setInputTextureIndexForViewportReference(-1);
-
-                // and finally initialize the ppu
-                bgppu->init();
-
                 // setup new viewport, which will change the rendering position
-                osg::Viewport* vp = new osg::Viewport(*bypass->getViewport());
-                vp->x() = 50;
-                vp->y() = 50;
-                vp->width() = bypass->getViewport()->width() * 0.4;
-                vp->height() = bypass->getViewport()->height() * 0.4;                
+                osg::Viewport* vp = new osg::Viewport(*(getCamera()->getViewport()));
+                vp->x() = 10;
+                vp->y() = 10;
+                vp->width() *= 0.4;
+                vp->height() *= 0.3;                
                 bgppu->setViewport(vp);
-
-                osg::Shader* sh = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/bypass_fp.glsl");
-                osgPPU::Shader* shader = new osgPPU::Shader();
-                shader->addShader(sh);
-                shader->add("texUnit0", osg::Uniform::SAMPLER_2D);
-                shader->set("texUnit0", 0);
-
-                bgppu->setShader(shader);
             }
 
-            // add a text ppu after the pipeline is setted up
-            {
-                osgPPU::UnitText* fpstext = new osgPPU::UnitText(mState.get());
-                fpstext->setIndex(999);
-                fpstext->setName("FPSTextPPU");
-                fpstext->setSize(24);
-                fpstext->setText("FPS: ");
-                fpstext->setPosition(0.0, 0.95);
-
-                mProcessor->addUnitToPipeline(fpstext);
-                fpstext->init();
-            }
-            // the post processing is updated by the post draw callback of the main camera
-            // this is IMPORTANT because only in that way we can be sure that the
-            // ppu pipeline is get rendered after the main camera is rendered and
-            // before the main buffer swap take place
-            mProcessor->initPostDrawCallback(getCamera());
+            // As a last step we setup a ppu which do render the content of the result
+            // on the screenbuffer. This ppu MUST be as one of the last, otherwise you
+            // will not be able to get results from the ppu pipeline
+            osgPPU::UnitOut* ppuout = new osgPPU::UnitOut();
+            ppuout->setName("PipelineResult");
+            ppuout->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera
+            lastUnit->addChild(ppuout);
         }
 
         //! Update the frames        
@@ -258,11 +210,12 @@ class Viewer : public osgViewer::Viewer
             float frameTime = elapsedTime() - mOldTime;
             mOldTime = elapsedTime();
 
-            // update time, so that ppus work fine
-            mProcessor->setTime(mOldTime);
-
-            // update camera's view matrix according to the 
-            mCamera->setViewMatrix(getCamera()->getViewMatrix());
+            // write the pipeline to a file
+            /*static int i = 0;
+            if (i > 1)
+            osgDB::writeObjectFile(*mProcessor, "Data/hdr.ppu");        
+            i++;
+            */
 
             // We have to update the frame interval in one shader.
             // This is needed to simulate light adaption on different brightness
@@ -271,22 +224,22 @@ class Viewer : public osgViewer::Viewer
             // I would suggest to solve this in another way
             {
                 // get ppu containing the shader with the variable
-                osgPPU::Unit* ppu = mProcessor->getUnit("AdaptedLuminance");
+                osgPPU::Unit* ppu = mProcessor->findUnit("AdaptedLuminance");
                 if (ppu)
                     ppu->getShader()->set("invFrameTime", frameTime);
             }
 
             // print also some info about the fps number
+            if (1)
             {
-                osgPPU::UnitText* ppu = dynamic_cast<osgPPU::UnitText*>(mProcessor->getUnit("FPSTextPPU"));
+                osgPPU::UnitText* ppu = dynamic_cast<osgPPU::UnitText*>(mProcessor->findUnit("FPSTextPPU"));
                 if (ppu)
                 {
                     char txt[64];
-                    sprintf(txt, "FPS:%4.2f", 1.0 / frameTime);
+                    sprintf(txt, "FPS: %4.2f", 1.0 / frameTime);
                     ppu->setText(txt);
                 }
             }
-            
     }
 };
 
@@ -311,30 +264,32 @@ public:
             case(osgGA::GUIEventAdapter::KEYDOWN):
             case(osgGA::GUIEventAdapter::KEYUP):
             {
-                osgPPU::Unit* ppu = viewer->getProcessor()->getUnit("PictureInPicturePPU");
-                osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->getUnit("TextPPU"));
+                osgPPU::UnitTexture* ppu = dynamic_cast<osgPPU::UnitTexture*>(viewer->getProcessor()->findUnit("TextureUnit"));
+                osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->findUnit("TextPPU"));
 
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getUnit("HDRBypass")->getOutputTexture(0), 0);
+                    ppu->setTexture(viewer->getProcessor()->findUnit("HDRBypass")->getOrCreateOutputTexture(0));
                     textppu->setText("Original Input");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getUnit("ComputeLuminance")->getOutputTexture(0), 0);
+                    ppu->setTexture(viewer->getProcessor()->findUnit("ComputePixelLuminance")->getOrCreateOutputTexture(0));
                     textppu->setText("Per Pixel Luminance");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F3)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getUnit("Brightpass")->getOutputTexture(0), 0);
+                    ppu->setTexture(viewer->getProcessor()->findUnit("Brightpass")->getOrCreateOutputTexture(0));
                     textppu->setText("Brightpass");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F4)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getUnit("BlurVertical")->getOutputTexture(0), 0);
+                    ppu->setTexture(viewer->getProcessor()->findUnit("BlurVertical")->getOrCreateOutputTexture(0));
                     textppu->setText("Gauss Blur on Brightpass");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F5)
                 {
-                    ppu->setInputTexture(viewer->getProcessor()->getUnit("AdaptedLuminanceCopy")->getOutputTexture(0), 0);
+                    ppu->setTexture(viewer->getProcessor()->findUnit("AdaptedLuminanceCopy")->getOrCreateOutputTexture(0));
                     textppu->setText("Adapted Luminance");
-                }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
+                }
+                #if 0
+                else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
                 {
                     ppu->setBlendStartValue(1.0);
                     ppu->setBlendFinalValue(0.0);
@@ -349,6 +304,7 @@ public:
                     ppu->setBlendDuration(3.0);
                     ppu->setUseBlendMode(true);
                 }
+                #endif
                 break;
             }
             default:
@@ -366,11 +322,12 @@ int main(int argc, char **argv)
     osg::ArgumentParser arguments(&argc,argv);
 
     // construct the viewer.
+    //osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer(arguments);
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
     // just make it singlethreaded since I get some problems if not in this mode
     viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    viewer->setUpViewInWindow(0,0,512,512);
+    viewer->setUpViewInWindow(0,0,640,480);
 
     // setup scene
     osg::Group* node = new osg::Group();
@@ -378,7 +335,9 @@ int main(int argc, char **argv)
     if (!loadedModel) loadedModel = createTeapot();
     if (!loadedModel) return 1;
     node->addChild(loadedModel);
-    
+
+    //osg::Node* node = createTeapot();
+
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
     clamp->setClampVertexColor(GL_FALSE);
@@ -387,8 +346,23 @@ int main(int argc, char **argv)
 
     // make it protected and override, so that it is done for the whole rendering pipeline
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
-
+    
     // add model to viewer.
+    /*osg::Group* group = new osg::Group();
+    group->addChild(node);
+
+    osg::Texture2D* tex1 = dynamic_cast<osg::Texture2D*>(Viewer::createRenderTexture(512, 512));
+    osg::Texture2D* tex2 = dynamic_cast<osg::Texture2D*>(Viewer::createRenderTexture(512, 512));
+    osg::FrameBufferObject* fbo = new osg::FrameBufferObject();
+    fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT, osg::FrameBufferAttachment(tex1));
+    fbo->setAttachment(GL_COLOR_ATTACHMENT1_EXT, osg::FrameBufferAttachment(tex2));
+    node->getOrCreateStateSet()->setAttribute(fbo, osg::StateAttribute::ON);
+    
+
+    osg::Node* o = osgDB::readNodeFiles(arguments);
+    group->addChild(o);
+    */
+
     viewer->setSceneData( node );
         
     // give some info in the console

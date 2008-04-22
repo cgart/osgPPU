@@ -1,84 +1,41 @@
-osgPPU::Pipeline {
+osgPPU::Processor {
   osgPPU::UnitBypass {
     UniqueID UnitBypass_0
     name "CameraBypass"
-    index 9
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 0
-    isActive 1
-    isOffline 0
-    inputTextureIndexForViewportReference 0
-    outputInternalFormat GL_RGBA16F_ARB
-
-    Input {
-      PPU "CameraBypass"
-    }
-
-    Viewport {
-      UniqueID Viewport_1
-      x 0
-      y 0
-      width 512
-      height 512
-    }
-  }
-  osgPPU::UnitInOut {
-    UniqueID UnitInOut_2
-    name "MotionBlur"
-    index 15
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 0
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference -1
     outputInternalFormat GL_RGBA16F_ARB
 
-    Input {
-      PPU "CameraBypass"
-      PPU "ShowBypass"
+    PPUOutput {
+      PPU UnitInOut_2
+    }
+  }
+  
+  osgPPU::UnitInOut {
+    UniqueID UnitInOut_2
+    name "MotionBlur"
+    isActive 1
+    isOffline 0
+    inputTextureIndexForViewportReference 0
+    outputInternalFormat GL_RGBA16F_ARB
+
+    InputToUniformMap {
+      UnitBypass_0 Next
+      UnitInOut_4 Prev
     }
 
-    Viewport {
-      UniqueID Viewport_3
-      x 0
-      y 0
-      width 512
-      height 512
+    PPUOutput {
+      PPU UnitInOut_4
     }
 
     Shader {
       RefUniformPair {
         Uniform {
-          name "Next"
-          type sampler2D 1 IntArray 1
-          {
-            0 
-          }
-        }
-        StateAttribute PROTECTED|OVERRIDE|ON
-      }
-      RefUniformPair {
-        Uniform {
-          name "Prev"
-          type sampler2D 1 IntArray 1
-          {
-            1 
-          }
-        }
-        StateAttribute PROTECTED|OVERRIDE|ON
-      }
-      RefUniformPair {
-        Uniform {
           name "fMotionBlurFactor"
           type float 1 FloatArray 1
           {
-            0.97548 
+            0.93548
           }
         }
         StateAttribute PROTECTED|OVERRIDE|ON
@@ -99,7 +56,7 @@ osgPPU::Pipeline {
             ""
             "void main(void)"
             "{"
-            "	vec2 texCoords = gl_TexCoord[0];"
+            "	vec2 texCoords = gl_TexCoord[0].st;"
             ""
             "	// get color values"
             "	vec4 currentValue = texture2D (Next, texCoords).rgba;"
@@ -108,105 +65,66 @@ osgPPU::Pipeline {
             "	// the resulting color value is the combination of blurred and non-blurred map "
             "	gl_FragColor = mix(currentValue, lastValue, fMotionBlurFactor);"
             ""
-            "        // bypass checks for texture access "
-            "	//gl_FragColor = lastValue * vec4(1.0, 0.0, 0.0, 0.0);"
-            "        //gl_FragColor = currentValue;"
             "}"
           }
         }
       }
     }
-    isMipmappedInOut 0
-    useMipmapShader 0
-    useMipmaps 0
-    mrtCount -1
+    inputBypass -1
   }
+  
   osgPPU::UnitInOut {
     UniqueID UnitInOut_4
     name "ShowBypass"
-    index 20
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 0
+    isActive 1
+    isOffline 0
+    inputTextureIndexForViewportReference 0
+    outputInternalFormat GL_RGBA16F_ARB
+
+    PPUOutput {
+      PPU UnitInOut_2
+      PPU UnitOut_1
+    }
+    InputToUniformMap {
+      UnitInOut_2 tex
+    }
+
+    Shader {
+      Program {
+        num_shaders 1
+        Shader {
+          type FRAGMENT
+          code {
+            "// Simple bypass shader which do nothing then bypass data"
+            "uniform sampler2D tex;"
+            "void main(void)"
+            "{"
+            "   gl_FragColor = texture2D (tex, gl_TexCoord[0].st).rgba;"
+            ""
+            "}"
+          }
+        }
+      }
+    }
+
+    inputBypass -1
+  }
+
+
+  osgPPU::UnitOut {
+    UniqueID UnitOut_1
+    name "PipelineResult"
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference -1
     outputInternalFormat GL_RGBA16F_ARB
 
-    Input {
-      PPU "MotionBlur"
+    PPUOutput {
     }
-
-    Viewport {
-      UniqueID Viewport_5
-      x 0
-      y 0
-      width 512
-      height 512
-    }
-
-    isMipmappedInOut 0
-    useMipmapShader 0
-    useMipmaps 0
-    mrtCount -1
   }
-  osgPPU::UnitText {
-    UniqueID UnitText_6
-    name "TextPPU"
-    index 999
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 1
-    isActive 1
-    isOffline 0
-    inputTextureIndexForViewportReference 0
-    outputInternalFormat GL_RGBA16F_ARB
 
-    Input {
-      PPU "TextPPU"
-    }
-
-    Viewport {
-      UniqueID Viewport_7
-      x 0
-      y 0
-      width 0
-      height 0
-    }
-    isMipmappedInOut 0
-    useMipmapShader 0
-    useMipmaps 0
-    mrtCount -1
-    size 26
-  }
-  osgPPU::UnitOut {
-    UniqueID UnitOut_8
-    name "PipelineResult"
-    index 1000
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 0
-    isActive 1
-    isOffline 0
-    inputTextureIndexForViewportReference 0
-    outputInternalFormat GL_RGBA16F_ARB
-
-    Input {
-      PPU "TextPPU"
-    }
-
-    Viewport {
-      UniqueID Viewport_9
-      x 0
-      y 0
-      width 0
-      height 0
-    }
+  name Processor
+  PPUOutput {
+    PPU UnitBypass_0
   }
 }

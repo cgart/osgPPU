@@ -12,27 +12,39 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/UnitText.h
     ${HEADER_PATH}/UnitInOut.h
     ${HEADER_PATH}/UnitInResampleOut.h
+    ${HEADER_PATH}/UnitInMipmapOut.h
+    ${HEADER_PATH}/UnitMipmapInMipmapOut.h
     ${HEADER_PATH}/UnitOut.h
     ${HEADER_PATH}/UnitOutCapture.h
     ${HEADER_PATH}/Processor.h
     ${HEADER_PATH}/Shader.h
     ${HEADER_PATH}/Unit.h
     ${HEADER_PATH}/UnitBypass.h
+    ${HEADER_PATH}/UnitTexture.h
     ${HEADER_PATH}/Pipeline.h
+    ${HEADER_PATH}/Visitor.h
+    ${HEADER_PATH}/BarrierNode.h
+    ${HEADER_PATH}/Utility.h
 )
 
 ADD_LIBRARY(${LIB_NAME}
     ${OSGPPU_USER_DEFINED_DYNAMIC_OR_STATIC}
     ${LIB_PUBLIC_HEADERS}
+    Unit.cpp
+    UnitBypass.cpp
+    UnitTexture.cpp
     UnitOut.cpp
     UnitOutCapture.cpp
     UnitInOut.cpp
-    UnitInResampleOut.cpp
     UnitText.cpp
-    Processor.cpp
+    UnitInResampleOut.cpp
+    UnitInMipmapOut.cpp
+    UnitMipmapInMipmapOut.cpp
     Shader.cpp
-    Unit.cpp
-    UnitBypass.cpp
+    Processor.cpp
+    Pipeline.cpp
+    Visitor.cpp
+    Utility.cpp
 )
 
 LINK_WITH_VARIABLES(${LIB_NAME}     

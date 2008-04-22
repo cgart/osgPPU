@@ -10,16 +10,16 @@
 uniform sampler2D texUnit0;
 
 // width of the input texture 
-uniform float g_ViewportWidth;
+uniform float osgppu_ViewportWidth;
 
 // height of the input texture 
-uniform float g_ViewportHeight;
+uniform float osgppu_ViewportHeight;
 
 // current mipmap level where we render the output
-uniform float g_MipmapLevel;
+uniform float osgppu_MipmapLevel;
 
 // number of mipmap levels available (needed for Shader Model 3.0 hardware)
-uniform float g_MipmapLevelNum;
+uniform float osgppu_MipmapLevelNum;
 
 
 /**
@@ -34,7 +34,7 @@ void main(void)
     float c[4];
     
     // get texture sizes of the previous level
-    vec2 size = vec2(g_ViewportWidth, g_ViewportHeight) * 2.0;
+    vec2 size = vec2(osgppu_ViewportWidth, osgppu_ViewportHeight) * 2.0;
 
     // this is our starting sampling coordinate 
     vec2 iCoord = gl_TexCoord[0].st;
@@ -57,13 +57,13 @@ void main(void)
         st[i] = clamp(st[i], vec2(0,0), vec2(1,1));
         
         // get texel from the previous mipmap level
-        //c[i] = texelFetch2D(texUnit0, ivec2(size * st[i]), (int)g_MipmapLevel - 1).r;
-        c[i] = texture2D(texUnit0, st[i], g_MipmapLevel - 1.0).r;
+        //c[i] = texelFetch2D(texUnit0, ivec2(size * st[i]), (int)osgppu_MipmapLevel - 1).r;
+        c[i] = texture2D(texUnit0, st[i], osgppu_MipmapLevel - 1.0).r;
     }
 
     // if we compute the first mipmap level, then just compute the sum
     // of the log values
-    if (abs(g_MipmapLevel - 1.0) < 0.00001)
+    if (abs(osgppu_MipmapLevel - 1.0) < 0.00001)
     {
         res += log(epsilon + c[0]);
         res += log(epsilon + c[1]);
@@ -83,7 +83,7 @@ void main(void)
     res *= 0.25;
 
     // if we are in the last mipmap level
-    if (g_MipmapLevelNum - g_MipmapLevel < 2.0)
+    if (osgppu_MipmapLevelNum - osgppu_MipmapLevel < 2.0)
     {
         // exponentiate
         res = exp(res);

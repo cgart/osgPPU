@@ -23,75 +23,65 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/FileUtils>
 
+#include <osg/NodeVisitor>
+
 #include "Base.h"
+
+// ----------------------------------------------------------------------------------------------------
+// Helper class to visit each unit once and to write it to an output
+// ----------------------------------------------------------------------------------------------------
+class OutputVisitor : public osg::NodeVisitor
+{
+    public:
+        OutputVisitor(osgDB::Output* out) : osg::NodeVisitor(), _output(out)
+        {
+            setNodeMaskOverride(0xffffffff);
+        }
+        ~OutputVisitor() {}
+
+        void apply (osg::Group &node)
+        {
+            osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(&node);
+
+            // not an unit, then just traverse it
+            if (unit == NULL) traverse(node);
+
+            // check if it wasn't visited before
+            bool visited = false;
+            for (unsigned int i=0; i < _visited.size(); i++)
+                if (_visited[i] == unit) {visited = true; break;}
+
+            // it is a unit and not visited before
+            if (unit != NULL && !visited)
+            {
+                // because a unit can be referenced more than one, this would
+                // produce wrong output to the .ppu file (see osgDB::Registry::writeObject),
+                // therefor we artificially change the reference counter to 1
+                int counter = unit->referenceCount();
+                for (int i=0; i<counter; i++) unit->unref_nodelete();
+
+                // write the object
+                _output->writeObject(*unit);
+
+                // increment the reference counter back
+                for (int i=0; i<counter; i++) unit->ref();
+
+                // place it
+                _visited.push_back(unit);
+                node.traverse(*this);
+            }
+        }
+    
+        
+    private:
+        osgDB::Output* _output;
+        std::vector<osgPPU::Unit*> _visited;
+};
+
+
 
 class ReaderWriterPPU : public osgDB::ReaderWriter
 {
-private:
-    // ----------------------------------------------------------------------------------------------------
-    ListWriteOptions::List findInputs(const osgPPU::Pipeline& ppu, const osgPPU::Unit* unit) const
-    {
-        ListWriteOptions::List list;
-        int inputCount = 0;
-
-        // get list of all inputs for this unit
-        const osgPPU::Unit::TextureMap& map = unit->getInputTextureMap();
-
-        // for each texture in the map search for a ppu, which do has this as output
-        for (osgPPU::Unit::TextureMap::const_iterator it = map.begin(); it!=map.end(); it++)
-        {
-            if (it->second.valid())
-            {
-                int found = -1;
-
-                // scan the pipeline and search for an unit which output is equal to this input 
-                osgPPU::Pipeline::const_iterator jt = ppu.begin();
-                for (; jt != ppu.end(); jt++)
-                {
-                    // since we support multiple outputs we have to check each output 
-                    const osgPPU::Unit::TextureMap& outmap = (*jt)->getOutputTextureMap();
-                    for (osgPPU::Unit::TextureMap::const_iterator ot = outmap.begin(); ot!=outmap.end(); ot++)
-                    {
-                        // if output texture is equal to the input, then add this ppu into the list
-                        if (ot->second.get() == it->second.get())
-                        {
-                            // if this is a bypass ppu and the input is equal to the output, then 
-                            // mark this appropriately
-                            //if (!strcmp((*jt)->className(), "Unit") && unit == jt->get())
-                            //{
-                            //    list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), NULL));                                 
-                            //}else
-                                // if we have already found one before, then do replace that
-                                // if the index of the one to check is greater
-                                if ((*jt)->getIndex() >= found && found != -1)
-                                {
-                                    list.back() = std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), it->second.get()); 
-                                }else{
-                                    if ((unsigned int)inputCount < map.size())
-                                    {
-                                        list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(jt->get(), it->second.get())); 
-                                        inputCount ++;
-                                    }
-                                }
-                            found = (*jt)->getIndex();
-                            break;
-                        }
-                    }
-                }
-                // no ppu found, but input is specified, hence it is an external input, therefor set to NULL
-                if (found == -1)
-                {
-                    list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(NULL, it->second.get())); 
-                    inputCount ++;
-                }
-
-            }else
-                list.push_back(std::pair<osgPPU::Unit*, osg::Texture*>(NULL, NULL)); 
-        }
-        return list;
-    }
-
-
 public:
     // ----------------------------------------------------------------------------------------------------
     virtual const char* className() const { return "osgPPU pipeline loader"; }
@@ -126,17 +116,20 @@ public:
         fr.attach(&fin);
 
         // here we store the readed result
-        osgPPU::Pipeline* pp = new osgPPU::Pipeline();
+        osgPPU::Processor* pp = new osgPPU::Processor();
 
         // first read the pipeline
         if (fr.matchSequence((std::string(pp->libraryName()) + std::string("::") + std::string(pp->className())).c_str()))
         {
             // move in
             fr += 2;
-                
+
             // setup the read options list
             ListReadOptions* list = new ListReadOptions();
             fr.setOptions(list);
+
+            // this list will contain all readed units
+            std::list<osg::ref_ptr<osgPPU::Unit> > units;
 
             // read all units in the file
             osg::Object* object = NULL;
@@ -145,39 +138,74 @@ public:
                 osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(object);
                 if (unit)
                 {
-                    pp->push_back(unit);
+                    units.push_back(unit);
                 }
+            }
+            
+            // the option should contain now a list of output ppus
+            for (ListReadOptions::List::const_iterator it = list->getList().begin(); it!= list->getList().end(); it++)
+            {
+                // for each output ppu do get the corresponding object
+                for (std::list<std::string>::const_iterator kt=it->second.begin(); kt!=it->second.end(); kt++)
+                {
+                    osg::ref_ptr<osgPPU::Unit> unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(*kt));
+                    if (!unit.valid())
+                        osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find input ppu " << *kt << std::endl;    
+                    else
+                        it->first->addChild(unit.get());
+                }
+            }
+
+            // the option should contain now a map of uniform to inputs
+            for (ListReadOptions::UniformInputMap::const_iterator it = list->getUniformInputMap().begin(); it!= list->getUniformInputMap().end(); it++)
+            {
+                // for each output ppu do get the corresponding object
+                for (std::map<std::string, std::string>::const_iterator kt=it->second.begin(); kt!=it->second.end(); kt++)
+                {
+                    osg::ref_ptr<osgPPU::Unit> unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(kt->first));
+                    if (!unit.valid())
+                        osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find correct input uniform mapping " << kt->first << " to " << kt->second << std::endl;
+                    else
+                    {
+                        it->first->setInputToUniform(unit.get(), kt->second);
+                    }
+                }
+            }
+
+            // read processor's name    
+            std::string name;
+            if (fr.readSequence("name", name))
+            { 
+                pp->setName(name);
+            }
+
+            // read processor's direct ancestors
+            if (fr.matchSequence("PPUOutput {"))
+            {
+                int entry = fr[0].getNoNestedBrackets();
+        
+                fr += 2;
+        
+                while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
+                {
+                    // input is a ppu
+                    if (fr[0].matchWord("PPU"))
+                    {
+                        osg::ref_ptr<osgPPU::Unit> unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(fr[1].getStr()));
+                        if (unit.valid())
+                            pp->addChild(unit.get());
+                        else
+                            osg::notify(osg::FATAL)<<"osgPPU::readObject - Something bad happens, cannot parse processor!" << std::endl;    
+                    }
+                    ++fr;
+                }
+                
+                // skip trailing '}'
+                ++fr;
             }
             
             // skip trailing '}'
             ++fr;
-
-            // the option should contain now a mapping ppu to ppu of inputs
-            ListReadOptions::List::const_iterator it = list->getList().begin();
-            for (; it!= list->getList().end(); it++)
-            {
-                // find for each input ppu the input ppu 
-                for (std::list<std::string>::const_iterator kt=it->second.begin(); kt!=it->second.end(); kt++)
-                {
-                    bool found = false;
-
-                    // get ppu with the name
-                    for (osgPPU::Pipeline::const_iterator lt=pp->begin(); lt!=pp->end(); lt++)
-                    {
-                        if ((*lt)->getName() == *kt)
-                        {
-                            it->first->addInputUnit(lt->get());
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found)
-                    {
-                        osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find input ppu " << *kt << std::endl;    
-                    }
-                }
-            }
 
         }
 
@@ -192,11 +220,10 @@ public:
         if (!acceptsExtension(ext)) return WriteResult::FILE_NOT_HANDLED;
 
         // check if correct object was given
-        if (!dynamic_cast<const osgPPU::Pipeline*>(&obj))
+        if (!dynamic_cast<const osgPPU::Processor*>(&obj))
         {
-            return WriteResult("osgPPU::writeObject - Wrong object to write was given. Do only support osgPPU::Pipeline");
+            return WriteResult("osgPPU::writeObject - Wrong object to write was given. Do only support osgPPU::Processor");
         }
-
         // during the writing we require to read some data from the osg plugin, hence preload this library 
         std::string pluginLibraryName = osgDB::Registry::instance()->createLibraryNameForExtension("osg");
         osgDB::Registry::instance()->loadLibrary(pluginLibraryName);
@@ -209,32 +236,55 @@ public:
         if (fout)
         {
             // convert object to processor pipeline 
-            const osgPPU::Pipeline& ppu = static_cast<const osgPPU::Pipeline&>(obj);
-            
+            osgPPU::Processor& ppu = const_cast<osgPPU::Processor&>(static_cast<const osgPPU::Processor&>(obj));
+
+            // we use a special traverser, hence mark the graph as non dirty for a while
+            bool dirty = ppu.isDirtyUnitSubgraph();
+            ppu.markUnitSubgraphNonDirty();
+
+            // we can only write the unit graph if it is not dirty
+            //if (ppu.isDirtyUnitSubgraph())
+            //{
+            //    return WriteResult("osgPPU::writeObject - Unit's subgraph is still dirty, run processor first to resolve all issues");            
+            //}
+
             // write out information about the pipeline
             fout.writeBeginObject(std::string(ppu.libraryName()) + std::string("::") + std::string(ppu.className()));
             fout.moveIn();
+
+                OutputVisitor ov(&fout);
+                ppu.traverse(ov);
+
+                // write processor's name                
+                fout.indent() << "name " << ppu.getName() << std::endl;
+
+                // write all outputs of the processor
+                fout.writeBeginObject("PPUOutput");
+                fout.moveIn();
                 
-                // for each unit in the pipeline write it to file 
-                osgPPU::Pipeline::const_iterator it = ppu.begin();
-                for (; it != ppu.end(); it++)
+                for (unsigned int i=0; i < ppu.getNumChildren(); i++)
                 {
-                    // setup options for this writer
-                    ListWriteOptions* op = new ListWriteOptions();
-                    fout.setOptions(op);
-
-                    // create a list of all input data to the ppu
-                    // this list will be used to map input to ppu and to store it correctly
-                    // if an external input is used a null will be stored
-                    op->setList(findInputs(ppu, it->get()));
-
-                    // write object, this would cause the plugin to find correct wrapper and to write 
-                    fout.writeObject(**it);
+                    if (dynamic_cast<const osgPPU::Unit*>(ppu.getChild(i)))
+                    {
+                        std::string uid;
+                        if (!fout.getUniqueIDForObject(ppu.getChild(i), uid))
+                        {
+                            fout.createUniqueIDForObject(ppu.getChild(i), uid);
+                            fout.registerUniqueIDForObject(ppu.getChild(i), uid);
+                        }
+        
+                        fout.indent() << "PPU " << uid << std::endl;
+                    }            
                 }
 
 
+                fout.moveOut();
+                fout.writeEndObject();
+
             fout.moveOut();
             fout.writeEndObject();
+
+            if (dirty) ppu.dirtyUnitSubgraph();
 
             return WriteResult::FILE_SAVED;
         }

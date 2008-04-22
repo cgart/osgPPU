@@ -34,9 +34,8 @@ namespace osgPPU
     **/
     class OSGPPU_EXPORT UnitOut : public Unit {
         public:
-            META_Object(osgPPU,UnitOut);
+            META_Node(osgPPU,UnitOut);
         
-            UnitOut(osg::State* state) : Unit(state) {}
             UnitOut() : Unit() {}
             UnitOut(const UnitOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
@@ -44,17 +43,14 @@ namespace osgPPU
             virtual ~UnitOut();
             
             //! Initialze the default Processoring unit
-            virtual void init() { Unit::init(); }
+            virtual void init();
             
         protected:
-            //! Apply the defule unit 
-            virtual void render(int mipmapLevel = 0);
-            
             //! Notice about end of rendering
-            virtual void noticeFinishRendering() {}
+            virtual void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*) {}
         
             //! Viewport changed
-            virtual void noticeChangeViewport() {}
+            virtual void noticeChangeViewport(osg::RenderInfo &renderInfo) {}
     };
 };
 

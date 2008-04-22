@@ -25,35 +25,19 @@
 
 #include <osgPPU/Unit.h>
 
-//! Just options which we pass from the readerwriter to the object writer functions
-class ListWriteOptions : public osgDB::ReaderWriter::Options
-{
-public:
-    typedef std::list<std::pair<osgPPU::Unit*, osg::Texture*> > List;
-
-    void setList(const List& l) { mList = l;}
-    const List& getList() const{ return mList; }
-
-    ListWriteOptions() : osgDB::ReaderWriter::Options()
-    {}
-
-    ~ListWriteOptions()
-    {}
-
-private:
-
-    List mList;
-};
-
 
 //! Read options to store connection between unit and its input
 class ListReadOptions : public osgDB::ReaderWriter::Options
 {
 public:
     typedef std::map<osgPPU::Unit*, std::list<std::string> > List;
+    typedef std::map<osgPPU::Unit*, std::map<std::string,std::string> > UniformInputMap;
 
     void setList(const List& l) { mList = l;}
     List& getList() { return mList; }
+
+    void setUniformInputMap(const UniformInputMap& l) { mUniformInputMap = l;}
+    UniformInputMap& getUniformInputMap() { return mUniformInputMap; }
 
     ListReadOptions() : osgDB::ReaderWriter::Options()
     {}
@@ -64,6 +48,7 @@ public:
 private:
 
     List mList;
+    UniformInputMap mUniformInputMap;
 };
 
 

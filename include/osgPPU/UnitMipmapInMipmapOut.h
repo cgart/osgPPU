@@ -14,8 +14,8 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#ifndef _C_UNIT_INRESAMPLEOUT_H_
-#define _C_UNIT_INRESAMPLEOUT_H_
+#ifndef _C_UNIT_MIPMAPINOUT_H_
+#define _C_UNIT_MIPMAPINOUT_H_
 
 
 //-------------------------------------------------------------------------
@@ -26,41 +26,39 @@
 
 namespace osgPPU
 {
-    //! Same as UnitInOut but do resampling inbetween
+    //! Same as UnitInOut however do bypass also mipmap levels
     /**
-    * Resample the input. This PPU will 
-    * render the input data resampled to the output. Next PPU will work 
-    * on the resampled one. NOTE: You loose information in your data after 
-    * appling this PPU.
+    * The functionality of this unit is similar to the UnitInOut. However this 
+    * unit is also capable to bypass mipmap levels. This means that the output texture 
+    * will be switched in a mipmap mode and the input textures are passed levelwise
+    * to the output texture. 
+    *
+    * In order that this unit work correctly the input texture and the output should be of the 
+    * same dimensions, otherwise non 1:1 matching of mipmap levels is possible.
     **/
-    class OSGPPU_EXPORT UnitInResampleOut : public UnitInOut {
+    class OSGPPU_EXPORT UnitMipmapInMipmapOut : public UnitInOut {
         public:
-            META_Node(osgPPU,UnitInResampleOut);
-        
-            //! Create default ppfx 
-            UnitInResampleOut();
-            UnitInResampleOut(const UnitInResampleOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+            META_Node(osgPPU,UnitMipmapInMipmapOut);
+         
+            UnitMipmapInMipmapOut();
+            UnitMipmapInMipmapOut(const UnitMipmapInMipmapOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
             //! Release it and used memory
-            virtual ~UnitInResampleOut();
+            virtual ~UnitMipmapInMipmapOut();
             
-            //! Set resampling factor
-            void setFactorX(float x);
-    
-            //! Set resampling factor
-            void setFactorY(float Y);
-    
-            //! Get resampling factor
-            float getFactorX() const { return mWidthFactor; }
-    
-            //! Get resampling factor
-            float getFactorY() const { return mHeightFactor; }
-    
-            void init();
-
+            //! Initialze the Processoring unit
+            virtual void init();
+            
         protected:
-            float mWidthFactor, mHeightFactor;
-            bool mDirtyFactor;
+
+            //! regenerate io mapmapped data structures
+            void checkIOMipmappedData();
+
+            //! Viewports for each mipmap level 
+            std::vector<osg::ref_ptr<osg::Viewport> > mIOMipmapViewport;
+            
+            //! Fbos for each mipmap level 
+            std::vector<osg::ref_ptr<osg::FrameBufferObject> > mIOMipmapFBO;
     };
 
 };

@@ -65,6 +65,6 @@ void main(void)
 	vec4 color = hdrColor * fScaledLum;
 
 	// gamma correction
-	gl_FragColor = blurColor * fBlurFactor + color;
+	gl_FragColor.rgb = blurColor * fBlurFactor + color;
     gl_FragColor.a = 1.0;   
 }

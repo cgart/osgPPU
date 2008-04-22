@@ -38,13 +38,6 @@ namespace osgPPU
         mCaptureNumber = 0;
         mExtension = "png";
     }
-    //------------------------------------------------------------------------------
-    UnitOutCapture::UnitOutCapture(osg::State* state) : UnitOut(state)
-    {
-        mPath = ".";
-        mCaptureNumber = 0;
-        mExtension = "png";
-    }
     
     //------------------------------------------------------------------------------
     UnitOutCapture::~UnitOutCapture()
@@ -53,9 +46,9 @@ namespace osgPPU
     
     
     //------------------------------------------------------------------------------
-    void UnitOutCapture::noticeFinishRendering()
+    void UnitOutCapture::noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable)
     {
-        if (getActive() && sState.getState())
+        if (getActive() && renderInfo.getState())
         {
             // if we want to capture the framebuffer
             char filename[256];
@@ -74,11 +67,11 @@ namespace osgPPU
                 osg::Texture* input = getInputTexture(i);
     
                 // bind input texture, so that we can get image from it
-                if (input != NULL) input->apply(*sState.getState());
+                if (input != NULL) input->apply(*renderInfo.getState());
                 
                 // retrieve texture content
                 osg::ref_ptr<osg::Image> img = new osg::Image();
-                img->readImageFromCurrentTexture(sState.getContextID(), false); 
+                img->readImageFromCurrentTexture(renderInfo.getContextID(), false);
                 //img->readPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE);
                 osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
                 //write_png(filename, img->data(), w, h, 4, 8, PNG_COLOR_TYPE_RGBA, 1);
@@ -89,10 +82,10 @@ namespace osgPPU
                             
                 // unbind the texture back 
                 if (input != NULL)
-                    sState.getState()->applyTextureMode(0, input->getTextureTarget(), false);
+                    renderInfo.getState()->applyTextureMode(0, input->getTextureTarget(), false);
             }
         }
-        UnitOut::noticeFinishRendering();
+        UnitOut::noticeFinishRendering(renderInfo, drawable);
     }
 
 }; // end namespace

@@ -24,6 +24,11 @@
 #include <osgPPU/Export.h>
 #include <osgPPU/Unit.h>
 
+#include <osg/FrameBufferObject>
+
+#define OSGPPU_MIPMAP_LEVEL_UNIFORM "osgppu_MipmapLevel"
+#define OSGPPU_MIPMAP_LEVEL_NUM_UNIFORM "osgppu_MipmapLevelNum"
+
 namespace osgPPU
 {
     //! Compute output texture based on the assigned shaders and input data
@@ -34,10 +39,9 @@ namespace osgPPU
     **/
     class OSGPPU_EXPORT UnitInOut : public Unit {
         public:
-            META_Object(osgPPU,UnitInOut);
+            META_Node(osgPPU,UnitInOut);
         
             //! Create default ppfx 
-            UnitInOut(osg::State* parent);
             UnitInOut();
             UnitInOut(const UnitInOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
@@ -48,63 +52,9 @@ namespace osgPPU
             virtual void init();
             
             /**
-            * Set to true if in/out should also be done for mipmap levels.
-            * This would mean that the shader will be called on 
-            * each mipmap level of the input texture. The generated
-            * result will be stored in the according level of the output 
-            * texture. This method assumes the input and output textures 
-            * do have the same number of mipmap levels.
-            **/
-            void setMipmappedInOut(bool b);
-        
-            /**
-            * Check whenever we using IO also for mipmap-levels
-            **/
-            bool getMipmappedInOut() const { return mbMipmappedIO; }
-    
-            /**
-            * Assign a mipmap shader. A mipmap shader is used when generating mipmaps
-            * on the output data. Hence this shader is only applied to all the mipmap levels
-            * except of level 0, where a normal shader specified by setShader() is applied.
-            **/
-            inline void setGenerateMipmapsShader(Shader* sh) { mMipmapShader = sh; mbUseMipmapShader = (sh != NULL); }
-
-            /**
-            * Return currently used mipmap shader.
-            **/
-            inline Shader* getGenerateMipmapsShader() const { return mMipmapShader.get(); }
-            
-            /**
-            * Shall we use mipmap shader to generate mipmaps
-            **/
-            inline void setUseGenerateMipmapsShader(bool b) { mbUseMipmapShader = b; }
-            inline bool getUseGenerateMipmapsShader() const { return mbUseMipmapShader; }
-
-            /**
-            * Shall we use mipmapping at all, hence shall we generate mipmaps on the output textures.
-            **/
-            inline void setUseMipmaps(bool b) { mbUseMipmaps = b; if (b) enableMipmapGeneration(); }
-            inline bool getUseMipmaps() const { return mbUseMipmaps; }
-    
-            /**
             * Get framebuffer object used by this ppu. 
             **/
             inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
-
-            /**
-            * Specify the number of active draw buffers during the rendering.
-            * In the normal case only the rendering targets are active for those an output
-            * texture was specified. However you can overwrite this behaviour and
-            * enable a fix number of mrt outputs. For example specify here 3 and
-            * the MRT 0, 1 and 2 will be activated.
-            * @param mrtCount Number of active mrt (-1 for default)
-            **/
-            inline void setMRTNumber(int mrtCount) { mMRTCount = mrtCount; }
-
-            /**
-            * Return current value setted with setMRTNumber()
-            **/
-            inline int getMRTNumber() const { return mMRTCount; }
 
             /**
             * Return output texture for the specified MRT index.
@@ -112,14 +62,29 @@ namespace osgPPU
             **/
             virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0);
 
+            /**
+            * UnitInOut can also be used to bypass the input texture to the output
+            * and perform a rendering on it. This is differently to the UnitBypass which
+            * do not perform any rendering but bypasses the data. 
+            * Specify here the index of the input unit,
+            * to bypass the input to the output.
+            * @param index Index of an input unit to bypass to output. Specify -1, to 
+            * disable this feature.
+            **/
+            void setInputBypass(int index);
+
+            /**
+            * Get bypassed input texture index.
+            **/
+            int getInputBypass() const { return mBypassedInput; }
+
         protected:
         
-            //! Apply the defule unit 
-            virtual void render(int mipmapLevel = -1);
-            virtual void doRender(int mipmapLevel);
-        
             //! Notice about end of rendering
-            virtual void noticeFinishRendering();
+            virtual void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
+
+            //! Notice about begin of rendering
+            virtual void noticeBeginRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
             
             //! Viewport changed
             virtual void noticeChangeViewport();
@@ -135,48 +100,11 @@ namespace osgPPU
 
             void assignFBO();
 
-            //! regenerate io mapmapped data structures
-            void checkIOMipmappedData();
-
-            //! Generate mipmaps (for specified output texture)
-            void generateMipmaps(osg::Texture* output, int mrt);
-            
-            //! Enable mipmap generation on all output textures
-            void enableMipmapGeneration();
-    
-            //! Should we do in/out also on mipmap levels
-            bool mbMipmappedIO;
-            
-            //! Viewports for each mipmap level 
-            std::vector<osg::ref_ptr<osg::Viewport> > mIOMipmapViewport;
-            
-            //! Fbos for each mipmap level 
-            std::vector<osg::ref_ptr<osg::FrameBufferObject> > mIOMipmapFBO;
-            
             //! Framebuffer object where results are written
-            osg::ref_ptr<osg::FrameBufferObject>    mFBO;
-    
-            //! Number of active draw buffers
-            int mMRTCount;
+            osg::ref_ptr<osg::FrameBufferObject>    mFBO;    
 
-            //! Store number of mipmap levels
-            int mNumLevels;
-    
-            //! Should we use mipmapping on the output texture
-            bool mbUseMipmaps;
-            
-            //! Should we use our own mipmapping shader
-            bool mbUseMipmapShader;
-            
-            //! Pointer to the shader which is used to generate mipmaps
-            osg::ref_ptr<Shader> mMipmapShader;
-
-            //! FBOs for different mipmap levels
-            std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
-            
-            //! Viewports for each mipmap level
-            std::vector<osg::ref_ptr<osg::Viewport> > mMipmapViewport;
-
+            //! index of the bypassed input
+            int mBypassedInput;
     };
 
 };

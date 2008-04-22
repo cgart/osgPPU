@@ -21,52 +21,64 @@
 //-------------------------------------------------------------------------
 #include <osgPPU/Export.h>
 #include <osgPPU/Unit.h>
+#include <osgUtil/RenderBin>
+#include <osgUtil/RenderLeaf>
 
 namespace osgPPU
 {
 
-//! Class derived from std::list which do represent a pipeline of units
+//! Class derived from std::list and osgUtil::RenderBin which do represent a pipeline of units
 /**
-* We need this class definition to allow reading adn writing of the pipeline
-* into files.
+* The pipeline is represented as a list of Units. The pipeline is derived from the
+* osgUtil::RenderBin class so that all attached units are sorted into this bin.
+* The pipeline can only be used directly from the Processor, there for it has no
+* public interface.
 **/
-class OSGPPU_EXPORT Pipeline : public std::list<osg::ref_ptr<Unit> >, public osg::Object
+class OSGPPU_EXPORT Pipeline : public osgUtil::RenderBin
 {
-    public:
-        META_Object(osgPPU, Pipeline);
-
-        /**
-        * Simple constructor to create empty pipeline.
-        **/
-        Pipeline() : std::list<osg::ref_ptr<Unit> >(), osg::Object()
-        {
-        }
+    private:
+        //! Processor is allowed to create/destroy pipelines
+        friend class Processor;
 
         /**
         * Copy constructor to copy the ppus from the given pipeline.
         * @param pipeline Pipeline to copy from
         * @param copyop Specify how to copy the ppus (currentl only copying of pointers is supported)
         **/
-        Pipeline(const Pipeline& pipeline, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) :
-            std::list<osg::ref_ptr<Unit> >(pipeline), osg::Object(pipeline, copyop)
-        {
-
-        }
+        Pipeline(const Pipeline& pipeline, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
 
         /**
-        * Find a unit with by its name.
-        * @param name Name of the unit to search in the pipeline
-        * @return Pointer to the unit or NULL if not found.
+        * Sort the pipeline. This will sort all attached units based on their index
+        * and dependency graph.
         **/
-        inline Unit* findUnit(const std::string& name)
-        {
-            iterator jt = begin();
-            for (; jt != end(); jt++ )
-                if ((*jt)->getName() == name)
-                    return (*jt).get();
+        void sortImplementation();
+        
+        /**
+        * Get pipeline name. The name can only be specified during hte creation process
+        * through the osgPPU::Processor. The name of the pipeline should be unique.
+        **/
+        inline const std::string& getName() const { return mName; }
 
-            return NULL;
-        }
+        /**
+        * Simple constructor to create empty pipeline.
+        **/
+        Pipeline();
+
+        /**
+        * Only processor is allowed to destroy this object.
+        **/
+        virtual ~Pipeline();
+
+        /**
+        * Only processor can setup the name of this pipeline.
+        **/
+        inline void setName(const std::string& name) { mName = name; }
+
+
+        std::string mName;
+        struct SortByIndex;
+
+        
 };
 
 }; // end namespace

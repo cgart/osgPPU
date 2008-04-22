@@ -31,37 +31,19 @@ namespace osgPPU
     {
     
     }
-    
-    //------------------------------------------------------------------------------
-    void UnitOut::render(int mipmapLevel)
-    {
-        // return if we do not get valid state
-        if (!sState.getState()) return;
-    
-        // setup shader values
-        if (mShader.valid()) 
-        {
-            mShader->set("g_ViewportWidth", (float)mViewport->width());
-            mShader->set("g_ViewportHeight", (float)mViewport->height());
-            mShader->set("g_MipmapLevel", float(mipmapLevel));
-            mShader->update();
-        }
-    
-        // aplly stateset
-        sState.getState()->apply(sScreenQuad->getStateSet());
-    
-        // render the content of the input texture into the frame buffer
-        if (getUseBlendMode())
-        {
-            glEnable(GL_BLEND);
-            glColor4f(1,1,1, getBlendValue());
-        }
 
-        sScreenQuad->draw(sState);
-        if (getUseBlendMode())
-        {
-            glDisable(GL_BLEND);
-            glColor4f(1,1,1,1);
-        }   
+    //------------------------------------------------------------------------------
+    void UnitOut::init()
+    {
+        // init default
+        Unit::init();
+
+        // create a quad geometry
+        mDrawable = createTexturedQuadDrawable();
+    
+        // setup a geode and the drawable as childs of this unit
+        mGeode->removeDrawables(0, mGeode->getNumDrawables());
+        mGeode->addDrawable(mDrawable.get());
     }
+
 }; // end namespace

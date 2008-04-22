@@ -15,25 +15,35 @@
  ***************************************************************************/
 
 #include <osgPPU/UnitText.h>
+#include <osg/Geode>
 
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
     UnitText::UnitText(const UnitText& unit, const osg::CopyOp& copyop) :
-        UnitInOut(unit, copyop)
+        UnitInOut(unit, copyop),
+        mText(unit.mText),
+        mSize(unit.mSize)
     {
-        mSize = unit.mSize;
     }
 
-    //------------------------------------------------------------------------------
-    UnitText::UnitText(osg::State* state) : osgPPU::UnitInOut(state)
-    {
-        mSize = 26.0;
-    }
     //------------------------------------------------------------------------------
     UnitText::UnitText() : osgPPU::UnitInOut()
     {
         mSize = 26.0;
+        
+        // initialize text
+        mText = new osgText::Text();
+        mText->setFont();
+        mText->setColor(osg::Vec4(1,1,1,1));
+        mText->setAxisAlignment(osgText::Text::SCREEN);
+
+        // setup some defaults parameters
+        mText->setLayout(osgText::Text::LEFT_TO_RIGHT);
+        mText->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+        
+        // setup stateset so that the text is rendered in unit's renderbin
+        mText->getOrCreateStateSet()->setRenderBinToInherit();
     }
     
     //------------------------------------------------------------------------------
@@ -43,56 +53,35 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
+    void UnitText::setText(osgText::Text* text)
+    {
+        mText = text;
+        dirty();
+    }
+
+    //------------------------------------------------------------------------------
     void UnitText::init()
     {
-        // initialize text
-        setColor(osg::Vec4(1,1,1,1));
-
-        // setup some defaults parameters
-        setLayout(osgText::Text::LEFT_TO_RIGHT);
-        setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-        
-        // setup stateset
-        osg::StateSet* stateSet = sScreenQuad->getOrCreateStateSet();
-        stateSet->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-        stateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
-        stateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
-    
         // init inout ppu
-        setOutputTextureMap(getInputTextureMap());
         UnitInOut::init();
-    
-        // setup projection matrix
-        sProjectionMatrix = osg::Matrix::ortho2D(0,1,0,1);
-        osgText::Text::setStateSet(stateSet);
+
+        // add text as drawable
+        mGeode->removeDrawables(0, mGeode->getNumDrawables());
+        mGeode->addDrawable(mText.get());
+
+        // setup new draw callback for the text
+        mText->setDrawCallback(new Unit::DrawCallback(this));
+
+        // we take the width 640 as reference width for the size of characters
+        mText->setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
+
+        // text is the same as bypass, hence do bypass here
+        setOutputTextureMap(getInputTextureMap());
+
+        // assign fbo
+        assignFBO();
+
     }
-    
-    
-    //------------------------------------------------------------------------------
-    void UnitText::render(int mipmapLevel)
-    {
-        // return if we do not get valid state
-        if (!sState.getState()) return;
         
-        // can only be done on valid data 
-        if (mFBO.valid() && mViewport.valid())
-        {
-            // we take the width 640 as reference width for the size of characters
-            setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
-
-            // compute new color, change alpha acording to the blend value
-            _color.a() = getBlendValue();
-
-            // aplly stateset
-            sState.getState()->apply(sScreenQuad->getStateSet());
-
-            // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
-            sState.getState()->applyAttribute(mFBO.get());
-    
-            // draw the text                
-            draw(sState);
-        }
-    }
-
 }; // end namespace
 

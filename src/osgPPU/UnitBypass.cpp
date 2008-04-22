@@ -19,10 +19,6 @@
 
 namespace osgPPU
 {
-    //------------------------------------------------------------------------------
-    UnitBypass::UnitBypass(osg::State* state) : Unit(state)
-    {
-    }
 
     //------------------------------------------------------------------------------
     UnitBypass::UnitBypass() : Unit()
@@ -47,12 +43,6 @@ namespace osgPPU
     void UnitBypass::init()
     {
         Unit::init(); 
-        mOutputTex = mInputTex;
-    }
-
-    //------------------------------------------------------------------------------
-    void UnitBypass::render(int mipmapLevel)
-    {
         mOutputTex = mInputTex;
     }
 

@@ -15,35 +15,78 @@
  ***************************************************************************/
 
 #include <osgPPU/Processor.h>
-#include <osgDB/WriteFile>
-#include <osgDB/Registry>
-#include <osg/Image>
+#include <osgPPU/Visitor.h>
 #include <osg/Texture2D>
 #include <osg/Depth>
 #include <osg/Notify>
+#include <osg/ClampColor>
 
 #include <assert.h>
-
 
 
 namespace osgPPU
 {
 
-//------------------------------------------------------------------------------
-Processor::Processor(osg::State* state) : mState(state)
-{
-    mTime = 0.0f;
+unsigned int Processor::_lastGivenID = 0;
 
+//------------------------------------------------------------------------------
+Processor::Processor()
+{
+    // set some variables
+    mbDirty = true;
+    mbDirtyUnitGraph = true;
+    _lastGivenID ++;
+    mID = _lastGivenID;
+
+    // first we have to create a render bin which will hold the units
+    // of the subgraph.
+    char binName[128];
+    sprintf(binName, "osgPPU_Pipeline[%d]", mID);
+    mPipeline = new Pipeline();
+    mPipeline->setName(binName);
+    osgUtil::RenderBin::addRenderBinPrototype(binName, mPipeline.get());
+
+    // create an instance of the visitor for the unit subgraph
+    mVisitor = new Visitor(this);
+
+    // no culling
+    setCullingActive(false);
+}
+
+//------------------------------------------------------------------------------
+Processor::Processor(const Processor& pp, const osg::CopyOp& copyop) :
+    osg::Group(pp, copyop),
+    mCamera(pp.mCamera),
+    mPipeline(pp.mPipeline),
+    mVisitor(pp.mVisitor),
+    mbDirty(pp.mbDirty),
+    mbDirtyUnitGraph(pp.mbDirtyUnitGraph),
+    mID(pp.mID)
+{
+}
+
+//------------------------------------------------------------------------------
+Processor::~Processor()
+{
+    // remove render bin prototype
+    osgUtil::RenderBin::removeRenderBinPrototype(mPipeline.get());
+}
+
+//------------------------------------------------------------------------------
+void Processor::init()
+{
     // create default state for post processing effects
-    //if (state == NULL) mState = new osg::State();
-    assert(state != NULL);
-    mStateSet = new osg::StateSet();
+    osg::StateSet* mStateSet = getOrCreateStateSet();
+    mStateSet->clear();
+
+    // the processor's stateset have to be activated as first in the pipeline
+    mStateSet->setRenderBinDetails(0, getPipelineName());
     
     // setup default state set 
     mStateSet->setMode(GL_BLEND, osg::StateAttribute::OFF);
-    mStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-    mStateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
-    mStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+    mStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+    mStateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+    mStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
     // we should not write to the depth buffer 
     osg::Depth* ds = new osg::Depth();
@@ -52,416 +95,87 @@ Processor::Processor(osg::State* state) : mState(state)
 
     // the processor is of fixed function pipeline, however the childs (units) might not 
     mStateSet->setAttribute(new osg::Program());
+
+    // disable color clamping, because we want to work on real hdr values
+    osg::ClampColor* clamp = new osg::ClampColor();
+    clamp->setClampVertexColor(GL_FALSE);
+    clamp->setClampFragmentColor(GL_FALSE);
+    clamp->setClampReadColor(GL_FALSE);
+
+    // make it protected and override, so that it is done for the whole rendering pipeline
+    mStateSet->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+
+    // not dirty anymore
+    mbDirty = false;
+
+    // add as drawable
+    setNumChildrenRequiringUpdateTraversal(1);
 }
 
+
 //------------------------------------------------------------------------------
-Processor::Processor(const Processor& pp, const osg::CopyOp& copyop) :
-    osg::Object(pp, copyop),
-    mState(pp.mState),
-    mStateSet(copyop(pp.mStateSet.get())),
-    mCamera(pp.mCamera),
-    mPipeline(pp.mPipeline),
-    mTime(pp.mTime)
+void Processor::setCamera(osg::Camera* camera)
 {
+    // dirty subgraph if camera changed
+    if (mCamera.get() != camera)
+        dirtyUnitSubgraph();
 
-}
-
-//------------------------------------------------------------------------------
-Processor::~Processor(){
-
-}
-
-//------------------------------------------------------------------------------
-/*void Processor::setState(osg::State* state)
-{
-    mState = state;
-}*/
-
-//------------------------------------------------------------------------------
-void Processor::setCamera(osg::Camera* camera, bool setupCallback)
-{
     // setup camera
     mCamera = camera;
-    //mStateSet->setAttribute(const_cast<osg::Viewport*>(mCamera->getViewport()), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-
-    // we have to setup a post draw callback to get all things updated
-    if (setupCallback)
-        mCamera->setPostDrawCallback(new Callback(this));
 }
 
 //------------------------------------------------------------------------------
-void Processor::initPostDrawCallback(osg::Camera* camera)
+Unit* Processor::findUnit(const std::string& name)
 {
-    if (!camera) return;
-    camera->setPostDrawCallback(new Callback(this));
+    if (!mbDirtyUnitGraph)
+        return mVisitor->findUnit(name, this);
+    return NULL;
 }
 
 //------------------------------------------------------------------------------
-osg::StateSet* Processor::getOrCreateStateSet()
+void Processor::traverse(osg::NodeVisitor& nv)
 {
-    if (!mStateSet.valid()) mStateSet = new osg::StateSet();
-    return mStateSet.get();
-}
+    // if not initialized before, then do it
+    if (mbDirty) init();
 
-//------------------------------------------------------------------------------
-struct less_comparisonFX : std::less<osg::ref_ptr<Unit> >
-{
-    public:
-        bool operator () (const osg::ref_ptr<Unit>& a, const osg::ref_ptr<Unit>& b)
+    // if we are about to do the cull traversal, then
+    if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR && mVisitor->getMode() == Visitor::NONE)
+    {
+        // setup frame stamp
+        mVisitor->setFrameStamp(const_cast<osg::FrameStamp*>(nv.getFrameStamp()));
+        mVisitor->setCullVisitor(&nv);
+
+        if (mbDirtyUnitGraph)
         {
-            return (*a) < (*b);
-        }
-};
+            mbDirtyUnitGraph = false;
 
-//------------------------------------------------------------------------------
-void Processor::setPipeline(const Pipeline& pipeline)
-{
-    // first we clean out our current pipeline
-    mPipeline.clear();
-    Pipeline offlinePPUs;
+            // we have first to optimize the unit graph, so that it
+            // removes all the problematic and unused units
+            mVisitor->perform(Visitor::RESOLVE_CYCLES, this);
 
-    // iterate through the list 
-    Pipeline::const_iterator it = pipeline.begin();
-    for (; it != pipeline.end(); it++)
-    {
-        // set valid state if not specified before 
-        if ((*it)->isValidState() == false)
-            (*it)->setState(mState.get());
-
-        // add the element into the pipeline
-        if ((*it)->getOfflineMode() == false)
-            mPipeline.push_back((*it));
-        else
-            offlinePPUs.push_back((*it));
-    }
-    
-    // sort the pipeline
-    mPipeline.sort(less_comparisonFX());
-
-    // now combine the output and inputs of the pipeline
-    // This is done by set camera texture as input for the first unit 
-    // and combining hte output texture of ppu_i with the input texture
-    // of ppu_i+1
-    
-    // check whenever we have a non offline ppus but no camera
-    if (!mCamera.valid() && mPipeline.size() > 0)
-    {
-        osg::notify(osg::FATAL) << "osgPPU::Processor::setPipeline() - you have non-offline units in the pipeline but no valid camera specified." << std::endl;
-        osg::notify(osg::WARN) << "osgPPU::Processor::setPipeline() - All non-offline ppus will be ignored." << std::endl;
-    }else if (mCamera.valid() && mPipeline.size() > 0)
-    {
-        // get texture attachment from the camera
-        osg::Camera::BufferAttachmentMap& map = mCamera->getBufferAttachmentMap();
-    
-        // save pointer to the previous texture
-        osg::Texture* input = map[osg::Camera::COLOR_BUFFER]._texture.get();
-        osg::Viewport* vp = const_cast<osg::Viewport*>(mCamera->getViewport());
-            
-        // iterate through the whole pipeline
-        Pipeline::iterator jt = mPipeline.begin();
-        for (; jt != mPipeline.end(); jt++)
-        {
-		    // check if we have an online ppu, then do connect it
-		    if ((*jt)->getOfflineMode() == false)
-		    {
-			    // set input texture only if it is not set already
-			    if ((*jt)->getInputTexture(0) == NULL)
-                    (*jt)->setInputTexture(input, 0);
-    
-			    // setup viewport if not setted up before
-                if ((*jt)->getViewport() == NULL)
-    			    (*jt)->setViewport(vp);
-                    
-                // initialize unit
-                if (onUnitInit((*jt).get()))
-                    (*jt)->init();
-
-			    // set now the input texture for the next from the output tex of the current one
-			    input = (*jt)->getOutputTexture(0);
-			    vp = (*jt)->getViewport();
-            }
-        }
-    }
-    
-    // add now offline ppus
-    for (Pipeline::iterator jt = offlinePPUs.begin(); jt != offlinePPUs.end(); jt++)
-    {
-        // for offline ppus do
-        if ((*jt)->getOfflineMode() == true)
-        {
-            if (onUnitInit((*jt).get()))
-                (*jt)->init();            
-            addUnitToPipeline((*jt).get());
-        }
-    }
-}
-
-
-//------------------------------------------------------------------------------
-Pipeline::iterator Processor::removeUnitFromPipeline(const std::string& name)
-{
-    // iterate through pipeline
-    Pipeline::iterator jt = mPipeline.begin();
-    for (; jt != mPipeline.end(); jt++ )
-    {
-        if ((*jt)->getName() == name)
-        {
-            // check if we have only one ppu, so just clean pipeline
-            if (mPipeline.size()  <= 1)
-            {
-                mPipeline.clear();
-                return mPipeline.end();
-            }
-         
-			// if we have an offline ppu, then we just remove it from the list 
-			if ((*jt)->getOfflineMode())
-			{
-				return mPipeline.erase(jt);
-			}
-   
-            // we are not at the end
-            if (jt != mPipeline.end()--)
-            {
-                // get next element
-                Pipeline::iterator it = jt; it++;
-
-                // set input for the next from input of the current
-                (*it)->setInputTextureMap((*jt)->getInputTextureMap());
-                (*it)->setViewport((*jt)->getViewport());
-                //(*it)->init();
-                //onPPUInit((*it).get());
-
-            // this is the last ppu, so just remove it
-            }else{
-                // get element before
-                Pipeline::iterator it = jt; it--;
-
-                // remove outputs
-                (*it)->setOutputTexture(NULL, 0);
-                //(*it)->init();
-                //onPPUInit((*it).get());
-            }
-
-            // remove ppu from pipeline
-            return mPipeline.erase(jt);
-        }
-    }
-    return mPipeline.end();
-}
-
-//------------------------------------------------------------------------------
-void Processor::addUnitToPipeline(Unit* ppu)
-{
-    // check for the case if pipeline is empty
-    if (mPipeline.size() == 0)
-    {
-        mPipeline.push_back(ppu);
-        return;
-    }
-
-    // offscreen ppus are inserted from the end
-    if (ppu->getOfflineMode())
-    {
-        // iterate through the whole pipeline        
-        bool foundPlace = false;
-        for(Pipeline::iterator it = mPipeline.begin(); it!=mPipeline.end(); ++it)
-        {
-            // do add only if it is an offline ppu and we met a first ppu with bigger index
-            if ((*it)->getOfflineMode() && (*it)->getIndex() > ppu->getIndex())
-            {
-                mPipeline.insert(it, ppu);
-                foundPlace = true;
-            }
-        }
-        
-        // if we haven't found any right place, then just add at the end of the pipeline
-        if(!foundPlace)
-        {
-            mPipeline.push_back(ppu);
-            return;
-        }
-    }
-
-    // add it based on index
-    // iterate through the whole pipeline
-    Pipeline::iterator jt = mPipeline.begin();
-    Pipeline::iterator it = mPipeline.begin();
-    for (++jt; jt != mPipeline.end(); jt++, it++)
-    {
-        // jt is the ppu after ours, it is the one before
-        if ((*jt)->getIndex() > ppu->getIndex())
-        {
-            // input to this ppu is the output of the one before
-            ppu->setInputTexture((*it)->getOutputTexture(0), 0);
-            ppu->setViewport((*it)->getViewport());
-            
-            // add the new ppu 
-            mPipeline.insert(jt, ppu);
-            
-            return;
-        }
-    }
-    
-    // we are here, so no such place were found, so add at the end
-    Pipeline::reverse_iterator rit = mPipeline.rbegin();
-    
-    // input to this ppu is the output of the one before
-    ppu->setInputTexture((*rit)->getOutputTexture(0), 0);
-    ppu->setViewport((*rit)->getViewport());
-    
-    // add the new ppu 
-    mPipeline.push_back(ppu);
-}
-
-//------------------------------------------------------------------------------
-void Processor::update(float dTime)
-{
-    mTime += dTime;
-
-    // apply state set
-    mState->apply(mStateSet.get());
-
-    // debug information
-    if (osg::isNotifyEnabled(osg::DEBUG_INFO))
-    {
-        printf("--------------------------------------------------------------------\n");
-        printf("Start pipeline %s (%f)\n", getName().c_str(), mTime);
-        printf("--------------------------------------------------------------------\n");
-    }
-    
-    // push current matricies and texture data
-    glPushAttrib(GL_TRANSFORM_BIT | GL_TEXTURE_BIT);
-    glMatrixMode(GL_PROJECTION); glPushMatrix();
-    glMatrixMode(GL_MODELVIEW); glPushMatrix();
-
-    // iterate through Processoring units
-    for (Pipeline::iterator it = mPipeline.begin(); it != mPipeline.end(); it ++)
-    {
-        if ((*it)->getActive())
-        {
-        
             // debug information
-            if (osg::isNotifyEnabled(osg::DEBUG_INFO))
-            {
-                printf("%s (%d):\n", (*it)->getName().c_str(), (*it)->getIndex());
-                printf("\t vp (ref %d): %d %d %d %d\n", (*it)->getInputTextureIndexForViewportReference(), (int)(*it)->getViewport()->x(), (int)(*it)->getViewport()->y(),(int)(*it)->getViewport()->width(), (int)(*it)->getViewport()->height());
-                printf("\t alpha: %f (%f %f)\n", (*it)->getBlendValue(), (*it)->getBlendStartValue(), (*it)->getBlendFinalValue());
-                printf("\t time: %f-%f\n", (*it)->getBlendStartTime(), (*it)->getBlendFinalTime());
-                printf("\t shader: %p\n", (*it)->getShader());
-
-                if ((*it)->getShader() != NULL)
-                {
-                    osg::StateSet::UniformList::const_iterator jt = (*it)->getShader()->getUniformList().begin();
-                    for (; jt != (*it)->getShader()->getUniformList().end(); jt++)
-                    {
-                        float fval = -1.0;
-                        int ival = -1;
-                        if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
-                        {
-                            jt->second.first->get(ival);
-                            printf("\t\t%s : %d \n", jt->first.c_str(), ival);//, (jt->second.second & osg::StateAttribute::ON) != 0);
-                        }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
-                            jt->second.first->get(fval);
-                            printf("\t\t%s : %f \n", jt->first.c_str(), fval);//, (jt->second.second & osg::StateAttribute::ON) != 0);
-                        }
-                    }
-                }
-
-			    printf("\t input: ");
-			    for (unsigned int i=0; i < (*it)->getInputTextureMap().size(); i++)
-			    {
-                    osg::Texture* tex = (*it)->getInputTexture(i);
-                    printf(" %d:%p", i, tex);
-                    if (tex)
-                    {
-                        if ((*it)->getStateSet()->getTextureAttribute(i, osg::StateAttribute::TEXTURE))
-                            printf("-attr");
-                        printf(" (%dx%d), ", tex->getTextureWidth(), tex->getTextureHeight());
-                    }
-                }
-
-			    printf("\n\t output: ");
-			    for (unsigned int i=0; i < (*it)->getOutputTextureMap().size(); i++)
-			    {
-                    osg::Texture* tex = (*it)->getOutputTexture(i);
-				    printf(" %p ", tex);
-                    if (tex) printf("(%dx%d)", tex->getTextureWidth(), tex->getTextureHeight());
-                }
-
-                printf("\n");
-			}
-
-            // apply the post processing unit
-            if (onUnitApply(it->get()))
-            {
-                (*it)->setTime(mTime);
-                (*it)->apply(0.0f);
-            }
-
-        }
-        
-    }
-
-    // restore the matricies
-    glMatrixMode(GL_PROJECTION); glPopMatrix();
-    glMatrixMode(GL_MODELVIEW); glPopMatrix();
-    glPopAttrib();
+            osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
+            osg::notify(osg::INFO) << "BEGIN " << mPipeline->getName() << std::endl;        
     
-    // debug information
-    if (osg::isNotifyEnabled(osg::DEBUG_INFO))
-    {
-        printf("\n\n");
-    }
-}
+            // use the osgppu's default visitor to init the subgraph
+            mVisitor->perform(Visitor::INIT_UNIT_GRAPH, this);
+            
+            osg::notify(osg::INFO) << "END " << mPipeline->getName() << std::endl;
+            osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
+    
+            // optimize subgraph
+            mVisitor->perform(Visitor::OPTIMIZE, this);
+        }
 
+        // perform updating traversion
+        mVisitor->perform(Visitor::UPDATE, this);
+    
+        // perform cull traversal
+        mVisitor->perform(Visitor::CULL, this);
 
-//--------------------------------------------------------------------------
-GLenum Processor::createSourceTextureFormat(GLenum internalFormat)
-{
-    switch (internalFormat)
-    {
-        case GL_LUMINANCE32F_ARB:
-        case GL_LUMINANCE16F_ARB: return GL_LUMINANCE;
-
-        case GL_LUMINANCE_ALPHA32F_ARB:
-        case GL_LUMINANCE_ALPHA16F_ARB: return GL_LUMINANCE_ALPHA;
-
-        case GL_RGB32F_ARB:
-        case GL_RGB16F_ARB: return GL_RGB;
-
-        case GL_RGBA32F_ARB:
-        case GL_RGBA16F_ARB: return GL_RGBA;
-
-        case GL_LUMINANCE32UI_EXT:
-        case GL_LUMINANCE32I_EXT:
-        case GL_LUMINANCE16UI_EXT:
-        case GL_LUMINANCE16I_EXT:
-        case GL_LUMINANCE8UI_EXT:
-        case GL_LUMINANCE8I_EXT: return GL_LUMINANCE_INTEGER_EXT;
-
-        case GL_LUMINANCE_ALPHA32UI_EXT:
-        case GL_LUMINANCE_ALPHA32I_EXT:
-        case GL_LUMINANCE_ALPHA16UI_EXT:
-        case GL_LUMINANCE_ALPHA16I_EXT:
-        case GL_LUMINANCE_ALPHA8UI_EXT:
-        case GL_LUMINANCE_ALPHA8I_EXT: return GL_LUMINANCE_ALPHA_INTEGER_EXT;
-
-        case GL_RGB32UI_EXT:
-        case GL_RGB32I_EXT:
-        case GL_RGB16UI_EXT:
-        case GL_RGB16I_EXT:
-        case GL_RGB8UI_EXT:
-        case GL_RGB8I_EXT: return GL_RGB_INTEGER_EXT;
-
-        case GL_RGBA32UI_EXT:
-        case GL_RGBA32I_EXT:
-        case GL_RGBA16UI_EXT:
-        case GL_RGBA16I_EXT:
-        case GL_RGBA8UI_EXT:
-        case GL_RGBA8I_EXT: return GL_RGBA_INTEGER_EXT;
-
-        default: return internalFormat;
-    }
+    // perform traversing only if the graph is valid
+    }else if (mbDirtyUnitGraph == false)
+        osg::Group::traverse(nv);
 }
 
 

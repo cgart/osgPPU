@@ -1,57 +1,29 @@
-osgPPU::Pipeline {
-
+osgPPU::Processor {
   osgPPU::UnitBypass {
     UniqueID UnitBypass_0
     name "Bypass"
-    index 9
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 0
     isActive 1
     isOffline 0
-    inputTextureIndexForViewportReference 0
+    inputTextureIndexForViewportReference -1
     outputInternalFormat GL_RGBA16F_ARB
 
-    Input {
-      PPU "Bypass"
-    }
-
-    Viewport {
-      UniqueID Viewport_1
-      x 0
-      y 0
-      width 512
-      height 512
+    PPUOutput {
+      PPU UnitOut_1
     }
   }
-
   osgPPU::UnitOut {
-    UniqueID UnitOut_17
+    UniqueID UnitOut_1
     name "PipelineResult"
-    index 1000
-    blendFinalTime 0
-    blendStartTime 0
-    blendStartValue 1
-    blendFinalValue 1
-    blendEnabled 0
     isActive 1
     isOffline 0
-    inputTextureIndexForViewportReference 0
+    inputTextureIndexForViewportReference -1
     outputInternalFormat GL_RGBA16F_ARB
 
-    Input {
-      PPU "Bypass"
-    }
-
-    Viewport {
-      UniqueID Viewport_18
-      x 0
-      y 0
-      width 512
-      height 512
+    PPUOutput {
     }
   }
-
+  name Processor
+  PPUOutput {
+    PPU UnitBypass_0
+  }
 }

@@ -14,33 +14,29 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#ifndef _C_UNIT_BYPASS_H_
-#define _C_UNIT_BYPASS_H_
+#ifndef _C_OSGPPU__H_
+#define _C_OSGPPU__H_
 
 
-//-------------------------------------------------------------------------
-// Includes
-//-------------------------------------------------------------------------
+#include <osg/Uniform>
+#include <osg/Texture>
+
 #include <osgPPU/Export.h>
-#include <osgPPU/Unit.h>
 
 namespace osgPPU
 {
-    //! Unit which do simply bypass input to the output
     /**
-    * The result of this ppu is similar to Unit::setOutputTextreMap(Unit::getInputTextureMap());
+    * Utility function to derive source texture format from the internal format.
+    * For example GL_RGB16F_ARB corresponds to GL_FLOAT
     **/
-    class OSGPPU_EXPORT UnitBypass : public Unit {
-        public:
-            META_Node(osgPPU,UnitBypass);
-        
-            UnitBypass();
-            UnitBypass(const UnitBypass& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
-            
-            virtual ~UnitBypass();
-            
-            virtual void init();
-    };
+    OSGPPU_EXPORT GLenum createSourceTextureFormat(GLenum internalFormat);
+
+    /**
+    * Utility function to derive uniform type based on the given texture.
+    **/
+    OSGPPU_EXPORT osg::Uniform::Type convertTextureToUniformType(osg::Texture* tex);
+
 };
 
 #endif
+

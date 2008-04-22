@@ -16,6 +16,7 @@
 
 #include <osgPPU/UnitInOut.h>
 #include <osgPPU/Processor.h>
+#include <osgPPU/Utility.h>
 
 #include <osg/Texture2D>
 
@@ -25,47 +26,16 @@ namespace osgPPU
     UnitInOut::UnitInOut(const UnitInOut& unit, const osg::CopyOp& copyop) :
         Unit(unit, copyop),
         mFBO(unit.mFBO),
-        mMRTCount(unit.mMRTCount),
-        mNumLevels(unit.mNumLevels),
-        mbUseMipmaps(unit.mbUseMipmaps),
-        mbUseMipmapShader(unit.mbUseMipmapShader),
-        mMipmapShader(unit.mMipmapShader),
-        mMipmapFBO(unit.mMipmapFBO),
-        mMipmapViewport(unit.mMipmapViewport)
+        mBypassedInput(unit.mBypassedInput)
     {
-        setMipmappedInOut(unit.getMipmappedInOut());
-    }
-    
-    //------------------------------------------------------------------------------
-    UnitInOut::UnitInOut(osg::State* state) : Unit(state)
-    {
-        // disable mipmapping per default
-        mbUseMipmaps = false;
-        mbUseMipmapShader = false;
-        mNumLevels = 0;
-        mMRTCount = -1;
-            
-        // create FBO because we need it
-        mFBO = new osg::FrameBufferObject();
-    
-        // if the input does have mipmaps, then they will be passed to the output
-        setMipmappedInOut(false);
     }
     
     //------------------------------------------------------------------------------
     UnitInOut::UnitInOut() : Unit()
     {
-        // disable mipmapping per default
-        mbUseMipmaps = false;
-        mbUseMipmapShader = false;
-        mNumLevels = 0;
-        mMRTCount = -1;
-
         // create FBO because we need it
         mFBO = new osg::FrameBufferObject();
-    
-        // if the input does have mipmaps, then they will be passed to the output
-        setMipmappedInOut(false);
+        mBypassedInput = -1;
     }
     
     //------------------------------------------------------------------------------
@@ -77,187 +47,60 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitInOut::assignFBO()
     {
-        if (mFBO.valid())
-        {
-            // TODO: currently disabled, because there are some unresolved bugs if using fbo here
-            //sScreenQuad->getOrCreateStateSet()->setAttribute(mFBO.get(), osg::StateAttribute::ON);
-        }
+        // TODO: currently disabled, because there are some unresolved bugs if using fbo here
+        getOrCreateStateSet()->setAttribute(mFBO.get(), osg::StateAttribute::ON);
     }
 
     //------------------------------------------------------------------------------
     void UnitInOut::init()
     {
-        // setup output textures, which will change the size
-        assignOutputTexture();
-        assignFBO();
-
-        // check if mipmapping is enabled, then enable mipmapping on output textures
-        if (mbUseMipmaps) enableMipmapGeneration();
-        
         // initialize all parts of the ppu
         Unit::init();
-    }
     
-    //--------------------------------------------------------------------------
-    void UnitInOut::enableMipmapGeneration()
-    {
-        mbUseMipmaps = true;
-        
-        std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-        for (; it != mOutputTex.end(); it++)
+        // setup a geode and the drawable as childs of this unit
+        mDrawable = createTexturedQuadDrawable();
+        mGeode->removeDrawables(0, mGeode->getNumDrawables());
+        mGeode->addDrawable(mDrawable.get());
+
+        // setup bypassed output if required
+        if (mBypassedInput >= 0 && mBypassedInput < getNumParents())
         {
-            // set texture if it is valid
-            if (it->second.valid())
+            Unit* input = dynamic_cast<Unit*>(getParent(mBypassedInput));
+            if (!input)
             {
-                it->second->setUseHardwareMipMapGeneration(false);
-
-                // get filter
-                osg::Texture::FilterMode filter = it->second->getFilter(osg::Texture2D::MIN_FILTER);
-                if (filter == osg::Texture2D::LINEAR)
-                    it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_NEAREST);
-                else if (filter == osg::Texture2D::NEAREST)
-                    it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::NEAREST_MIPMAP_NEAREST);
-
-                it->second->allocateMipmapLevels();
+                osg::notify(osg::WARN) << "osgPPU::UnitInOut::init() - cannot initialize bypassed input, because no input unit found" << std::endl;
+                return;
             }
+            mOutputTex[0] = input->getOrCreateOutputTexture(0);
         }
 
-    }
-    
-    //--------------------------------------------------------------------------
-    void UnitInOut::generateMipmaps(osg::Texture* output, int mrt)
-    {
-        // if ppu doesn't use mipmapping so return
-        if (!mbUseMipmaps || output == NULL
-            || !sState.getState()) return;
-            
-        // check if we need to generate hardware mipmaps
-        if (!mbUseMipmapShader)
-        {
-            osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
-            sState.getState()->applyTextureAttribute(0, output);
-            fbo_ext->glGenerateMipmapEXT(output->getTextureTarget());
-            return;
-        }
-        
-        //
-        // ok we generate now mipmaps by hand with the shader
-        //
-        // does mipmap shader exists
-        if (!mMipmapShader.valid()) return;
-        if (dynamic_cast<osg::Texture2D*>(output) == NULL)
-        {
-            osg::notify(osg::WARN) << "Unit " << getName() << " cannot generate mipmaps because the output texture is not of type osg::Texture2D"<< std::endl;
-            return;
-        }
-        
-        // check if we have generated all the fbo's for each mipmap level
-        int width = output->getTextureWidth();
-        int height = output->getTextureHeight();
-        int numLevel = 1 + (int)floor(log((float)std::max(width, height))/(float)M_LN2);
-        
-        // before we start generating of mipmaps we save some data
-        osg::ref_ptr<osg::FrameBufferObject> currentFBO = mFBO;
-        osg::ref_ptr<osg::Viewport> currentViewport = mViewport;
-        osg::ref_ptr<osg::Texture> currentInputTex = mInputTex[0];
-        osg::ref_ptr<Shader> currentShader = mShader;
-
-        // generate fbo for each mipmap level
-        if ((int)mMipmapFBO.size() != numLevel)
-        {
-            // generate mipmap levels
-            mMipmapFBO.clear();
-            mMipmapViewport.clear();
-            for (int i=0; i < numLevel; i++)
-            {
-                // generate viewport
-                osg::Viewport* vp = new osg::Viewport();
-                int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)i)) ));
-                int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)i)) ));
-                vp->setViewport(0,0, w, h);
-                mMipmapViewport.push_back(osg::ref_ptr<osg::Viewport>(vp));
-                
-                // generate fbo and assign a mipmap level to it
-                osg::FrameBufferObject* fbo = new osg::FrameBufferObject();
-                fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT, osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
-                mMipmapFBO.push_back(osg::ref_ptr<osg::FrameBufferObject>(fbo));
-            }
-
-            // reallocate mipmap levels
-            enableMipmapGeneration();
-        }
-
-        // also we assign special shader which will generate mipmaps
-        removeShader();
-        mShader = mMipmapShader;
-        assignShader();
-            
-        // now we assign input texture as our result texture, so we can generate mipmaps
-        mInputTex[0] = output;
-        assignInputTexture();
-
-        // set global shader variable
-        if (mShader.valid()) mShader->set("g_MipmapLevelNum", float(numLevel));
-
-        // now we render the result in a loop to generate mipmaps
-        for (int i=1; i < numLevel; i++)
-        {
-            // set mipmap level
-            if (mShader.valid()) mShader->set("g_MipmapLevel", float(i));
-
-            // assign new viewport
-            mViewport = mMipmapViewport[i];
-            assignViewport();
-
-            // assign new fbo
-            mFBO = mMipmapFBO[i];
-            assignFBO();
-
-            // render the content
-            render(i);
-        }
-
-        // restore current shader
-        removeShader();
-        mShader = currentShader;
-        assignShader();
-        
-        // restore current input texture
-        mInputTex[0] = currentInputTex;
-        assignInputTexture();
-        
-        // restore old viewport and fbo
-        mViewport = currentViewport;
-        assignViewport();
-
-        mFBO = currentFBO;
+        // setup output textures and fbo
+        assignOutputTexture();
         assignFBO();
     }
     
     //------------------------------------------------------------------------------
-    void UnitInOut::noticeFinishRendering()
-    {    
-        // generate mipmaps if such are required (for each output texture)
-        if (mbUseMipmaps)
+    void UnitInOut::setInputBypass(int index)
+    {
+        // nothing to do if not
+        if (index == mBypassedInput) return;
+        mBypassedInput = index;
+
+        // if we want to remove bypassed index
+        if (index < 0)
         {
-            std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-            for (; it != mOutputTex.end(); it++)
-            {
-                generateMipmaps(it->second.get(), it->first);
-            }
+            mOutputTex[0] = NULL;
+            getOrCreateOutputTexture(0);
+
+        // if we want to setup bypassed texture
+        }else
+        {
+            mOutputTex[0] = getInputTexture(index);
         }
 
-        // TODO: remove this later. Have no real idea why it is required, it seems that somehwere it is not restored properly        
-        if (sState.getState())
-        {
-            osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(sState.getContextID(),true);
-            fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-
-            // set default texture unit to 0
-            sState.getState()->setActiveTextureUnit(0);
-        }
+        dirty();
     }
-     
+
     //------------------------------------------------------------------------------
     osg::Texture* UnitInOut::getOrCreateOutputTexture(int mrt)
     {
@@ -271,7 +114,7 @@ namespace osgPPU
         mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
         mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
         mTex->setInternalFormat(getOutputInternalFormat());
-        mTex->setSourceFormat(Processor::createSourceTextureFormat(getOutputInternalFormat()));
+        mTex->setSourceFormat(createSourceTextureFormat(getOutputInternalFormat()));
 
         // check if the input texture was in nearest mode
         if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MIN_FILTER) == osg::Texture2D::NEAREST)
@@ -292,235 +135,30 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitInOut::assignOutputTexture()
     {
-        if (mFBO.valid())
+        // now generate output texture's and assign them to fbo 
+        std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
+        for (int i = 0; it != mOutputTex.end(); it++, i++)
         {
-            // now generate output texture's and assign them to fbo 
-            std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-            for (int i = 0; it != mOutputTex.end(); it++, i++)
+            // if the output texture is a 2D texture 
+            if (dynamic_cast<osg::Texture2D*>(it->second.get()) != NULL)
             {
-                // if the output texture is a 2D texture 
-                if (dynamic_cast<osg::Texture2D*>(it->second.get()) != NULL)
-                {
-                    // attach the 2D texture to the fbo
-                    mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, 
-                        osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(it->second.get())));
+                // attach the 2D texture to the fbo
+                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, 
+                    osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(it->second.get())));
 
-                // if the output texture is NULL, hence generate one
-                }else if (it->second.get() == NULL)
-                {
-                    // preallocate the texture
-                    osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(getOrCreateOutputTexture(it->first));
-                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
-            
-                    // attach the texture to the fbo
-                    mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
-                }
-            }
-    
-            // clean mipmap data for output
-            mMipmapFBO.clear();
-            mMipmapViewport.clear();
-    
-            // recheck the mipmap bypass data structures
-            checkIOMipmappedData();
-    
-        }
-        mbDirtyOutputTextures = false;
-    }
-    
-    
-    //------------------------------------------------------------------------------
-    void UnitInOut::checkIOMipmappedData()
-    {
-        if (mFBO.valid() && mOutputTex.size() > 0 && mbMipmappedIO)
-        {
-            // do only proceed if output texture is valid
-            if (mOutputTex.begin()->second == NULL) return;
-    
-            // clean viewport data
-            mIOMipmapViewport.clear();
-            mIOMipmapFBO.clear();
-        
-            // get dimensions of the output data
-            int width = (mOutputTex.begin()->second)->getTextureWidth();
-            int height = (mOutputTex.begin()->second)->getTextureHeight();
-            int numLevels = 1 + (int)floor(log((float)std::max(width, height))/(float)M_LN2);
-            mNumLevels = numLevels;
-    
-            // generate fbo for each mipmap level 
-            for (int level=0; level < numLevels; level++)
+            // if the output texture is NULL, hence generate one
+            }else if (it->second.get() == NULL && mViewport.valid())
             {
-                // generate viewport for this level
-                osg::Viewport* vp = new osg::Viewport();
-                int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)level)) ));
-                int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)level)) ));
-                vp->setViewport(0,0, w, h);
-                mIOMipmapViewport.push_back(osg::ref_ptr<osg::Viewport>(vp));
-    
-                // this is the fbo for this level 
-                osg::ref_ptr<osg::FrameBufferObject> fbo = new osg::FrameBufferObject();
-    
-                // for each output texture do
-                std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
-                for (int mrt = 0; it != mOutputTex.end(); it++, mrt++)
-                {   
-                    // output texture 
-                    osg::ref_ptr<osg::Texture2D> output = dynamic_cast<osg::Texture2D*>(it->second.get());
+                // preallocate the texture
+                osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(getOrCreateOutputTexture(it->first));
+                mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
         
-                    // check if we have generated all the fbo's for each mipmap level
-                    int _width = output->getTextureWidth();
-                    int _height = output->getTextureHeight();
-    
-                    // if width and height are not equal, then we give some error and stop here 
-                    if ((_width != width || _height != height))
-                    {
-                        printf("UnitInOut %s: output textures has different dimensions\n", getName().c_str());
-                        return; 
-                    }
-        
-                    // set fbo of current level with to this output         
-                    fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT + mrt, osg::FrameBufferAttachment(output.get(), level));
-                }
-    
-                // store fbo
-                mIOMipmapFBO.push_back(fbo);
+                // attach the texture to the fbo
+                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
             }
         }
     }
-    
-    
-    //------------------------------------------------------------------------------
-    void UnitInOut::render(int mipmapLevel)
-    {
-        // if we do generate mipmaps
-        if (mipmapLevel >= 0)
-        {
-            doRender(mipmapLevel);
-            return;
-        }
-    
-        // do following only if we have mipmapped io
-        if (getMipmappedInOut())
-        {
-            // store current viewport 
-            osg::Viewport* currentViewport = mViewport.get();
-            osg::FrameBufferObject* currentFBO = mFBO.get();
-    
-            // otherwise we want to bypass mipmaps, thus do following for each mipmap level
-            for (int i=0; i < mNumLevels; i++)
-            {
-                // assign new viewport and fbo
-                mViewport = mIOMipmapViewport[i].get();
-                mFBO = mIOMipmapFBO[i].get();
-
-                assignViewport();
-                assignFBO();
-
-                // render the content
-                doRender(i);
-            }
         
-            // restore current viewport and fbo 
-            mFBO = currentFBO;
-            mViewport = currentViewport;
-
-            assignViewport();
-            assignFBO();
-    
-        // otherwise just render
-        }else{
-            doRender(mipmapLevel);
-        }
-    }
-    
-    //------------------------------------------------------------------------------
-    void UnitInOut::setMipmappedInOut(bool b)
-    {
-        mbDirtyOutputTextures = b;
-        mbMipmappedIO = b;
-        if (b) enableMipmapGeneration();
-    }
-    
-    //------------------------------------------------------------------------------
-    void UnitInOut::doRender(int mipmapLevel)
-    {
-        // return if we do not get valid state
-        if (!sState.getState()) return;
-    
-        // can only be done on valid data 
-        if (mFBO.valid() && mViewport.valid())
-        {
-            // just to be sure to pass correct values
-            if (mipmapLevel < 0) mipmapLevel = 0;
-    
-            // update shaders manually, because they are do not updated from scene graph
-            if (mShader.valid()) 
-            {
-                mShader->set("g_ViewportWidth", (float)mViewport->width());
-                mShader->set("g_ViewportHeight", (float)mViewport->height());
-                mShader->set("g_MipmapLevel", float(mipmapLevel));
-                mShader->update();
-            }
-
-            // aplly stateset
-            sState.getState()->apply(sScreenQuad->getStateSet());
-
-            // TODO: should be removed here and be handled by the stateset directly (see assignFBO() )
-            sState.getState()->applyAttribute(mFBO.get());
-
-            // enable MRT if we use more than one rendering target
-            {
-                // this should store the value of the current draw buffer
-                glPushAttrib(GL_COLOR_BUFFER_BIT);
-
-                // get current extensions 
-                osg::GL2Extensions* glext = osg::GL2Extensions::Get(sState.getState()->getContextID(), true);
-
-                // enable as much buffers as we have output textures set
-                GLenum mrtBuffers[8] = {GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE,GL_NONE};
-                TextureMap::iterator it = mOutputTex.begin();
-                for (int i = 0; i < 8; i++)
-                {
-                    if (it != mOutputTex.end())
-                    {
-                        if (it->first >=0 && it->first < 8)
-                            mrtBuffers[it->first] = GL_COLOR_ATTACHMENT0_EXT + it->first;
-                        else
-                            osg::notify(osg::FATAL) << "osgPPU::UnitInOut::doRender() - wrong MRT index specified" << std::endl;
-
-                        it ++;
-                    }
-                    if (i < mMRTCount)
-                        mrtBuffers[i] = GL_COLOR_ATTACHMENT0_EXT + i;
-                }
-
-                // enable draw buffers
-                glext->glDrawBuffers(mMRTCount < 0 ? mOutputTex.size() : mMRTCount, mrtBuffers);
-            }
-
-            // render the content of the input texture into the frame buffer
-            if (getUseBlendMode() && getOfflineMode() == false)
-            {
-                glEnable(GL_BLEND);
-                glColor4f(1,1,1, getBlendValue());
-                sScreenQuad->draw(sState);
-                glDisable(GL_BLEND);
-                glColor4f(1,1,1,1);
-            }else{
-                glDisable(GL_BLEND);
-                glColor4f(1,1,1,1);
-                sScreenQuad->draw(sState);
-                glColor4f(1,1,1,1);
-            }
-
-            // disable MRT
-            {
-                glPopAttrib();   
-            }
-        }    
-    }
-    
-    
     //------------------------------------------------------------------------------
     void UnitInOut::noticeChangeViewport()
     {

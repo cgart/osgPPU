@@ -27,14 +27,7 @@ namespace osgPPU
         mDirtyFactor(unit.mDirtyFactor)
     {
     }
-    //------------------------------------------------------------------------------
-    UnitInResampleOut::UnitInResampleOut(osg::State* state) : UnitInOut(state)
-    {
-        // setup default values 
-        mWidthFactor = 1.0;
-        mHeightFactor = 1.0;
-        mDirtyFactor = true;
-    }
+
     //------------------------------------------------------------------------------
     UnitInResampleOut::UnitInResampleOut() : UnitInOut()
     {
@@ -65,25 +58,22 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
-    void UnitInResampleOut::render(int mipmapLevel)
+    void UnitInResampleOut::init()
     {
+        // do initialize as usual
+        UnitInOut::init();
+
         // if we have to reset the resampling factor
         if (mDirtyFactor)
         {
-            // force to reset the input referrence size 
-            setInputTextureIndexForViewportReference(getInputTextureIndexForViewportReference());
-    
             // setup new viewport size
             mViewport->width() *= mWidthFactor;
             mViewport->height() *= mHeightFactor;
             mDirtyFactor = false;
-    
+
             // notice that we changed the viewport
             noticeChangeViewport();
-        }
-    
-        // do rendering as usual
-        UnitInOut::render();
+        }    
     }
 
 }; // end namespace

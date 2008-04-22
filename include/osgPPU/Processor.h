@@ -24,18 +24,22 @@
 #include <osgPPU/Unit.h>
 #include <osg/Camera>
 #include <osg/State>
+#include <osg/Geode>
 
 #include <osgPPU/Export.h>
 #include <osgPPU/Pipeline.h>
 
+
 namespace osgPPU
 {
 
-//! Main ppu processor used to setup the ppu pipeline
+class Visitor;
+
+//! Main processor used to setup the unit pipeline
 /**
- * Processor should be called as a last step in your rendering pipeline.
- * This class manages the units which do form a graph.
- * To the Processor object a camera is attached.
+ * The processor acts as a group node. The underlying graph can contain
+ * units or other kind of nodes. However only units can be drawed in the apropriate
+ * way.
  * The attached camera must provide a valid viewport and color attachment (texture)
  * which will be used as input for the pipeline.
  * 
@@ -47,16 +51,15 @@ namespace osgPPU
  * In that case it is not neccessary to output the resulting data on the screen, but
  * you can use the output texture of the last ppu for any other purpose.
  **/
-class OSGPPU_EXPORT Processor : public osg::Object {
+class OSGPPU_EXPORT Processor : public osg::Group {
     public: 
     
-        META_Object(osgPPU, Processor);
+        META_Node(osgPPU, Processor);
 
         /**
          * Initialize the ppu system.
-         * @param state Specify a state which will be used to apply the post process statesets
         **/
-        Processor(osg::State* state);
+        Processor();
          
         Processor(const Processor&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
     
@@ -66,11 +69,11 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         virtual ~Processor();
         
         /**
-         * This should be called every frame to update the system.
-         * The rendering is also performed in this method.
-         * @param dTime Time (in seconds) of one frame.
+        * Traverse method to traverse the subgraph. The unit pipeline will be updated
+        * and drawed on the according node visitor types. The visitor has to provide
+        * valid osg::FrameStamp so that the time get updated too.
         **/
-        virtual void update(float dTime = 0.0f);
+        virtual void traverse(osg::NodeVisitor& nv);
         
         /**
          * Add a camera which texture attachment can be used as input to the pipeline.
@@ -78,105 +81,68 @@ class OSGPPU_EXPORT Processor : public osg::Object {
          * A bypass ppu (Unit) as first in the pipeline can bypass
          * the camera attachment into the pipeline.
          * @param camera Camera object to use input from.
-         * @param setupCallback Set to true if you wish to add the processor to
-         *  the post draw callback of the given camera.
          **/
-        void setCamera(osg::Camera* camera, bool setupCallback = false);
+        void setCamera(osg::Camera* camera);
         
         /**
          * Get camera used for this pipeline. This method returns the camera object
          * specified with setCamera().
         **/
-        inline osg::Camera* getCamera() { return mCamera.get(); }
         inline const osg::Camera* getCamera() const { return mCamera.get(); }
-        
-        /**
-         * This method do set up the pipeline. The ppus are inserted into the pipeline
-         * according to their indices. Input and outputs are setted up according 
-         * to the order of the ppus (if not specified explicitely).
-         * Calling of this method will always clean up the pipeline first.
-         * @param pipeline List of ppus to add into the pipeline.
-        **/
-        void setPipeline(const Pipeline& pipeline);
-        
-        /**
-         * Return pipeline used currently in the processor
-         **/
-        const Pipeline& getPipeline() const { return mPipeline; }
+        inline osg::Camera* getCamera() { return mCamera.get(); }
 
         /**
-         * Return pipeline used currently in the processor
-         **/
-        Pipeline& getPipeline() { return mPipeline; }
- 
-        /**
-         * Remove a ppu from the pipeline. An offline ppu is just removed.  
-         * If an online ppu is removed then the input of the removed ppu 
-         * is setted up as input to the next ppu in the pipeline.
-         * @param ppuName Unique name of the ppu in the pipeline.
-         * @return Iterator of the pipeline list which can be used to resetup the list manually.
+        * Mark the underlying unit subgraph as dirty. This is required as soon
+        * as you have changed the unit graph. Call this method to let processor
+        * initilize  the underlying graph properly (setup all inputs and so on).
         **/
-        Pipeline::iterator removeUnitFromPipeline(const std::string& ppuName);
-    
+        inline void dirtyUnitSubgraph() {mbDirtyUnitGraph = true;}
+               
         /**
-         * Add new ppu to the pipeline. The ppu will be sorted in to the pipeline according
-         * to its index. So call Unit::setIndex() before calling this method.
-         * Inputs and outputs are setted up acoordingly. A ppu will not be initialized,
-         * hence do this after you have added it into a pipeline.
-         * @param ppu Pointer to the ppu 
+        * Check whenever the subgraph is valid. A subgraph is valid if it can be
+        * traversed by default osg traversal's, hence if it does not contain any cycles.
+        * You have to traverse the processor with a
+        * CullTraverser first to resolve the cycles automatically. Afterwards the subgraph 
+        * became valid.
         **/
-        void addUnitToPipeline(Unit* ppu);
-        
-        /**
-         * Get stateset of the post processor. This is the working stateset. You can 
-         * change its content to change default behaviour of the pipeline. However 
-         * it is not recomended.
-        **/
-        osg::StateSet* getOrCreateStateSet();
+        inline bool isDirtyUnitSubgraph() const {return mbDirtyUnitGraph;}
 
         /**
-         * Set current time. Use this to setup reference time. 
-         * A time is needed to be able to animate blending of ppus.
-         * @param t Current time in seconds
+        * Force to mark the subgraph as non-dirty. It is not recommended to traverse 
+        * the graph without initializing it first. Otherwise there could be
+        * cycles which will end up in seg faults. Use this method only if 
+        * you know what you are doing.
         **/
-        inline void setTime(float t) { mTime = t; }
+        inline void markUnitSubgraphNonDirty() {mbDirtyUnitGraph = false;}
 
         /**
-         * Get a unit by its name.
-         * @param name Unique name of the ppu in the pipeline
+        * Get name of the pipeline (RenderBin) in which all the subgraphed units
+        * are sorted. Use this name to sort in additional units.
         **/
-        inline Unit* getUnit(const std::string& name) { return mPipeline.findUnit(name); }
+        const std::string& getPipelineName() const { return mPipeline->getName(); }
 
         /**
-         * Setup a post draw callback to update post processor.
-         * @param camera Camera which post draw callback will be used to update the 
-         * post processor. This can either be the same camera as specified in 
-         * setCamera() method or a different one.
+        * Search in the subgraph for a unit. To be able to find the unit 
+        * you have to use unique names for it, however this is not a strict rule.
+        * If nothing found return NULL.
+        * @param name Unique name of the unit.
         **/
-        void initPostDrawCallback(osg::Camera* camera);
-        
-        /**
-         * Return current state assigned with the post process.
-        **/
-        inline osg::State* getState() { return mState.get(); }
+        Unit* findUnit(const std::string& name);
 
         /**
-         * Utility function to derive source texture format from the internal format.
-         * For example GL_RGB16F_ARB corresponds to GL_FLOAT
+        * Overridden method from osg::Node to allow computation of bounding box.
+        * This is needed to prevent traversion of this computation down to all childs.
+        * This method do always returns empty bounding sphere.
         **/
-        static GLenum createSourceTextureFormat(GLenum internalFormat);
+        inline osg::BoundingSphere computeBound() const
+        {
+            return osg::BoundingSphere();
+        }
 
     protected:
 
-        //! Empty constructor is defined as protected to prevent of creating non-valid post processors
-        Processor() {printf("osgPPU::Processor::Processor() - How get there?\n");}
-        
-        /**
-         * Callback function for derived classes, which is called before ppu is applied.
-         * @param ppu Pointer to the ppu, which was applied 
-         * @return The caller should return true if to apply the ppu or false if not
-         **/
-        virtual bool onUnitApply(Unit* ppu) {return true;}
+        //! Protected init method which will be called automagically on first use
+        void init();
 
         /**
         * Callback function which will be called, before ppu is initialized
@@ -184,29 +150,17 @@ class OSGPPU_EXPORT Processor : public osg::Object {
         **/
         virtual bool onUnitInit(Unit* ppu) {return true;};
 
-        /**
-        * Callback structure derived from osg::Camera::DrawCallback
-        * to update the processor when called.
-        **/
-        struct Callback : osg::Camera::DrawCallback
-        {
-            Callback(Processor* parent) : mParent(parent) {}
-            
-            void operator () (const osg::Camera&) const
-            {
-                mParent->update();
-            }
-
-            Processor* mParent;
-        };
-
-
-        osg::ref_ptr<osg::State>    mState;
-        osg::ref_ptr<osg::StateSet> mStateSet;
         osg::ref_ptr<osg::Camera> mCamera;
-        Pipeline  mPipeline;
-        float mTime;
+        osg::ref_ptr<Pipeline>  mPipeline;
+        osg::ref_ptr<Visitor>   mVisitor;
 
+        bool      mbDirty;
+        bool      mbDirtyUnitGraph;
+        unsigned int    mID;
+        
+    private:
+        //! Variable which holds the lsat given id to the processor
+        static unsigned int _lastGivenID;        
 };
 
 
