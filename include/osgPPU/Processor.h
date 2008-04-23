@@ -134,17 +134,16 @@ class OSGPPU_EXPORT Processor : public osg::Group {
 
     protected:
 
-        //! Protected init method which will be called automagically on first use
-        void init();
-
         /**
-        * Callback function which will be called, before ppu is initialized
-        * @return The caller should return true if to continue to initialize the ppu or false if not
+        * Init method which will be called automagically if processor became dirty.
         **/
-        virtual bool onUnitInit(Unit* ppu) {return true;};
+        virtual void init();
 
         osg::ref_ptr<osg::Camera> mCamera;
         osg::ref_ptr<Visitor>   mVisitor;
+
+    private:
+
 
         bool      mbDirty;
         bool      mbDirtyUnitGraph;
