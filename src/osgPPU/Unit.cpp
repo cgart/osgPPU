@@ -32,25 +32,18 @@ namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-Unit::Unit()
+Unit::Unit() : osg::Group(),
+    mbDirty(true),
+    mbOfflinePPU(false),
+    mOutputInternalFormat(GL_RGBA16F_ARB),
+    mInputTexIndexForViewportReference(0),
+    mbActive(true),
+    mbTraversed(false),
+    mbTraversedMask(false),
+    mUserData(NULL)
 {
-    initialize();
-}
-
-//------------------------------------------------------------------------------
-void Unit::initialize()
-{
+    // set default name
     setName("__Nameless_PPU_");
-    mUserData = NULL;
-    mInputTexIndexForViewportReference = 0;
-    setIndex(-1);
-
-    // we do steup defaults
-    setActive(true);
-    setOfflineMode(false);
-    mOutputInternalFormat = GL_RGBA16F_ARB;
-    mbTraversed = false;
-    mbTraversedMask = false;
 
     // create default geode
     mGeode = new osg::Geode();
@@ -66,9 +59,6 @@ void Unit::initialize()
     // setup default modelview matrix
     sModelviewMatrix = new osg::RefMatrix(osg::Matrixf::identity());
 
-    // dirty anything
-    dirty();
-
     // setup default empty fbo and empty program, so that in default mode
     // we do not use any fbo or program
     getOrCreateStateSet()->setAttribute(new osg::Program(), osg::StateAttribute::ON);
@@ -82,7 +72,6 @@ void Unit::initialize()
     }
 
     // no culling, because we do not need it
-    setNumChildrenRequiringUpdateTraversal(1);
     setCullingActive(false);
 }
 
@@ -94,7 +83,6 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mIgnoreList(ppu.mIgnoreList),
     mInputToUniformMap(ppu.mInputToUniformMap),
     mShader(ppu.mShader),
-    mIndex(ppu.mIndex),
     mDrawable(ppu.mDrawable),
     sProjectionMatrix(ppu.sProjectionMatrix),
     sModelviewMatrix(ppu.sModelviewMatrix),
@@ -119,46 +107,13 @@ Unit::~Unit()
 //------------------------------------------------------------------------------
 osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const osg::Vec3& widthVec,const osg::Vec3& heightVec, float l, float b, float r, float t)
 {
-    osg::Geometry* geom = new osg::Geometry();
+    osg::Geometry* geom = osg::createTexturedQuadGeometry(corner, widthVec, heightVec, l,b,r,t);
 
-    osg::Vec3Array* coords = new osg::Vec3Array(4);
-    (*coords)[0] = corner+heightVec;
-    (*coords)[1] = corner;
-    (*coords)[2] = corner+widthVec;
-    (*coords)[3] = corner+widthVec+heightVec;
-    geom->setVertexArray(coords);
-
-    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
-    (*tcoords)[0].set(l,t);
-    (*tcoords)[1].set(l,b);
-    (*tcoords)[2].set(r,b);
-    (*tcoords)[3].set(r,t);
-    geom->setTexCoordArray(0,tcoords);
-
-    osg::Vec4Array* colours = new osg::Vec4Array(1);
-    (*colours)[0].set(1.0f,1.0f,1.0,1.0f);
-    geom->setColorArray(colours);
-    geom->setColorBinding(osg::Geometry::BIND_OVERALL);
-
-    osg::Vec3Array* normals = new osg::Vec3Array(1);
-    (*normals)[0] = widthVec^heightVec;
-    (*normals)[0].normalize();
-    geom->setNormalArray(normals);
-    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
-
-    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
-
-    // remove colors form geometry
-    osg::Vec4Array* screenQuadColor = new osg::Vec4Array(1);
-    (*screenQuadColor)[0].set(1.0f,1.0f,1.0,1.0f);
-    geom->setColorArray(screenQuadColor);
-    geom->setColorBinding(osg::Geometry::BIND_OFF);
+    // setup default state set
     geom->setStateSet(new osg::StateSet());
     geom->setUseDisplayList(false);
-
-    // setup draw callback for it
     geom->setDrawCallback(new Unit::DrawCallback(this));
-   
+
     return geom;
 }
 
@@ -416,8 +371,8 @@ void Unit::update()
     {
         init();
         printDebugInfo();
-        mbDirty = false;
         updateUniforms();
+        mbDirty = false;
     }
 }
 
@@ -581,8 +536,8 @@ void Unit::setupInputsFromParents()
         }
 
         // get viewport from processor
-        osg::Viewport* vp = new osg::Viewport(*(fp._processor->getCamera()->getViewport()));
-        setViewport(vp);
+        osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(*(fp._processor->getCamera()->getViewport()));
+        setViewport(vp.get());
     }
 
     // check whenever this unit do contain barrier nodes as childs
@@ -599,15 +554,7 @@ void Unit::setupInputsFromParents()
                 osg::notify(osg::FATAL) << "osgPPU::Unit::setupInputsFromParents() - " << getName() <<" - non valid barrier child!" << std::endl;
                 return;
             }
-    
-            // find next free input slot of the blocked child
-            //unsigned int index = 0;
-            //for (;;index++)
-            //    if (!child->getInputTexture(index) && !child->isInputIndexFixed(index)) break;
-    
-            // set the output texture of the parent as input texture to the child
-            //child->setInputTexture(getOrCreateOutputTexture(0), index);
-            
+
             // add the texture of the blocked parent to the blocked child
             child->mInputTex[child->getNumParents()] = getOrCreateOutputTexture(0);
             child->dirty();
@@ -622,12 +569,14 @@ void Unit::printDebugInfo()
     osg::NotifySeverity level = osg::INFO;
 
     // debug information
-    osg::notify(level) << getName() << "(" << getIndex() << ")" << std::endl;
-    osg::notify(level) << "\t vp (ref " << getInputTextureIndexForViewportReference() << "): " << (int)getViewport()->x() << " " << (int)getViewport()->y() << " " << (int)getViewport()->width() << " " << (int)getViewport()->height() << std::endl;
-    osg::notify(level) << "\t shader: " << std::hex << getShader() << std::dec << std::endl;
+    osg::notify(level) << getName() << std::endl;
+    
+    if (getViewport() != NULL)
+        osg::notify(level) << std::dec << "\t vp (ref " << (int)getInputTextureIndexForViewportReference() << "): " << (int)(getViewport()->x()) << " " << (int)(getViewport()->y()) << " " << (int)(getViewport()->width()) << " " << (int)(getViewport()->height()) << std::endl;
 
     if (getShader() != NULL)
     {
+        osg::notify(level) << "\t shader: " << std::hex << getShader() << std::dec << std::endl;
         osg::StateSet::UniformList::const_iterator jt = getShader()->getUniformList().begin();
         for (; jt != getShader()->getUniformList().end(); jt++)
         {

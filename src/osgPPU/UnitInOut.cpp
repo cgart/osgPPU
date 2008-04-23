@@ -31,11 +31,10 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
-    UnitInOut::UnitInOut() : Unit()
+    UnitInOut::UnitInOut() : Unit(),
+        mBypassedInput(-1)
     {
-        // create FBO because we need it
         mFBO = new osg::FrameBufferObject();
-        mBypassedInput = -1;
     }
     
     //------------------------------------------------------------------------------
@@ -56,7 +55,7 @@ namespace osgPPU
     {
         // initialize all parts of the ppu
         Unit::init();
-    
+
         // setup a geode and the drawable as childs of this unit
         mDrawable = createTexturedQuadDrawable();
         mGeode->removeDrawables(0, mGeode->getNumDrawables());
@@ -139,23 +138,34 @@ namespace osgPPU
         std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
         for (int i = 0; it != mOutputTex.end(); it++, i++)
         {
-            // if the output texture is a 2D texture 
-            if (dynamic_cast<osg::Texture2D*>(it->second.get()) != NULL)
+            // check whenever the output texture is a 2D texture 
+            osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
+            if (it->second.get() && mTex == NULL)
             {
-                // attach the 2D texture to the fbo
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, 
-                    osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(it->second.get())));
+                osg::notify(osg::WARN) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " currently only 2D output textures are supported" << std::endl;
+                continue;
+            }
 
             // if the output texture is NULL, hence generate one
-            }else if (it->second.get() == NULL && mViewport.valid())
+            if (it->second.get() == NULL)
             {
                 // preallocate the texture
-                osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(getOrCreateOutputTexture(it->first));
-                mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
-        
-                // attach the texture to the fbo
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
+                mTex = dynamic_cast<osg::Texture2D*>(getOrCreateOutputTexture(it->first));
+
+                if (mViewport.valid())
+                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
+                else
+                {
+                    osg::notify(osg::FATAL) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " cannot set output texture size, because viewport is invalid" << std::endl;
+                    continue;
+                }
             }
+
+            // attach the texture to the fbo
+            if (mTex)
+                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(mTex));
+            else
+                osg::notify(osg::FATAL) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " cannot attach output texture to FBO" << std::endl;
         }
     }
         

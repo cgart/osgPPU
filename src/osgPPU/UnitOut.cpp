@@ -40,8 +40,6 @@ namespace osgPPU
 
         // create a quad geometry
         mDrawable = createTexturedQuadDrawable();
-    
-        // setup a geode and the drawable as childs of this unit
         mGeode->removeDrawables(0, mGeode->getNumDrawables());
         mGeode->addDrawable(mDrawable.get());
     }

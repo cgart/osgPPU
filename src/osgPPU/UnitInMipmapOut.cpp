@@ -209,12 +209,6 @@ namespace osgPPU
             renderInfo.getState()->applyTextureAttribute(0, it->second.get());
             fbo_ext->glGenerateMipmapEXT(it->second->getTextureTarget());
         }
-
-        // TODO: remove this later. Have no real idea why it is required, it seems that somehwere it is not restored properly        
-        //fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-
-        // set default texture unit to 0
-        //renderInfo.getState()->setActiveTextureUnit(0);
     }
     
 }; // end namespace

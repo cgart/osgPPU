@@ -244,7 +244,7 @@ void Visitor::perform(Mode mode, osg::Group* n)
                 n->traverse(*this);
         
                 // setup the indices of the units, so that they got sorted correctly in the pipeline
-                unsigned int index = 0;
+                //unsigned int index = 0;
             
                 // Now we have to setup inputs and outputs of the units correctly
                 // This will be done by checking hte parents of every unit.
@@ -253,7 +253,7 @@ void Visitor::perform(Mode mode, osg::Group* n)
                 for (UnitSet::iterator it = mUnitSet.begin(); it != mUnitSet.end(); it++)
                 {
                     // set new ascending index   
-                    (*it)->setIndex(++index);
+                    //(*it)->setIndex(++index);
             
                     // sort the unit into the according pipeline
                     (*it)->getOrCreateStateSet()->setRenderBinToInherit();

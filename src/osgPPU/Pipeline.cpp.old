@@ -56,7 +56,7 @@ struct Pipeline::SortByIndex : std::less<osgUtil::RenderLeaf*>
                 const Unit::DrawCallback* bdc = dynamic_cast<const Unit::DrawCallback*>(b->getDrawCallback());
 
                 if (adc && bdc)
-                    return (*(adc->getParent()) < *(bdc->getParent()));
+                    return (adc->getParent()->getIndex() < bdc->getParent()->getIndex());
             }
 
             // give some warning

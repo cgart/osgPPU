@@ -117,19 +117,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         const TextureMap& getInputTextureMap() const {return mInputTex;}
 
         /**
-        * If you like that a unit doesn't use a certain input you can specify its index here.
-        * This allows to place units on certain positions in the unit graph without using its
-        * parents as inputs.
-        **/
-        void setIgnoreInput(unsigned int index, bool b = true);
-
-        //! Get input ignorance map
-        const IgnoreInputList& getIgnoreInputList() const { return mIgnoreList; }
-
-        //! Check whenever the input of the given index is ignored or not
-        bool getIgnoreInput(unsigned int index) const;
-
-        /**
         * Set an output texture.
         * @param outTex Texture used as output of this ppu 
         * @param mrt MRT (multiple rendering target) index of this output
@@ -162,6 +149,23 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Get mrt index to texture mapping
         **/
         inline const TextureMap& getOutputTextureMap() const {return mOutputTex;}
+
+        /**
+        * If you like that a unit doesn't use a certain input you can specify its index here.
+        * This allows to place units on certain positions in the unit graph without using its
+        * parents as inputs.
+        **/
+        void setIgnoreInput(unsigned int index, bool b = true);
+
+        /**
+        * Get input ignorance map which list all indices of input data which are ignored
+        **/
+        const IgnoreInputList& getIgnoreInputList() const { return mIgnoreList; }
+
+        /**
+        * Check whenever the input of the given index is ignored or not
+        **/
+        bool getIgnoreInput(unsigned int index) const;
         
         /**
         * Initialze the unit. This method should be overwritten by the
@@ -321,33 +325,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
                 Unit* _parent;
         };
 
-        // it is good to have friends
-        friend class Processor;
-        friend class DrawableCallback;
-        friend class Pipeline;
-        friend class Visitor;
-
         /**
-        * Comparison operator for sorting. Compare by index value
-        **/
-        inline bool operator < (const Unit& b) const
-        {
-               return mIndex < b.mIndex;
-        }
-        /**
-        * Return the index of this unit
-        **/
-        inline int getIndex() const { return mIndex; }
-        
-        /**
-        * Set index of this ppu
-        **/
-        inline void setIndex(int i) { mIndex = i; }
-
-        /**
-        * Use this method in the erived classes toimplement and update some unit 
+        * Use this method in the derived classes to implement and update some unit 
         * specific uniforms. The base class do only update uniforms like viewport size 
-        * or if defined input texture indices.
+        * or, if defined, input texture indices.
         **/
         virtual void updateUniforms();
 
@@ -359,16 +340,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         **/
         virtual void setupInputsFromParents();
         
-        /**
-        * Method to let the unit know that the rendering will now beginns. After
-        * this method the drawable of the unit is getting rendered.
-        **/
+        //! Method to let the unit know that the rendering will now beginns
         virtual void  noticeBeginRendering (osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
 
-        /**
-        * Let the unit know that the drawing is done. This method is called
-        * just right after the unit's drawable is rendered.
-        **/
+        //! Let the unit know that the drawing is done.
         virtual void  noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
 
         //! Notice underlying classes, that viewport size is changed
@@ -384,13 +359,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         virtual void noticeRemoveShader() {}
 
         //! Assign the input texture to the quad object 
-        virtual void assignInputTexture();
-
-        //! Assign output textures (is handled only in derived classes)
-        virtual void assignOutputTexture() {};
-        
-        //! Helper function to create screen sized quads
-        osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0), float l=0.0, float b=0.0, float r=1.0, float t=1.0);
+        void assignInputTexture();
 
         //! Assign a shader to the input texture to the quad object 
         void assignShader();
@@ -400,10 +369,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! disable shader
         void removeShader();
+
+        //! Helper function to create screen sized quads
+        osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0), float l=0.0, float b=0.0, float r=1.0, float t=1.0);
         
-        //! Call this method after the apply method in derived classes
-        void applyBase();
-                
         //! Input texture
         TextureMap  mInputTex;
         
@@ -418,10 +387,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         
         //! Shader which will be used for rendering
         osg::ref_ptr<Shader>   mShader;
-        
-        //! Index of this unit in the pipeline
-        int mIndex;
-        
+                
         //! Here we store a screen sized quad, so it can be used for rendering 
         osg::ref_ptr<osg::Drawable> mDrawable;
         
@@ -433,6 +399,9 @@ class OSGPPU_EXPORT Unit : public osg::Group {
          
         //! Store here the viewport of the camera, to which one this PPUs are applied
         osg::ref_ptr<osg::Viewport> mViewport;
+
+        //! This geode is used to setup the unit's drawable
+        osg::ref_ptr<osg::Geode> mGeode;
         
         //! Is the unit dirty
         bool mbDirty;
@@ -445,9 +414,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
-
-        //! This geode is used to setup the unit's drawable
-        osg::ref_ptr<osg::Geode> mGeode;
         
     private:
         bool mbActive;        
@@ -455,9 +421,13 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         bool mbTraversedMask; // requires to check whenever unit was laready traversed
         void* mUserData;
 
-        void initialize();
         void printDebugInfo();
         void traverse(osg::NodeVisitor& nv);
+
+        // it is good to have friends
+        friend class Processor;
+        friend class Pipeline;
+        friend class Visitor;
 
 };
 

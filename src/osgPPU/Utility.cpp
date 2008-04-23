@@ -77,7 +77,6 @@ GLenum createSourceTextureFormat(GLenum internalFormat)
 //--------------------------------------------------------------------------
 osg::Uniform::Type convertTextureToUniformType(osg::Texture* tex)
 {
-    if (tex == NULL) return osg::Uniform::UNDEFINED;
     
     if (dynamic_cast<osg::Texture1D*>(tex)) return osg::Uniform::SAMPLER_1D;
     if (dynamic_cast<osg::Texture2D*>(tex)) return osg::Uniform::SAMPLER_2D;
@@ -85,6 +84,8 @@ osg::Uniform::Type convertTextureToUniformType(osg::Texture* tex)
     if (dynamic_cast<osg::TextureCubeMap*>(tex)) return osg::Uniform::SAMPLER_CUBE;
     if (dynamic_cast<osg::TextureRectangle*>(tex)) return osg::Uniform::SAMPLER_2D;
     if (dynamic_cast<osg::Texture2DArray*>(tex)) return osg::Uniform::SAMPLER_2D_ARRAY;
+    
+    return osg::Uniform::UNDEFINED;
     
 }
 

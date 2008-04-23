@@ -27,7 +27,6 @@
 #include <osg/Geode>
 
 #include <osgPPU/Export.h>
-#include <osgPPU/Pipeline.h>
 
 
 namespace osgPPU
@@ -116,12 +115,6 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         inline void markUnitSubgraphNonDirty() {mbDirtyUnitGraph = false;}
 
         /**
-        * Get name of the pipeline (RenderBin) in which all the subgraphed units
-        * are sorted. Use this name to sort in additional units.
-        **/
-        const std::string& getPipelineName() const { return mPipeline->getName(); }
-
-        /**
         * Search in the subgraph for a unit. To be able to find the unit 
         * you have to use unique names for it, however this is not a strict rule.
         * If nothing found return NULL.
@@ -151,16 +144,10 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         virtual bool onUnitInit(Unit* ppu) {return true;};
 
         osg::ref_ptr<osg::Camera> mCamera;
-        osg::ref_ptr<Pipeline>  mPipeline;
         osg::ref_ptr<Visitor>   mVisitor;
 
         bool      mbDirty;
         bool      mbDirtyUnitGraph;
-        unsigned int    mID;
-        
-    private:
-        //! Variable which holds the lsat given id to the processor
-        static unsigned int _lastGivenID;        
 };
 
 

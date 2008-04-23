@@ -20,14 +20,30 @@
 #include <osg/Depth>
 #include <osg/Notify>
 #include <osg/ClampColor>
+#include <osg/FrameBufferObject>
 
 #include <assert.h>
 
+#include <osgUtil/RenderBin>
 
 namespace osgPPU
 {
 
-unsigned int Processor::_lastGivenID = 0;
+//------------------------------------------------------------------------------
+// Helper class used as render bin
+//------------------------------------------------------------------------------
+class PPUProcessingBin : public osgUtil::RenderBin
+{
+    public:
+        PPUProcessingBin(const std::string& name) : osgUtil::RenderBin()
+        {
+            setName(name);
+        }
+};
+
+// This is a default rendering bin which all units are usign
+static osg::ref_ptr<osgUtil::RenderBin> DefaultBin = new PPUProcessingBin("PPUProcessingBin");
+
 
 //------------------------------------------------------------------------------
 Processor::Processor()
@@ -35,16 +51,11 @@ Processor::Processor()
     // set some variables
     mbDirty = true;
     mbDirtyUnitGraph = true;
-    _lastGivenID ++;
-    mID = _lastGivenID;
 
     // first we have to create a render bin which will hold the units
     // of the subgraph.
-    char binName[128];
-    sprintf(binName, "osgPPU_Pipeline[%d]", mID);
-    mPipeline = new Pipeline();
-    mPipeline->setName(binName);
-    osgUtil::RenderBin::addRenderBinPrototype(binName, mPipeline.get());
+    if (!osgUtil::RenderBin::getRenderBinPrototype(DefaultBin->getName()))
+        osgUtil::RenderBin::addRenderBinPrototype(DefaultBin->getName(), DefaultBin.get());
 
     // create an instance of the visitor for the unit subgraph
     mVisitor = new Visitor(this);
@@ -57,19 +68,15 @@ Processor::Processor()
 Processor::Processor(const Processor& pp, const osg::CopyOp& copyop) :
     osg::Group(pp, copyop),
     mCamera(pp.mCamera),
-    mPipeline(pp.mPipeline),
     mVisitor(pp.mVisitor),
     mbDirty(pp.mbDirty),
-    mbDirtyUnitGraph(pp.mbDirtyUnitGraph),
-    mID(pp.mID)
+    mbDirtyUnitGraph(pp.mbDirtyUnitGraph)
 {
 }
 
 //------------------------------------------------------------------------------
 Processor::~Processor()
 {
-    // remove render bin prototype
-    osgUtil::RenderBin::removeRenderBinPrototype(mPipeline.get());
 }
 
 //------------------------------------------------------------------------------
@@ -80,7 +87,7 @@ void Processor::init()
     mStateSet->clear();
 
     // the processor's stateset have to be activated as first in the pipeline
-    mStateSet->setRenderBinDetails(0, getPipelineName());
+    mStateSet->setRenderBinDetails(100, DefaultBin->getName());
     
     // setup default state set 
     mStateSet->setMode(GL_BLEND, osg::StateAttribute::OFF);
@@ -95,6 +102,7 @@ void Processor::init()
 
     // the processor is of fixed function pipeline, however the childs (units) might not 
     mStateSet->setAttribute(new osg::Program());
+    mStateSet->setAttribute(new osg::FrameBufferObject());
 
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
@@ -155,12 +163,12 @@ void Processor::traverse(osg::NodeVisitor& nv)
 
             // debug information
             osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
-            osg::notify(osg::INFO) << "BEGIN " << mPipeline->getName() << std::endl;        
+            osg::notify(osg::INFO) << "BEGIN " << getName() << std::endl;        
     
             // use the osgppu's default visitor to init the subgraph
             mVisitor->perform(Visitor::INIT_UNIT_GRAPH, this);
             
-            osg::notify(osg::INFO) << "END " << mPipeline->getName() << std::endl;
+            osg::notify(osg::INFO) << "END " << getName() << std::endl;
             osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
     
             // optimize subgraph

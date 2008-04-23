@@ -271,7 +271,6 @@ class HDRRendering
             adaptedlumCopy->setName("AdaptedLuminanceCopy");
             adaptedlumCopy->addChild(adaptedlum);
 
-
             // now connect the output of the adaptedlum with the rest where it is needed
             adaptedlum->addChild(adaptedlumCopy);
             

@@ -71,7 +71,7 @@ namespace osgPPU
             ln->set((float)mIOMipmapViewport.size());
 
             osg::Uniform* le = ss->getOrCreateUniform(OSGPPU_MIPMAP_LEVEL_UNIFORM, osg::Uniform::FLOAT);
-            ln->set((float)i);
+            le->set((float)i);
         }
     }
     

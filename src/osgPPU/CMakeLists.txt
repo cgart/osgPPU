@@ -21,7 +21,6 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Unit.h
     ${HEADER_PATH}/UnitBypass.h
     ${HEADER_PATH}/UnitTexture.h
-    ${HEADER_PATH}/Pipeline.h
     ${HEADER_PATH}/Visitor.h
     ${HEADER_PATH}/BarrierNode.h
     ${HEADER_PATH}/Utility.h
@@ -42,7 +41,6 @@ ADD_LIBRARY(${LIB_NAME}
     UnitMipmapInMipmapOut.cpp
     Shader.cpp
     Processor.cpp
-    Pipeline.cpp
     Visitor.cpp
     Utility.cpp
 )

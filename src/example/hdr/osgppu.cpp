@@ -210,18 +210,12 @@ class Viewer : public osgViewer::Viewer
             float frameTime = elapsedTime() - mOldTime;
             mOldTime = elapsedTime();
 
-            // write the pipeline to a file
-            /*static int i = 0;
-            if (i > 1)
-            osgDB::writeObjectFile(*mProcessor, "Data/hdr.ppu");        
-            i++;
-            */
-
             // We have to update the frame interval in one shader.
             // This is needed to simulate light adaption on different brightness
             // of the scene. Since this is only an example application we can
             // include such an ugly piece of code. In your final application
             // I would suggest to solve this in another way
+            if (1)
             {
                 // get ppu containing the shader with the variable
                 osgPPU::Unit* ppu = mProcessor->findUnit("AdaptedLuminance");
@@ -322,7 +316,6 @@ int main(int argc, char **argv)
     osg::ArgumentParser arguments(&argc,argv);
 
     // construct the viewer.
-    //osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer(arguments);
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
     // just make it singlethreaded since I get some problems if not in this mode
@@ -336,8 +329,6 @@ int main(int argc, char **argv)
     if (!loadedModel) return 1;
     node->addChild(loadedModel);
 
-    //osg::Node* node = createTeapot();
-
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
     clamp->setClampVertexColor(GL_FALSE);
@@ -346,22 +337,6 @@ int main(int argc, char **argv)
 
     // make it protected and override, so that it is done for the whole rendering pipeline
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
-    
-    // add model to viewer.
-    /*osg::Group* group = new osg::Group();
-    group->addChild(node);
-
-    osg::Texture2D* tex1 = dynamic_cast<osg::Texture2D*>(Viewer::createRenderTexture(512, 512));
-    osg::Texture2D* tex2 = dynamic_cast<osg::Texture2D*>(Viewer::createRenderTexture(512, 512));
-    osg::FrameBufferObject* fbo = new osg::FrameBufferObject();
-    fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT, osg::FrameBufferAttachment(tex1));
-    fbo->setAttachment(GL_COLOR_ATTACHMENT1_EXT, osg::FrameBufferAttachment(tex2));
-    node->getOrCreateStateSet()->setAttribute(fbo, osg::StateAttribute::ON);
-    
-
-    osg::Node* o = osgDB::readNodeFiles(arguments);
-    group->addChild(o);
-    */
 
     viewer->setSceneData( node );
         
@@ -373,8 +348,8 @@ int main(int argc, char **argv)
     printf("\tF3 - Show brightpassed pixels\n");
     printf("\tF4 - Show blurred version of brightpassed pixels\n");
     printf("\tF5 - Show the 1x1 texture with adapted luminance value\n");
-    printf("\tF6 - Fade out the picture in picture\n");
-    printf("\tF7 - Fade in the picture in picture\n");
+    //printf("\tF6 - Fade out the picture in picture\n");
+    //printf("\tF7 - Fade in the picture in picture\n");
 
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));

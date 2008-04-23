@@ -52,7 +52,7 @@ class OSGPPU_EXPORT Pipeline : public osgUtil::RenderBin
         * and dependency graph.
         **/
         void sortImplementation();
-        
+
         /**
         * Get pipeline name. The name can only be specified during hte creation process
         * through the osgPPU::Processor. The name of the pipeline should be unique.
