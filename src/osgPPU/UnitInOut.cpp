@@ -63,7 +63,7 @@ namespace osgPPU
         mGeode->addDrawable(mDrawable.get());
 
         // setup bypassed output if required
-        if (mBypassedInput >= 0 && mBypassedInput < getNumParents())
+        if (mBypassedInput >= 0 && mBypassedInput < (int)getNumParents())
         {
             Unit* input = dynamic_cast<Unit*>(getParent(mBypassedInput));
             if (!input)

@@ -49,7 +49,7 @@ class Visitor;
 class OSGPPU_EXPORT Unit : public osg::Group {
     public:
 
-        META_Node(osgPPU, Unit)
+        META_Node(osgPPU, Unit);
 
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         typedef std::vector<unsigned int> IgnoreInputList;
@@ -162,16 +162,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Get mrt index to texture mapping
         **/
         inline const TextureMap& getOutputTextureMap() const {return mOutputTex;}
-
-        /**
-        * Return the index of this unit
-        **/
-        inline int getIndex() const { return mIndex; }
-        
-        /**
-        * Set index of this ppu
-        **/
-        inline void setIndex(int i) { mIndex = i; }
         
         /**
         * Initialze the unit. This method should be overwritten by the
@@ -187,15 +177,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * the behaviour of the unit might be unpredictable.
         **/
         virtual void update();
-        
-        /**
-        * Comparison operator for sorting. Compare by index value
-        **/
-        inline bool operator < (const Unit& b) const
-        {
-               return mIndex < b.mIndex;
-        }
-        
+                
         /**
         * Set viewport which is used for this Unit while rendering
         **/
@@ -344,6 +326,23 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         friend class DrawableCallback;
         friend class Pipeline;
         friend class Visitor;
+
+        /**
+        * Comparison operator for sorting. Compare by index value
+        **/
+        inline bool operator < (const Unit& b) const
+        {
+               return mIndex < b.mIndex;
+        }
+        /**
+        * Return the index of this unit
+        **/
+        inline int getIndex() const { return mIndex; }
+        
+        /**
+        * Set index of this ppu
+        **/
+        inline void setIndex(int i) { mIndex = i; }
 
         /**
         * Use this method in the erived classes toimplement and update some unit 

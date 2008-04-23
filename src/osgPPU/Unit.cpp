@@ -217,6 +217,8 @@ bool Unit::setInputToUniform(Unit* parent, const std::string& uniform, bool add)
     mInputToUniformMap[parent] = std::pair<std::string, unsigned int>(uniform, index);
 
     dirty();
+
+    return true;
 }
 
 //--------------------------------------------------------------------------
@@ -474,8 +476,9 @@ void Unit::init()
 class CollectInputParents : public osg::NodeVisitor
 {
 public:
-    CollectInputParents(Unit* caller) : _caller(caller),
-        osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_PARENTS)
+    CollectInputParents(Unit* caller) : 
+         osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_PARENTS),
+        _caller(caller)
     {
         _inputUnitsFound = false;
     }

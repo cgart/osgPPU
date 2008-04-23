@@ -27,12 +27,12 @@
 namespace osgPPU
 {
 
-//! Class derived from std::list and osgUtil::RenderBin which do represent a pipeline of units
+//! Class derived osgUtil::RenderBin which do represent a pipeline of units
 /**
-* The pipeline is represented as a list of Units. The pipeline is derived from the
+*  The pipeline is derived from the
 * osgUtil::RenderBin class so that all attached units are sorted into this bin.
-* The pipeline can only be used directly from the Processor, there for it has no
-* public interface.
+* There is no public interface for the pipeline, since it is not required
+* to work with it outside of the processor.
 **/
 class OSGPPU_EXPORT Pipeline : public osgUtil::RenderBin
 {

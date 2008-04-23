@@ -23,6 +23,10 @@
 
 #include <osgPPU/Export.h>
 
+/**
+ * \namespace osgPPU
+ * osgPPU module
+ **/
 namespace osgPPU
 {
     /**

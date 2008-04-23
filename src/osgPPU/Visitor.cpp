@@ -117,7 +117,7 @@ void Visitor::apply (osg::Group &node)
 
             for (Unit::TextureMap::const_iterator it = tmap.begin(); it != tmap.end(); it++)
             {
-                if (it->first > mMaxUnitInputIndex)
+                if (it->first > (int)mMaxUnitInputIndex)
                     mMaxUnitInputIndex = it->first;
             }
         }

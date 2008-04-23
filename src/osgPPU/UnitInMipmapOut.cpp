@@ -84,7 +84,7 @@ namespace osgPPU
 
             // attach a drawable for each mipmap level
             // however if we want to 
-            for (unsigned int i = baseLevel; i < mNumLevels; i++)
+            for (int i = baseLevel; i < mNumLevels; i++)
             {
                 // setup the drawable
                 osg::Drawable* draw = createTexturedQuadDrawable();
@@ -103,7 +103,7 @@ namespace osgPPU
                 ln->set((float)mNumLevels);
 
                 osg::Uniform* le = ss->getOrCreateUniform(OSGPPU_MIPMAP_LEVEL_UNIFORM, osg::Uniform::FLOAT);
-                ln->set((float)i);
+                le->set((float)i);
             }
         }
     }
