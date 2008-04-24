@@ -1,3 +1,22 @@
+2008-04-24 20:58  art
+
+	* [r99]
+	  - New UnitDepthbufferBypass added
+	  - The unit is capable of bypassing the depth buffer attachment of
+	  the camera to the output.
+	  - It performs no rendering and therefor is very efficient
+
+2008-04-24 14:35  art
+
+	* [r98]
+	  - Offline Mode removed out of the Unit, since it is not needed
+	  anymore
+
+2008-04-23 16:22  art
+
+	* [r97]
+	  
+
 2008-04-23 15:56  art
 
 	* [r96]

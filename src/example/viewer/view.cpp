@@ -10,19 +10,27 @@
 //--------------------------------------------------------------------------
 // Create camera resulting texture
 //--------------------------------------------------------------------------
-osg::Texture* createRenderTexture(int tex_width, int tex_height)
+osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth)
 {
     // create simple 2D texture
     osg::Texture2D* texture2D = new osg::Texture2D;
     texture2D->setTextureSize(tex_width, tex_height);
-    texture2D->setInternalFormat(GL_RGBA);
+    texture2D->setResizeNonPowerOfTwoHint(false);
     texture2D->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR);
     texture2D->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+    texture2D->setWrap(osg::Texture2D::WRAP_S,osg::Texture2D::CLAMP_TO_BORDER);
+    texture2D->setWrap(osg::Texture2D::WRAP_T,osg::Texture2D::CLAMP_TO_BORDER);
+    texture2D->setBorderColor(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
 
-    // since we want to use HDR, setup float format
-    texture2D->setInternalFormat(GL_RGBA16F_ARB);
-    texture2D->setSourceFormat(GL_RGBA);
-    texture2D->setSourceType(GL_FLOAT);
+    // setup float format
+    if (!depth)
+    {
+        texture2D->setInternalFormat(GL_RGBA16F_ARB);
+        texture2D->setSourceFormat(GL_RGBA);
+        texture2D->setSourceType(GL_FLOAT);
+    }else{
+        texture2D->setInternalFormat(GL_DEPTH_COMPONENT);
+    }
 
     return texture2D;
 }
@@ -35,7 +43,8 @@ void setupCamera(osg::Camera* camera)
     osg::Viewport* vp = camera->getViewport();
 
     // create texture to render to
-    osg::Texture* texture = createRenderTexture((int)vp->width(), (int)vp->height());
+    osg::Texture* texture = createRenderTexture((int)vp->width(), (int)vp->height(), false);
+    osg::Texture* depthTexture = createRenderTexture((int)vp->width(), (int)vp->height(), true);
 
     // set up the background color and clear mask.
     camera->setClearColor(osg::Vec4(0.0f,0.0f,0.0f,0.0f));
@@ -44,12 +53,14 @@ void setupCamera(osg::Camera* camera)
     // set viewport
     camera->setViewport(vp);
     camera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
+    camera->setProjectionMatrixAsPerspective(35.0, vp->width()/vp->height(), 0.001, 100.0);
 
     // tell the camera to use OpenGL frame buffer object where supported.
     camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 
     // attach the texture and use it as the color buffer.
     camera->attach(osg::Camera::COLOR_BUFFER, texture);
+    camera->attach(osg::Camera::DEPTH_BUFFER, depthTexture);
 }
 
 //--------------------------------------------------------------------------
