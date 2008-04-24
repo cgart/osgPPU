@@ -34,7 +34,6 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 Unit::Unit() : osg::Group(),
     mbDirty(true),
-    mbOfflinePPU(false),
     mOutputInternalFormat(GL_RGBA16F_ARB),
     mInputTexIndexForViewportReference(0),
     mbActive(true),
@@ -88,7 +87,6 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     sModelviewMatrix(ppu.sModelviewMatrix),
     mViewport(ppu.mViewport),
     mbDirty(ppu.mbDirty),
-    mbOfflinePPU(ppu.mbOfflinePPU),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
@@ -499,9 +497,6 @@ public:
 //--------------------------------------------------------------------------
 void Unit::setupInputsFromParents()
 {
-    // if the ppu isoffline, then do nothing
-    if (getOfflineMode()) return;
-
     // use a visitor to collect all inputs from parents
     CollectInputParents cp(this);
     this->accept(cp);

@@ -213,20 +213,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
          * play with the viewport.
         **/
         void setRenderingFrustum(float left, float top, float right, float bottom);
-        
-        /**
-        * Set this ppu in the mode, so that it is not combined into the rendering graph.
-        * This means its output will not be connected to input of the next ppu. Thus the 
-        * rendering is done offline in the manner of ppu graph. You have to setup
-        * the input and the output of the offline ppus by yourself. Offline ppus
-        * are used for a pipeline independent computation on the input data.
-        **/
-        inline void setOfflineMode(bool mode) {mbOfflinePPU = mode;}
-
-        /**
-        * Check whenever this ppu runs in an offline mode
-        **/
-        inline bool getOfflineMode() const { return mbOfflinePPU; }
 
         /**
          * Set internal format which will be used by creating the textures. The format
@@ -405,9 +391,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         
         //! Is the unit dirty
         bool mbDirty;
-        
-        //! This ppu is marked as not to be included into the rendering graph 
-        bool mbOfflinePPU;
 
         //! Internal format of the output texture
         GLenum mOutputInternalFormat;

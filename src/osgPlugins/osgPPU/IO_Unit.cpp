@@ -198,13 +198,6 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
-    int isOffline = 0;
-    if (fr.readSequence("isOffline", isOffline))
-    { 
-        unit.setOfflineMode(isOffline);
-        itAdvanced = true;
-    }
-
     int inputTextureIndexForViewportReference = 0;
     if (fr.readSequence("inputTextureIndexForViewportReference", inputTextureIndexForViewportReference))
     { 
@@ -440,8 +433,7 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     // retrieve default parameters and sotre them
     fout.indent() << "name " <<  fout.wrapString(unit.getName()) << std::endl;
     fout.indent() << "isActive " <<  unit.getActive() << std::endl;
-    fout.indent() << "isOffline " <<  unit.getOfflineMode() << std::endl;
-    fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
+`    fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
     
     // write internal format
     {
