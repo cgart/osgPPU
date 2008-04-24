@@ -271,6 +271,13 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         osg::Geode* getGeode() { return mGeode.get(); }
         const osg::Geode* getGeode() const { return mGeode.get(); }
 
+        /**
+        * Setup children nodes if they are connected by a barrier node.
+        * This method don't need to be called outside of the unit. The method
+        * is placed here to allow acess to it from the derived units.
+        **/
+        void setupBlockedChildren();
+        
     protected:
 
         /**
@@ -397,7 +404,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
-        
+
     private:
         bool mbActive;        
         bool mbTraversed; // requires to check whenever unit was already traversed

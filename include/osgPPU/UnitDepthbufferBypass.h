@@ -14,46 +14,40 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
+#ifndef _C_UNIT_DEPTHBUFFER_BYPASS_H_
+#define _C_UNIT_DEPTHBUFFER_BYPASS_H_
+
+
+//-------------------------------------------------------------------------
+// Includes
+//-------------------------------------------------------------------------
 #include <osgPPU/UnitBypass.h>
-#include <osgPPU/Processor.h>
-#include <osgPPU/BarrierNode.h>
 
 namespace osgPPU
 {
+    //! Bypass teh depthbuffer attachment of the camera to the output
+    /**
+    * This unit do not perform any rendering, however it do
+    * bypass the depthbuffer attachment of the camera of the parent processor
+    * to its output texture.
+    *
+    * This unit has to be placed directly under the processor, so that the unit
+    * get access to the processor's attachments.
+    **/
+    class OSGPPU_EXPORT UnitDepthbufferBypass : public UnitBypass {
+        public:
+            META_Node(osgPPU,UnitDepthbufferBypass);
+        
+            UnitDepthbufferBypass();
+            UnitDepthbufferBypass(const UnitDepthbufferBypass& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+            
+            ~UnitDepthbufferBypass();
+            
+            void init();
+        
+        private:
+            void setupInputsFromParents();
+    };
+};
 
-    //------------------------------------------------------------------------------
-    UnitBypass::UnitBypass() : Unit()
-    {
-    }
-
-    //------------------------------------------------------------------------------
-    UnitBypass::UnitBypass(const UnitBypass& u, const osg::CopyOp& copyop) : 
-        Unit(u, copyop) 
-    {
-
-    }
-    
-    //------------------------------------------------------------------------------
-    UnitBypass::~UnitBypass()
-    {
-
-    }
-
-
-    //------------------------------------------------------------------------------
-    void UnitBypass::init()
-    {
-        Unit::init(); 
-    }
-
-    //------------------------------------------------------------------------------
-    void UnitBypass::setupInputsFromParents()
-    {
-        // same as normal unit
-        Unit::setupInputsFromParents();
-
-        // now do set the output texture equal to the input
-        mOutputTex = mInputTex;
-    }
-
-}; // end namespace
+#endif

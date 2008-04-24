@@ -535,6 +535,12 @@ void Unit::setupInputsFromParents()
         setViewport(vp.get());
     }
 
+    setupBlockedChildren();
+}
+
+//--------------------------------------------------------------------------
+void Unit::setupBlockedChildren()
+{
     // check whenever this unit do contain barrier nodes as childs
     for (unsigned int i=0; i < getNumChildren(); i++)
     {
@@ -555,7 +561,6 @@ void Unit::setupInputsFromParents()
             child->dirty();
         }
     }
-
 }
 
 //--------------------------------------------------------------------------

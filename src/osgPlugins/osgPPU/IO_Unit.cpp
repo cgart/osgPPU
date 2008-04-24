@@ -26,6 +26,7 @@
 #include <osgPPU/UnitInResampleOut.h>
 #include <osgPPU/UnitText.h>
 #include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitDepthbufferBypass.h>
 #include <osgPPU/UnitTexture.h>
 #include <osgPPU/BarrierNode.h>
 
@@ -433,7 +434,7 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     // retrieve default parameters and sotre them
     fout.indent() << "name " <<  fout.wrapString(unit.getName()) << std::endl;
     fout.indent() << "isActive " <<  unit.getActive() << std::endl;
-`    fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
+    fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
     
     // write internal format
     {
@@ -648,6 +649,16 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitBypassProxy
     new osgPPU::UnitBypass,
     "UnitBypass",
     "UnitBypass",
+    &readUnit,
+    &writeUnit
+);
+
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_UnitDepthbufferBypassProxy
+(
+    new osgPPU::UnitDepthbufferBypass,
+    "UnitDepthbufferBypass",
+    "UnitDepthbufferBypass",
     &readUnit,
     &writeUnit
 );

@@ -40,6 +40,10 @@ namespace osgPPU
             virtual ~UnitBypass();
             
             virtual void init();
+    
+        protected:
+            virtual void setupInputsFromParents();
+            
     };
 };
 

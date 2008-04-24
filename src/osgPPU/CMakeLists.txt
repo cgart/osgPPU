@@ -20,6 +20,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Shader.h
     ${HEADER_PATH}/Unit.h
     ${HEADER_PATH}/UnitBypass.h
+    ${HEADER_PATH}/UnitDepthbufferBypass.h
     ${HEADER_PATH}/UnitTexture.h
     ${HEADER_PATH}/Visitor.h
     ${HEADER_PATH}/BarrierNode.h
@@ -31,6 +32,7 @@ ADD_LIBRARY(${LIB_NAME}
     ${LIB_PUBLIC_HEADERS}
     Unit.cpp
     UnitBypass.cpp
+    UnitDepthbufferBypass.cpp
     UnitTexture.cpp
     UnitOut.cpp
     UnitOutCapture.cpp
