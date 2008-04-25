@@ -1,3 +1,16 @@
+2008-04-25 08:41  art
+
+	* [r101]
+	  - DoF example was not completely commited, hence deactivate it
+	  until commitment is complete
+
+2008-04-24 23:27  art
+
+	* [r100]
+	  - Depth of Field example added
+	  - The example shows a simple depth of field faked implementation,
+	  showing also the UnitDepthbufferBypass in action
+
 2008-04-24 20:58  art
 
 	* [r99]
