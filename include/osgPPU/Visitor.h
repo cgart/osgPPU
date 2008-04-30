@@ -51,7 +51,8 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
             UPDATE = 4,
             CULL = 5,
             RESOLVE_CYCLES = 6,
-            OPTIMIZE = 7
+            OPTIMIZE = 7,
+            REMOVE_UNIT = 8
         } Mode;
 
 
@@ -93,6 +94,16 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
         }
 
         /**
+        * Remove unit from the graph
+        **/
+        inline bool removeUnit(Unit* unit, osg::Group* root)
+        {
+            mUnitToRemove = unit;
+            perform(REMOVE_UNIT, root);
+            return mUnitToRemoveResult;
+        }
+
+        /**
         * Get current working mode of the visitor.
         * You need this to detect if a node which is currently traversed is traversed
         * by this visitor or not.
@@ -115,6 +126,7 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
         CleanTraverseMaskVisitor* mCleanTraversedMaskVisitor;
         Processor* mProcessor;        
         Unit* mUnitToFind;
+        Unit* mUnitToRemove;
 
         Mode mMode;
         std::string mUnitToFindName;
@@ -122,6 +134,7 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
         osg::NodeVisitor* mCullVisitor;
 
         bool mbValidSubgraph;
+        bool mUnitToRemoveResult;
         unsigned int mMaxUnitInputIndex;
 };
 

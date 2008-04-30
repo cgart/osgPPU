@@ -202,6 +202,42 @@ void Visitor::apply (osg::Group &node)
         // traverse the unit as if it where a group node
         node.traverse(*this);
 
+    // if we are looking for a unit to remove it
+    }else if (mMode == REMOVE_UNIT)
+    {
+        if (unit != NULL && unit == mUnitToRemove)
+        {
+            // set all parent units as parents for the own children
+            for (unsigned int i=0; i < unit->getNumParents(); i++)
+                for (unsigned int j=0; j < unit->getNumChildren(); j++)
+                {
+                    if (!unit->getParent(i)->containsNode(unit->getChild(j)))
+                        unit->getParent(i)->addChild(unit->getChild(j));
+                }
+
+            // mark each child as dirty
+            for (unsigned int j=0; j < unit->getNumChildren(); j++)
+            {
+                if (dynamic_cast<Unit*>(unit->getChild(j)))
+                    dynamic_cast<Unit*>(unit->getChild(j))->dirty();
+            }
+
+            // remove all children
+            unit->removeChildren(0, unit->getNumChildren());
+
+            // remove unit from its parents
+            osg::Node::ParentList parents = unit->getParents();
+            for (unsigned int i=0; i < parents.size(); i++)
+            {
+                parents[i]->removeChild(unit);
+            }
+
+            return;
+        }
+
+        // traverse the unit as if it where a group node
+        node.traverse(*this);
+
     // if we want to update the unit graph
     }else if (mMode == UPDATE)
     {   
@@ -286,6 +322,18 @@ void Visitor::perform(Mode mode, osg::Group* n)
                 mUnitToFind = NULL;
                 n->traverse(*this);
             }    
+            break;
+
+        // if we want to remove a unit, then
+        case REMOVE_UNIT:
+            if (!mbValidSubgraph)
+            {
+                mUnitToRemoveResult = false;
+                break;
+            }else
+            {
+                n->traverse(*this);
+            }
             break;
 
         // if we want to update the units

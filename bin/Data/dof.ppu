@@ -3,7 +3,6 @@ osgPPU::Processor {
     UniqueID UnitBypass_0
     name "ColorBypass"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -17,7 +16,6 @@ osgPPU::Processor {
     UniqueID UnitInResampleOut_1
     name "ResampleLight"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -32,7 +30,6 @@ osgPPU::Processor {
     UniqueID UnitInOut_4
     name "BlurHorizontalLight"
     isActive 1
-    isOffline 4
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -176,7 +173,6 @@ osgPPU::Processor {
     UniqueID UnitInOut_5
     name "BlurVerticalLight"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -281,7 +277,6 @@ osgPPU::Processor {
     UniqueID UnitInOut_3
     name "DoF-Result"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -423,7 +418,6 @@ osgPPU::Processor {
     UniqueID UnitText_9
     name "FPSTextPPU"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -466,7 +460,6 @@ osgPPU::Processor {
     UniqueID UnitOut_10
     name "PipelineResult"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference -1
     outputInternalFormat 34842
 
@@ -477,7 +470,6 @@ osgPPU::Processor {
     UniqueID UnitInResampleOut_2
     name "ResampleStrong"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -492,7 +484,6 @@ osgPPU::Processor {
     UniqueID UnitInOut_12
     name "BlurHorizontalStrong"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -596,7 +587,6 @@ osgPPU::Processor {
     UniqueID UnitInOut_8
     name "BlurVerticalStrong"
     isActive 1
-    isOffline 84
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
@@ -701,7 +691,6 @@ osgPPU::Processor {
     UniqueID UnitDepthbufferBypass_7
     name "DepthBypass"
     isActive 1
-    isOffline 0
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 

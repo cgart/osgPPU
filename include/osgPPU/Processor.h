@@ -123,6 +123,17 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         Unit* findUnit(const std::string& name);
 
         /**
+        * Remove a unit from the processor's subgraph. The method will 
+        * use the visitor to remove the unit from the graph. The subgraph of the unit 
+        * will be marked as dirty, so that it gets reorganized on the next traverse. All the
+        * input units of the removed unit will be afterwards input units for the children
+        * of the removed unit.
+        * @param unit Pointer to the unit to remove
+        * @return true on success otherwise false
+        **/
+        bool removeUnit(Unit* unit);
+
+        /**
         * Overridden method from osg::Node to allow computation of bounding box.
         * This is needed to prevent traversion of this computation down to all childs.
         * This method do always returns empty bounding sphere.

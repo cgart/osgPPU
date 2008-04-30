@@ -141,6 +141,18 @@ Unit* Processor::findUnit(const std::string& name)
 }
 
 //------------------------------------------------------------------------------
+bool Processor::removeUnit(Unit* unit)
+{
+    if (mbDirtyUnitGraph)
+    {
+        osg::notify(osg::INFO) << "osgPPU::Processor::removeUnit(" << unit->getName() << ") - cannot remove unit because the graph is not valid. " << std::endl;        
+        return false;
+    }
+
+    return mVisitor->removeUnit(unit, this);
+}
+
+//------------------------------------------------------------------------------
 void Processor::traverse(osg::NodeVisitor& nv)
 {
     // if not initialized before, then do it
