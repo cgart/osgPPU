@@ -68,9 +68,12 @@ Unit::Unit() : osg::Group(),
     {
         getOrCreateStateSet()->setTextureAttribute(i, new osg::Texture2D());
     }
-
+    
     // no culling, because we do not need it
     setCullingActive(false);
+
+    // set default color attribute
+    setColorAttribute(new ColorAttribute());
 }
 
 //------------------------------------------------------------------------------
@@ -85,6 +88,8 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     sProjectionMatrix(ppu.sProjectionMatrix),
     sModelviewMatrix(ppu.sModelviewMatrix),
     mViewport(ppu.mViewport),
+    mGeode(ppu.mGeode),
+    mColorAttribute(ppu.mColorAttribute),
     mbDirty(ppu.mbDirty),
     mOutputInternalFormat(ppu.mOutputInternalFormat),
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
@@ -101,14 +106,29 @@ Unit::~Unit()
 }
 
 //------------------------------------------------------------------------------
+void Unit::setColorAttribute(ColorAttribute* ca)
+{
+    // remove the old one
+    if (mColorAttribute.valid())
+        getOrCreateStateSet()->removeAttribute(mColorAttribute.get());
+
+    // set new color attribute
+    mColorAttribute = ca;
+    getOrCreateStateSet()->setAttribute(ca, osg::StateAttribute::ON);
+}
+
+//------------------------------------------------------------------------------
 osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const osg::Vec3& widthVec,const osg::Vec3& heightVec, float l, float b, float r, float t)
 {
     osg::Geometry* geom = osg::createTexturedQuadGeometry(corner, widthVec, heightVec, l,b,r,t);
 
     // setup default state set
     geom->setStateSet(new osg::StateSet());
-    geom->setUseDisplayList(false);
+    geom->setUseDisplayList(true);
     geom->setDrawCallback(new Unit::DrawCallback(this));
+
+    // remove colors from the geometry
+    geom->setColorBinding(osg::Geometry::BIND_OFF);
 
     return geom;
 }
@@ -389,6 +409,12 @@ void Unit::traverse(osg::NodeVisitor& nv)
         {
             mbTraversed = !mbTraversedMask;
     
+            if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR) 
+            {
+                //printf("%s - %d\n", getName().c_str(), getStateSet()->requiresUpdateTraversal());
+                getStateSet()->runUpdateCallbacks(&nv);
+            }
+
             osg::Group::traverse(nv);
         }
 

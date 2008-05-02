@@ -23,6 +23,7 @@
 //-------------------------------------------------------------------------
 #include <osg/Texture>
 #include <osg/Geode>
+#include <osgPPU/ColorAttribute.h>
 
 #include <osgPPU/Export.h>
 #include <osgPPU/Shader.h>
@@ -278,6 +279,18 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         **/
         void setupBlockedChildren();
         
+        /**
+        * Set a new color attribute for this unit. This will replace the color attribute
+        * if it is already set. The color attribute can be used to bind a color to 
+        * an unit. Very useful for blending units.
+        **/
+        void setColorAttribute(ColorAttribute* ca);
+
+        /**
+        * Get current color attribute of the unit.
+        **/
+        ColorAttribute* getColorAttribute() { return mColorAttribute.get(); }
+
     protected:
 
         /**
@@ -396,6 +409,9 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! This geode is used to setup the unit's drawable
         osg::ref_ptr<osg::Geode> mGeode;
         
+        //! Color attribute for fast direct access
+        osg::ref_ptr<ColorAttribute> mColorAttribute;
+
         //! Is the unit dirty
         bool mbDirty;
 

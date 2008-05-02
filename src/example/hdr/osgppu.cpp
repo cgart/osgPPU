@@ -183,6 +183,9 @@ class Viewer : public osgViewer::Viewer
                 vp->width() *= 0.4;
                 vp->height() *= 0.3;                
                 bgppu->setViewport(vp);
+
+                // enable blending on this unit
+                bgppu->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
             }
 
             // As a last step we setup a ppu which do render the content of the result
@@ -259,6 +262,7 @@ public:
             {
                 osgPPU::UnitTexture* ppu = dynamic_cast<osgPPU::UnitTexture*>(viewer->getProcessor()->findUnit("TextureUnit"));
                 osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->findUnit("TextPPU"));
+                osgPPU::UnitInOut* pip = dynamic_cast<osgPPU::UnitInOut*>(viewer->getProcessor()->findUnit("PictureInPicturePPU"));
 
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
@@ -281,21 +285,19 @@ public:
                     ppu->setTexture(viewer->getProcessor()->findUnit("AdaptedLuminanceCopy")->getOrCreateOutputTexture(0));
                     textppu->setText("Adapted Luminance");
                 }
-                #if 0
-                else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
+                #if 1
+                else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6 && pip)
                 {
-                    ppu->setBlendStartValue(1.0);
-                    ppu->setBlendFinalValue(0.0);
-                    ppu->setBlendStartTimeToCurrent();
-                    ppu->setBlendDuration(3.0);
-                    ppu->setUseBlendMode(true);
-                }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F7)
+                    pip->getColorAttribute()->setStartColor(osg::Vec4(1,1,1,1));
+                    pip->getColorAttribute()->setEndColor(osg::Vec4(1,1,1,0));
+                    pip->getColorAttribute()->setStartTime(viewer->elapsedTime());
+                    pip->getColorAttribute()->setEndTime(pip->getColorAttribute()->getStartTime() + 3.0);
+                }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F7 && pip)
                 {
-                    ppu->setBlendStartValue(0.0);
-                    ppu->setBlendFinalValue(1.0);
-                    ppu->setBlendStartTimeToCurrent();
-                    ppu->setBlendDuration(3.0);
-                    ppu->setUseBlendMode(true);
+                    pip->getColorAttribute()->setStartColor(osg::Vec4(1,1,1,0));
+                    pip->getColorAttribute()->setEndColor(osg::Vec4(1,1,1,1));
+                    pip->getColorAttribute()->setStartTime(viewer->elapsedTime());
+                    pip->getColorAttribute()->setEndTime(pip->getColorAttribute()->getStartTime() + 3.0);
                 }
                 #endif
                 break;
@@ -347,8 +349,8 @@ int main(int argc, char **argv)
     printf("\tF3 - Show brightpassed pixels\n");
     printf("\tF4 - Show blurred version of brightpassed pixels\n");
     printf("\tF5 - Show the 1x1 texture with adapted luminance value\n");
-    //printf("\tF6 - Fade out the picture in picture\n");
-    //printf("\tF7 - Fade in the picture in picture\n");
+    printf("\tF6 - Fade out the picture in picture\n");
+    printf("\tF7 - Fade in the picture in picture\n");
 
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));

@@ -113,11 +113,13 @@ void Processor::init()
     // make it protected and override, so that it is done for the whole rendering pipeline
     mStateSet->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
+    // setup default blending function
+    osg::BlendFunc* bf = new osg::BlendFunc();
+    bf->setFunction(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
+    mStateSet->setAttribute(bf, osg::StateAttribute::ON);
+
     // not dirty anymore
     mbDirty = false;
-
-    // add as drawable
-    setNumChildrenRequiringUpdateTraversal(1);
 }
 
 
