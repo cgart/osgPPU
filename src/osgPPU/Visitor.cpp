@@ -241,7 +241,6 @@ void Visitor::apply (osg::Group &node)
             {
                 parents[i]->removeChild(unit);
             }
-
             return;
         }
 

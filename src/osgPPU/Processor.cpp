@@ -21,6 +21,9 @@
 #include <osg/Notify>
 #include <osg/ClampColor>
 #include <osg/FrameBufferObject>
+#include <osg/BlendColor>
+#include <osg/BlendEquation>
+#include <osg/Material>
 
 #include <assert.h>
 
@@ -89,34 +92,33 @@ void Processor::init()
     // the processor's stateset have to be activated as first in the pipeline
     mStateSet->setRenderBinDetails(100, DefaultBin->getName());
     
-    // setup default state set 
-    mStateSet->setMode(GL_BLEND, osg::StateAttribute::OFF);
+    // setup default state set modes
     mStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
     mStateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
     mStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
-    // we should not write to the depth buffer 
+    // setup default blending functions
+    mStateSet->setMode(GL_BLEND, osg::StateAttribute::OFF);
+    mStateSet->setAttribute(new osg::BlendFunc(), osg::StateAttribute::ON);
+    mStateSet->setAttribute(new osg::BlendColor(osg::Vec4(1,1,1,1)), osg::StateAttribute::ON);
+    mStateSet->setAttribute(new osg::BlendEquation(osg::BlendEquation::FUNC_ADD), osg::StateAttribute::ON);
+
+    // we shouldn't write to the depth buffer 
     osg::Depth* ds = new osg::Depth();
     ds->setWriteMask(false);
     mStateSet->setAttribute(ds, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
     // the processor is of fixed function pipeline, however the childs (units) might not 
-    mStateSet->setAttribute(new osg::Program());
-    mStateSet->setAttribute(new osg::FrameBufferObject());
+    mStateSet->setAttribute(new osg::Program(), osg::StateAttribute::ON);
+    mStateSet->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
+    mStateSet->setAttribute(new osg::Material(), osg::StateAttribute::ON);
 
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
     clamp->setClampVertexColor(GL_FALSE);
     clamp->setClampFragmentColor(GL_FALSE);
     clamp->setClampReadColor(GL_FALSE);
-
-    // make it protected and override, so that it is done for the whole rendering pipeline
     mStateSet->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-
-    // setup default blending function
-    osg::BlendFunc* bf = new osg::BlendFunc();
-    bf->setFunction(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
-    mStateSet->setAttribute(bf, osg::StateAttribute::ON);
 
     // not dirty anymore
     mbDirty = false;

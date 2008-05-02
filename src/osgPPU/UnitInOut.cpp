@@ -110,10 +110,11 @@ namespace osgPPU
         // if not exists, then do allocate it
         osg::Texture2D* mTex = new osg::Texture2D();
         mTex->setResizeNonPowerOfTwoHint(false);
-        mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
-        mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+        mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
+        mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
         mTex->setInternalFormat(getOutputInternalFormat());
         mTex->setSourceFormat(createSourceTextureFormat(getOutputInternalFormat()));
+        mTex->setBorderColor(osg::Vec4(0,0,0,0));
 
         // check if the input texture was in nearest mode
         if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MIN_FILTER) == osg::Texture2D::NEAREST)
