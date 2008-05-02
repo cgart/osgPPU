@@ -90,7 +90,6 @@ Visitor::Visitor(Processor* proc) : osg::NodeVisitor()
     mCullVisitor = NULL;
     mMaxUnitInputIndex = 0;
     mCleanTraversedMaskVisitor = new CleanTraverseMaskVisitor();
-
 }
 
 //------------------------------------------------------------------------------
@@ -166,9 +165,19 @@ void Visitor::apply (osg::Group &node)
     // we have to initialize the unit graph
     }else if (mMode == INIT_UNIT_GRAPH)
     {
+        // we do here a manuall children accept method calling.
+        // this is required to call children in reverse order
+        // TODO: This behaviour don't call Unit::traverse() method
+        //  in future releases it could be a problem, hence looking
+        //  for better solutions
+        for (int i= (int)node.getNumChildren()-1; i>=0; i--)
+        {
+            node.getChild(i)->accept(*this);
+        }
+
         // traverse the unit as if it where a group node
-        node.traverse(*this);
-    
+        //node.traverse(*this);
+
         // if the given node is a Unit
         if (unit != NULL)
         {
@@ -178,7 +187,8 @@ void Visitor::apply (osg::Group &node)
                 if (*it == unit) found = true;
                                 
             // add the unit to the unit set
-            if (found == false) mUnitSet.push_front(unit);
+            if (found == false) 
+                mUnitSet.push_front(unit);
         }
 
     // dirty the complete graph
@@ -257,6 +267,7 @@ void Visitor::apply (osg::Group &node)
             }
 
             // update the unit
+            mProcessor->onUnitUpdate(unit);
             unit->update();
         }
     }
@@ -275,26 +286,24 @@ void Visitor::perform(Mode mode, osg::Group* n)
                 // clear the subgraph units
                 mUnitSet.clear();
                 mbValidSubgraph = true;
-        
+
                 // perform traversion in this mode
                 n->traverse(*this);
         
                 // setup the indices of the units, so that they got sorted correctly in the pipeline
-                //unsigned int index = 0;
+                unsigned int index = mProcessor->getOrCreateStateSet()->getBinNumber();
+                const std::string& binName = mProcessor->getOrCreateStateSet()->getBinName();
             
-                // Now we have to setup inputs and outputs of the units correctly
-                // This will be done by checking hte parents of every unit.
-                // Output of each parent is input to the unit.
-                // The ordering of parents defines the ordering of the inputs.
+                // the unit set do contain units in the traversed order
                 for (UnitSet::iterator it = mUnitSet.begin(); it != mUnitSet.end(); it++)
                 {
-                    // set new ascending index   
-                    //(*it)->setIndex(++index);
-            
                     // sort the unit into the according pipeline
-                    (*it)->getOrCreateStateSet()->setRenderBinToInherit();
-        
+                    //(*it)->getOrCreateStateSet()->setRenderBinToInherit();
+                    (*it)->getOrCreateStateSet()->setRenderBinDetails(++index, binName);
+                    //printf("INIT %s %d\n", (*it)->getName().c_str(), index);
+
                     // initialize units by updating them (the initialization process is called automagically
+                    mProcessor->onUnitInit(*it);
                     (*it)->update();
                 }
     

@@ -132,11 +132,16 @@ class Viewer : public osgViewer::Viewer
             pputext->setText("osgPPU rocks!");
             pputext->setPosition(0.025, 0.425);
             lastUnit->addChild(pputext);
-
-            // This is a simple texture unit, which do just provide a given texture 
-            // to the output, so that all children units can access this texture as input.
-            osgPPU::UnitTexture* unittex = new osgPPU::UnitTexture();
+            
+            // The following setup does show how to include an offline ppu into the graph
+            // This unit will just render the content of the input unit in a small window 
+            // over the screen.
+            if (1)
             {
+                // This is a simple texture unit, which do just provide a given texture 
+                // to the output, so that all children units can access this texture as input.
+                osgPPU::UnitTexture* unittex = new osgPPU::UnitTexture();
+
                 // it doesn't matter where to put this unit in the graph, because it 
                 // does not use any input. However so that this unit is updated every 
                 // frame we put it somewhere, in this case under the processor
@@ -149,13 +154,7 @@ class Viewer : public osgViewer::Viewer
                 osg::Texture2D* img = new osg::Texture2D();
                 img->setImage(osgDB::readImageFile("Images/reflect.rgb"));
                 unittex->setTexture(img);
-            }
-            
-            // The following setup does show how to include an offline ppu into the graph
-            // This unit will just render the content of the input unit in a small window 
-            // over the screen.
-            if (1)
-            {
+
                 // create picture in picture ppu 
                 osgPPU::UnitInOut* bgppu = new osgPPU::UnitInOut();
                 bgppu->setName("PictureInPicturePPU");

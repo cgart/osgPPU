@@ -38,8 +38,7 @@ Unit::Unit() : osg::Group(),
     mInputTexIndexForViewportReference(0),
     mbActive(true),
     mbTraversed(false),
-    mbTraversedMask(false),
-    mUserData(NULL)
+    mbTraversedMask(false)
 {
     // set default name
     setName("__Nameless_PPU_");
@@ -91,8 +90,7 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
     mbTraversed(ppu.mbTraversed),
-    mbTraversedMask(ppu.mbTraversedMask),
-    mUserData(ppu.mUserData)
+    mbTraversedMask(ppu.mbTraversedMask)
 {
 
 }
@@ -372,6 +370,10 @@ void Unit::update()
         updateUniforms();
         mbDirty = false;
     }
+
+    // if shader is attached, then update it
+    if (mShader.valid())
+        mShader->update();
 }
 
 //------------------------------------------------------------------------------

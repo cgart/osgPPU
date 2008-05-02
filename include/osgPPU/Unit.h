@@ -299,7 +299,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
                 {
                     // only if parent is valid
                     if (_parent->getActive())
-                    {
+                    {   //_parent->printDebugInfo();
                         // unit should know that we are about to render it
                         _parent->noticeBeginRendering(ri, dr);
 
@@ -409,7 +409,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         bool mbActive;        
         bool mbTraversed; // requires to check whenever unit was already traversed
         bool mbTraversedMask; // requires to check whenever unit was laready traversed
-        void* mUserData;
 
         void printDebugInfo();
         void traverse(osg::NodeVisitor& nv);
