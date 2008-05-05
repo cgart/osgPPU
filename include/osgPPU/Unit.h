@@ -290,6 +290,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Get current color attribute of the unit.
         **/
         ColorAttribute* getColorAttribute() { return mColorAttribute.get(); }
+        const ColorAttribute* getColorAttribute() const { return mColorAttribute.get(); }
 
     protected:
 

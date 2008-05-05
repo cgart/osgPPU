@@ -11,6 +11,14 @@ osgPPU::Processor {
       PPU UnitInResampleOut_2
       PPU UnitInOut_3
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_4
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
   }
   osgPPU::UnitInResampleOut {
     UniqueID UnitInResampleOut_1
@@ -20,21 +28,29 @@ osgPPU::Processor {
     outputInternalFormat 34842
 
     PPUOutput {
-      PPU UnitInOut_4
+      PPU UnitInOut_5
+    }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_6
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
     }
     inputBypass -1
     factorX 0.5
     factorY 0.5
   }
   osgPPU::UnitInOut {
-    UniqueID UnitInOut_4
+    UniqueID UnitInOut_5
     name "BlurHorizontalLight"
     isActive 1
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
     PPUOutput {
-      PPU UnitInOut_5
+      PPU UnitInOut_7
     }
 
     Shader {
@@ -71,7 +87,7 @@ osgPPU::Processor {
       Program {
         num_shaders 2
         Shader {
-          UniqueID Shader_6
+          UniqueID Shader_8
           type VERTEX
           code {
             ""
@@ -167,10 +183,18 @@ osgPPU::Processor {
         }
       }
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_9
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
     inputBypass -1
   }
   osgPPU::UnitInOut {
-    UniqueID UnitInOut_5
+    UniqueID UnitInOut_7
     name "BlurVerticalLight"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -213,7 +237,7 @@ osgPPU::Processor {
       }
       Program {
         num_shaders 2
-        Use Shader_6
+        Use Shader_8
         Shader {
           type FRAGMENT
           code {
@@ -271,6 +295,14 @@ osgPPU::Processor {
         }
       }
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_10
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
     inputBypass -1
   }
   osgPPU::UnitInOut {
@@ -282,14 +314,14 @@ osgPPU::Processor {
 
     InputToUniformMap {
       UnitBypass_0 texColorMap
-      UnitDepthbufferBypass_7 texDepthMap
-      UnitInOut_5 texBlurredColorMap
-      UnitInOut_8 texStrongBlurredColorMap
+      UnitDepthbufferBypass_11 texDepthMap
+      UnitInOut_7 texBlurredColorMap
+      UnitInOut_12 texStrongBlurredColorMap
     }
 
     PPUOutput {
-      PPU UnitText_9
-      PPU UnitOut_10
+      PPU UnitText_13
+      PPU UnitOut_14
     }
 
     Shader {
@@ -412,10 +444,18 @@ osgPPU::Processor {
         }
       }
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_15
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
     inputBypass -1
   }
   osgPPU::UnitText {
-    UniqueID UnitText_9
+    UniqueID UnitText_13
     name "FPSTextPPU"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -423,11 +463,19 @@ osgPPU::Processor {
 
     PPUOutput {
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_16
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
     inputBypass -1
     size 44
     osgText::Text {
       StateSet {
-        UniqueID StateSet_11
+        UniqueID StateSet_17
         rendering_hint TRANSPARENT_BIN
         renderBinMode INHERIT
       }
@@ -457,13 +505,21 @@ osgPPU::Processor {
     }
   }
   osgPPU::UnitOut {
-    UniqueID UnitOut_10
+    UniqueID UnitOut_14
     name "PipelineResult"
     isActive 1
     inputTextureIndexForViewportReference -1
     outputInternalFormat 34842
 
     PPUOutput {
+    }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_18
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
     }
   }
   osgPPU::UnitInResampleOut {
@@ -474,21 +530,29 @@ osgPPU::Processor {
     outputInternalFormat 34842
 
     PPUOutput {
-      PPU UnitInOut_12
+      PPU UnitInOut_19
+    }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_20
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
     }
     inputBypass -1
     factorX 0.25
     factorY 0.25
   }
   osgPPU::UnitInOut {
-    UniqueID UnitInOut_12
+    UniqueID UnitInOut_19
     name "BlurHorizontalStrong"
     isActive 1
     inputTextureIndexForViewportReference 0
     outputInternalFormat 34842
 
     PPUOutput {
-      PPU UnitInOut_8
+      PPU UnitInOut_12
     }
 
     Shader {
@@ -524,7 +588,7 @@ osgPPU::Processor {
       }
       Program {
         num_shaders 2
-        Use Shader_6
+        Use Shader_8
         Shader {
           type FRAGMENT
           code {
@@ -581,10 +645,18 @@ osgPPU::Processor {
         }
       }
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_21
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
     inputBypass -1
   }
   osgPPU::UnitInOut {
-    UniqueID UnitInOut_8
+    UniqueID UnitInOut_12
     name "BlurVerticalStrong"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -627,7 +699,7 @@ osgPPU::Processor {
       }
       Program {
         num_shaders 2
-        Use Shader_6
+        Use Shader_8
         Shader {
           type FRAGMENT
           code {
@@ -685,10 +757,18 @@ osgPPU::Processor {
         }
       }
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_22
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
     inputBypass -1
   }
   osgPPU::UnitDepthbufferBypass {
-    UniqueID UnitDepthbufferBypass_7
+    UniqueID UnitDepthbufferBypass_11
     name "DepthBypass"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -697,10 +777,18 @@ osgPPU::Processor {
     PPUOutput {
       PPU UnitInOut_3
     }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_23
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
   }
   name Processor
   PPUOutput {
     PPU UnitBypass_0
-    PPU UnitDepthbufferBypass_7
+    PPU UnitDepthbufferBypass_11
   }
 }

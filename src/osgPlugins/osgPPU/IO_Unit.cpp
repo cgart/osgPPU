@@ -29,10 +29,51 @@
 #include <osgPPU/UnitDepthbufferBypass.h>
 #include <osgPPU/UnitTexture.h>
 #include <osgPPU/BarrierNode.h>
+#include <osgPPU/ColorAttribute.h>
 
 #include <osg/Notify>
+#include <osg/io_utils>
 
 #include "Base.h"
+
+//--------------------------------------------------------------------------
+bool readColorAttribute(osg::Object& obj, osgDB::Input& fr)
+{
+    // convert given object to unit 
+    osgPPU::ColorAttribute& ca = static_cast<osgPPU::ColorAttribute&>(obj);
+
+    bool itAdvanced = false;
+
+    float startTime  = 0;
+    if (fr.readSequence("startTime", startTime))
+    { 
+        ca.setStartTime(startTime);
+        itAdvanced = true;
+    }
+
+    float endTime  = 0;
+    if (fr.readSequence("endTime", endTime))
+    { 
+        ca.setEndTime(endTime);
+        itAdvanced = true;
+    }
+
+    osg::Vec4 startColor;
+    if (fr.readSequence("startColor", startColor))
+    { 
+        ca.setStartColor(startColor);
+        itAdvanced = true;
+    }
+
+    osg::Vec4 endColor;
+    if (fr.readSequence("endColor", endColor))
+    { 
+        ca.setEndColor(endColor);
+        itAdvanced = true;
+    }
+
+    return itAdvanced;
+}
 
 //--------------------------------------------------------------------------
 bool readUnitTexture(osg::Object& obj, osgDB::Input& fr)
@@ -229,6 +270,14 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
+    // read color attribute
+    osgPPU::ColorAttribute* ca = static_cast<osgPPU::ColorAttribute*>(fr.readObjectOfType(osgDB::type_wrapper<osgPPU::ColorAttribute>()));
+    if (ca)
+    {
+        unit.setColorAttribute(ca);
+        itAdvanced = true;
+    }
+
     // read all inputs
     if (fr.matchSequence("PPUOutput {"))
     {
@@ -414,6 +463,19 @@ void writeShader(const osgPPU::Shader* sh, osgDB::Output& fout)
     osgDB::Registry::instance()->writeObject(static_cast<const osg::Program&>(*(sh->getProgram())), fout);
 }
 
+//--------------------------------------------------------------------------
+bool writeColorAttribute(const osg::Object& obj, osgDB::Output& fout)
+{
+    // convert given object to unit 
+    const osgPPU::ColorAttribute& ca = static_cast<const osgPPU::ColorAttribute&>(obj);
+
+    fout.indent() << "startTime " << ca.getStartTime() << std::endl;
+    fout.indent() << "endTime " << ca.getEndTime() << std::endl;
+    fout.indent() << "startColor " << ca.getStartColor() << std::endl;
+    fout.indent() << "endColor " << ca.getEndColor() << std::endl;
+
+    return true;
+}
 
 //--------------------------------------------------------------------------
 bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
@@ -547,6 +609,13 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
         fout.writeEndObject();
     }
 
+    // write the color attribute
+    if (unit.getColorAttribute())
+    {
+        fout << std::endl;
+        osgDB::Registry::instance()->writeObject(static_cast<const osgPPU::ColorAttribute&>(*(unit.getColorAttribute())), fout);
+    }
+    
     return true;
 }
 
@@ -632,6 +701,15 @@ bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
 }
 
 
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_ColorAttributeProxy
+(
+    new osgPPU::ColorAttribute,
+    "ColorAttribute",
+    "Object StateAttribute ColorAttribute",
+    &readColorAttribute,
+    &writeColorAttribute
+);
 
 // register the read and write functions with the osgDB::Registry.
 osgDB::RegisterDotOsgWrapperProxy g_UnitProxy
