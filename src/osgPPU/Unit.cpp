@@ -124,7 +124,7 @@ osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const os
 
     // setup default state set
     geom->setStateSet(new osg::StateSet());
-    geom->setUseDisplayList(true);
+    geom->setUseDisplayList(false);
     geom->setDrawCallback(new Unit::DrawCallback(this));
 
     // remove colors from the geometry
@@ -588,6 +588,27 @@ void Unit::setupBlockedChildren()
             child->mInputTex[child->getNumParents()] = getOrCreateOutputTexture(0);
             child->dirty();
         }
+    }
+}
+
+//--------------------------------------------------------------------------
+void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
+{
+    // only if parent is valid
+    if (_parent->getActive())
+    {   //_parent->printDebugInfo();
+        // unit should know that we are about to render it
+        _parent->noticeBeginRendering(ri, dr);
+
+        // set matricies used for the unit
+        ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
+        ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
+
+        // now render the drawable geometry
+        dr->drawImplementation(ri);
+
+        // ok rendering is done, unit can do other stuff
+        _parent->noticeFinishRendering(ri, dr);
     }
 }
 

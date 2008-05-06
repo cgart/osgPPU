@@ -309,25 +309,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
                 inline Unit* getParent() { return _parent; }
                 inline const Unit* getParent() const { return _parent; }
 
-                inline void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
-                {
-                    // only if parent is valid
-                    if (_parent->getActive())
-                    {   //_parent->printDebugInfo();
-                        // unit should know that we are about to render it
-                        _parent->noticeBeginRendering(ri, dr);
-
-                        // set matricies used for the unit
-                        ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
-                        ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
-
-                        // now render the drawable geometry
-                        dr->drawImplementation(ri);
-    
-                        // ok rendering is done, unit can do other stuff
-                        _parent->noticeFinishRendering(ri, dr);
-                    }
-                }
+                void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const;
+                
             private:
                 Unit* _parent;
         };
