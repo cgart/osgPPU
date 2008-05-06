@@ -13,9 +13,6 @@
  *                                                                         *
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
-#ifndef _IO_UNIT_H_
-#define _IO_UNIT_H_
-
 #include <osgPPU/Processor.h>
 #include <osgPPU/Unit.h>
 #include <osgPPU/UnitInOut.h>
@@ -161,7 +158,7 @@ bool readUnitInMipmapOut(osg::Object& obj, osgDB::Input& fr)
     int useShader = 0;
     if (fr.readSequence("useShader", useShader))
     { 
-        unit.setUseShader((bool)useShader);
+        unit.setUseShader(useShader?true:false);
         itAdvanced = true;
     }
 
@@ -236,7 +233,7 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
     int isActive = 0;
     if (fr.readSequence("isActive", isActive))
     { 
-        unit.setActive(isActive);
+        unit.setActive(isActive?true:false);
         itAdvanced = true;
     }
 
@@ -820,7 +817,4 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitTextProxy
     &readUnitText,
     &writeUnitText
 );
-
-
-#endif
 

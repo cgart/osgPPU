@@ -39,6 +39,10 @@ namespace osgPPU
 * a node into the cycle which blocks the cyclic traversion. Hence the optimization
 * step has always be done before traversing the unit graph in a usual way.
 **/
+
+class OSGPPU_EXPORT CleanTraverseMaskVisitor;
+class OSGPPU_EXPORT SetMaximumInputsVisitor;
+
 class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
 {
     public:
@@ -117,13 +121,10 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
         * the group, since Unit is derived from group.
         **/
         void apply (osg::Group &node);
-
-        class CleanTraverseMaskVisitor;
-        class SetMaximumInputsVisitor;
-
+        
         typedef std::list<Unit*> UnitSet;
 
-        CleanTraverseMaskVisitor* mCleanTraversedMaskVisitor;
+        osg::ref_ptr<CleanTraverseMaskVisitor> mCleanTraversedMaskVisitor;
         Processor* mProcessor;        
         Unit* mUnitToFind;
         Unit* mUnitToRemove;
@@ -137,7 +138,6 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
         bool mUnitToRemoveResult;
         unsigned int mMaxUnitInputIndex;
 };
-
 
 }; // end namespace
 

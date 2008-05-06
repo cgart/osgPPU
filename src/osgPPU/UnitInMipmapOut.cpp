@@ -147,7 +147,7 @@ namespace osgPPU
         // check if we have generated all the fbo's for each mipmap level
         int width = output->getTextureWidth();
         int height = output->getTextureHeight();
-        int numLevel = 1 + (int)round(log((float)std::max(width, height))/(float)M_LN2);
+        int numLevel = 1 + (int)osg::round(log((float)std::max(width, height))/(float)M_LN2);
 
         // check if sizes are valid 
         if ((mOutputWidth != 0 && width != mOutputWidth)

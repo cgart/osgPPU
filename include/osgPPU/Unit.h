@@ -433,8 +433,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         // it is good to have friends
         friend class Processor;
         friend class Pipeline;
-        friend class Visitor;
-
+        friend class CleanTraverseMaskVisitor;
+        friend class SetMaximumInputsVisitor;
 };
 
 };

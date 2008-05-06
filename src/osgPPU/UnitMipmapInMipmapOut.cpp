@@ -91,7 +91,7 @@ namespace osgPPU
             // get dimensions of the output data
             int width = (mOutputTex.begin()->second)->getTextureWidth();
             int height = (mOutputTex.begin()->second)->getTextureHeight();
-            int numLevels = 1 + (int)round(log((float)std::max(width, height))/(float)M_LN2);
+            int numLevels = 1 + (int)osg::round(log((float)std::max(width, height))/(float)M_LN2);
     
             // generate fbo for each mipmap level 
             for (int level=0; level < numLevels; level++)

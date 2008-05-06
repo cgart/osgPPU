@@ -25,7 +25,7 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 // Helper visitor to perform traverse mask swapping
 //------------------------------------------------------------------------------
-class Visitor::CleanTraverseMaskVisitor : public osg::NodeVisitor
+class CleanTraverseMaskVisitor : public osg::NodeVisitor
 {
 public:
 
@@ -48,7 +48,7 @@ public:
 //------------------------------------------------------------------------------
 // Helper visitor to setup maximum number of input attachments
 //------------------------------------------------------------------------------
-class Visitor::SetMaximumInputsVisitor : public osg::NodeVisitor
+class SetMaximumInputsVisitor : public osg::NodeVisitor
 {
 public:
 
@@ -95,7 +95,6 @@ Visitor::Visitor(Processor* proc) : osg::NodeVisitor()
 //------------------------------------------------------------------------------
 Visitor::~Visitor()
 {
-    if (mCleanTraversedMaskVisitor) delete mCleanTraversedMaskVisitor;
 }
 
 

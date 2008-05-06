@@ -58,6 +58,7 @@ FIND_PATH(OPENTHREADS_INCLUDE_DIR OpenThreads/Thread
     $ENV{OSG_DIR}
     $ENV{OSGDIR}/include
     $ENV{OSGDIR}
+    $ENV{OSG_ROOT}/include
     NO_DEFAULT_PATH
 )
 
@@ -124,6 +125,38 @@ FIND_LIBRARY(OPENTHREADS_LIBRARY
 FIND_LIBRARY(OPENTHREADS_LIBRARY 
     NAMES OpenThreads OpenThreadsWin32 
     PATHS
+    ${OSG_LIBRARY_DIR}
+    ${OSG_LIBRARY_DIR}/lib
+    ${OSG_LIBRARY_DIR}/lib/debug
+    ${OSG_LIBRARY_DIR}/lib/release
+    ${OSG_DIR}
+    ${OSG_DIR}/lib
+    ${OSG_DIR}/lib/debug
+    ${OSG_DIR}/lib/release
+    $ENV{OSG_BUILD}
+    $ENV{OSG_BUILD}/lib
+    $ENV{OSG_BUILD}/lib/debug
+    $ENV{OSG_BUILD}/lib/release
+    $ENV{OSG_DIR}
+    $ENV{OSG_DIR}/lib
+    $ENV{OSG_DIR}/lib/debug
+    $ENV{OSG_DIR}/lib/release
+    $ENV{OSG_HOME}
+    $ENV{OSG_HOME}/lib
+    $ENV{OSG_HOME}/lib/debug
+    $ENV{OSG_HOME}/lib/release
+    $ENV{OSG_ROOT}
+    $ENV{OSG_ROOT}/lib
+    $ENV{OSG_ROOT}/lib/debug
+    $ENV{OSG_ROOT}/lib/release
+    ${CMAKE_INSTALL_PREFIX}
+    ${CMAKE_INSTALL_PREFIX}/lib
+    ${CMAKE_INSTALL_PREFIX}/lib/debug
+    ${CMAKE_INSTALL_PREFIX}/lib/release
+    ${CMAKE_PREFIX_PATH}
+    ${CMAKE_PREFIX_PATH}/lib
+    ${CMAKE_PREFIX_PATH}/lib/debug
+    ${CMAKE_PREFIX_PATH}/lib/release
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local/lib64

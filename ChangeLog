@@ -1,3 +1,53 @@
+2008-05-05 22:25  art
+
+	* [r107]
+	  - updated the ReadWriterPPU to reflect the ColorAttribute support
+	  in the units
+
+2008-05-02 16:01  art
+
+	* [r106]
+	  - problem with the blending correct, now any unit texture clamps
+	  to the edge
+	  - TODO: correct implementation of removeUnit methods, since this
+	  one crashes
+
+2008-05-02 15:19  art
+
+	* [r105]
+	  - new StateAttribute - ColorAttribute added
+	  - it allows time specific configuration of the glColor value
+	  - the color is used to render the units.
+	  - this allows to implement blending on the units
+	  - hdr example the fadeIn/fadeOut effects added
+
+2008-05-02 09:49  art
+
+	* [r104]
+	  - each unit is now sorted into the same renderbin as the
+	  processor and get it sort index based on the graph counted
+	  upwards from the processor index
+	  - solved problem with wrongly sorted units
+	  - visitor do perform now a traversion during the initialization
+	  on units children in reverse order, which is needed for correct
+	  sorting
+	  - I think there are still some problems with the sorting during
+	  hte execution, however the results seems to be correct
+
+2008-04-30 15:35  art
+
+	* [r103]
+	  - new method Processor::removeUnit added.
+	  - from now on a unit can be removed out of the unit graph,
+	  however the method is not well tested, tests and patches are
+	  welcome
+
+2008-04-25 14:21  art
+
+	* [r102]
+	  - missing of files of DoF example added, now it should work just
+	  fine
+
 2008-04-25 08:41  art
 
 	* [r101]
