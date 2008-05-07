@@ -95,6 +95,7 @@ Visitor::Visitor(Processor* proc) : osg::NodeVisitor()
 //------------------------------------------------------------------------------
 Visitor::~Visitor()
 {
+    if (mCleanTraversedMaskVisitor) delete mCleanTraversedMaskVisitor;
 }
 
 

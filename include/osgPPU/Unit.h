@@ -308,9 +308,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
                 inline void setParent(Unit* parent) { _parent = parent; }
                 inline Unit* getParent() { return _parent; }
                 inline const Unit* getParent() const { return _parent; }
-
                 void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const;
-                
+
             private:
                 Unit* _parent;
         };

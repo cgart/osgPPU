@@ -1,3 +1,25 @@
+2008-05-06 22:59  art
+
+	* [r110]
+	  - moved the drawImplementation method out of the Unit.h file into
+	  Unit.cpp
+
+2008-05-06 22:08  art
+
+	* [r109]
+	  - From Bob Kuehne:
+	  the patch is to allow separation of build
+	  directory and all products (objects, apps, libraries) from the
+	  source
+	  directory. osg and many other related projects which use cmake
+	  work
+	  this way, so as to keep the source distribution 'pure' and free
+	  of
+	  generated files. please take a look, and integrate if you approve
+	  -
+	  this will bring ppu to the same baseline operation as what osg
+	  currently provides wrt cmake systems.
+
 2008-05-06 21:33  art
 
 	* [r108]

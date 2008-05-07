@@ -40,8 +40,8 @@ namespace osgPPU
 * step has always be done before traversing the unit graph in a usual way.
 **/
 
-class OSGPPU_EXPORT CleanTraverseMaskVisitor;
-class OSGPPU_EXPORT SetMaximumInputsVisitor;
+class CleanTraverseMaskVisitor;
+class SetMaximumInputsVisitor;
 
 class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
 {
@@ -124,7 +124,7 @@ class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
         
         typedef std::list<Unit*> UnitSet;
 
-        osg::ref_ptr<CleanTraverseMaskVisitor> mCleanTraversedMaskVisitor;
+        CleanTraverseMaskVisitor* mCleanTraversedMaskVisitor;
         Processor* mProcessor;        
         Unit* mUnitToFind;
         Unit* mUnitToRemove;
