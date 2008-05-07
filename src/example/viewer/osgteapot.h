@@ -325,7 +325,7 @@ osg::Geode* createTeapot()
     geode->addDrawable( teapot );
         
     // add a reflection map to the teapot.     
-    osg::Image* image = osgDB::readImageFile("Images/reflect.rgb");
+    osg::Image* image = osgDB::readImageFile("Data/Images/reflect.rgb");
     if (image)
     {
         osg::Texture2D* texture = new osg::Texture2D;

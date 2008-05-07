@@ -63,9 +63,9 @@ class DoFRendering
             osgPPU::Shader* gaussy = new osgPPU::Shader();
             {
                 // read shaders from file
-                osg::Shader* vshader = osg::Shader::readShaderFile(osg::Shader::VERTEX, "Data/gauss_convolution_vp.glsl");
-                osg::Shader* fhshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/gauss_convolution_1Dx_fp.glsl");
-                osg::Shader* fvshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/gauss_convolution_1Dy_fp.glsl");
+                osg::Shader* vshader = osg::Shader::readShaderFile(osg::Shader::VERTEX, "Data/glsl/gauss_convolution_vp.glsl");
+                osg::Shader* fhshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/gauss_convolution_1Dx_fp.glsl");
+                osg::Shader* fvshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/gauss_convolution_1Dy_fp.glsl");
 
                 // setup horizontal blur shaders
                 gaussx->addShader(vshader);
@@ -141,7 +141,7 @@ class DoFRendering
 
                 // setup shader
                 osgPPU::Shader* sh = new osgPPU::Shader();
-                sh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/depth_of_field_fp.glsl"));
+                sh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/depth_of_field_fp.glsl"));
                 sh->setName("DoFResultShader");
                 
                 sh->add("focalLength", osg::Uniform::FLOAT);

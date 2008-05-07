@@ -145,8 +145,7 @@ class Viewer : public osgViewer::Viewer
             lastUnit->addChild(ppuout);
         
             // write pipeline to a file
-            osgDB::writeObjectFile(*mProcessor, "Data/dof.ppu");
-
+            //osgDB::writeObjectFile(*mProcessor, "dof.ppu");
         }
 
         //! Update the frames        

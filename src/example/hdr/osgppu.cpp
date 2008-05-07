@@ -123,7 +123,7 @@ class Viewer : public osgViewer::Viewer
             
 
             // write pipeline to a file
-            //osgDB::writeObjectFile(*mProcessor, "Data/hdr.ppu");
+            //osgDB::writeObjectFile(*mProcessor, "hdr.ppu");
 
             // now just as a gimmick do setup a text ppu, to render some info on the screen
             osgPPU::UnitText* pputext = new osgPPU::UnitText();
@@ -152,7 +152,7 @@ class Viewer : public osgViewer::Viewer
 
                 // input texture is output of the camera bypass, so that we see original scene view
                 osg::Texture2D* img = new osg::Texture2D();
-                img->setImage(osgDB::readImageFile("Images/reflect.rgb"));
+                img->setImage(osgDB::readImageFile("Data/Images/reflect.rgb"));
                 unittex->setTexture(img);
 
                 // create picture in picture ppu 

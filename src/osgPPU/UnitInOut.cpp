@@ -23,6 +23,41 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
+    // Helper class for filling the generated texture with default pixel values
+    //------------------------------------------------------------------------------
+    class SubloadCallback : public osg::Texture2D::SubloadCallback
+    {
+        public:
+            // fill texture with default pixel values 
+            void load (const osg::Texture2D &texture, osg::State &state) const
+            {
+                // if fbo is supported, then perform quick clearing of texture
+                osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(state.getContextID(),true);
+                if (false && fbo_ext && fbo_ext->isSupported())
+                {
+                    // create temporary fbo
+                    
+
+                // fbo is not supported, then do fill the texture with values in classical way
+                }else
+                {
+                    glTexImage2D( GL_TEXTURE_2D, 0, texture.getInternalFormat(),
+                        texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
+                        NULL);          
+                }
+            }
+
+            // no subload, because while we want to subload the texture should be already valid
+            void subload (const osg::Texture2D &texture, osg::State &state) const 
+            {
+
+            }
+    };
+
+
+    //------------------------------------------------------------------------------
     UnitInOut::UnitInOut(const UnitInOut& unit, const osg::CopyOp& copyop) :
         Unit(unit, copyop),
         mFBO(unit.mFBO),
@@ -127,8 +162,12 @@ namespace osgPPU
         else
             mTex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 
+        // setup the upload callback to be applied when the texture is generated
+        mTex->setSubloadCallback(new SubloadCallback());
+
         // set new texture
         mOutputTex[mrt] = mTex;
+
         return mTex;
     }
 

@@ -77,7 +77,7 @@ directory you have to specify the version of osg with:
     cmake . -DOSG_VERSION=2.2
 
 The consecutive call of "make install" would install
-the ppu plugin under PREFIX/lib/osgPlugins-2.2/.
+the ppu plugin under PREFIX/lib/osgPlugins-2.4/.
 If no version was specified then the installation path
 is PREFIX/lib/osgPlugins/
 

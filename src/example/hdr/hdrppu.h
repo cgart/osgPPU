@@ -74,7 +74,7 @@ class HDRRendering
             {
                 // create shader which do compute luminance per pixel
                 osgPPU::Shader* lumShader = new osgPPU::Shader();
-                lumShader->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/luminance_fp.glsl"));
+                lumShader->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/luminance_fp.glsl"));
                 lumShader->setName("LuminanceShader");
                 lumShader->add("texUnit0", osg::Uniform::SAMPLER_2D);
                 lumShader->set("texUnit0", 0);
@@ -90,7 +90,7 @@ class HDRRendering
             {
                 // create shader which do compute the scene's luminance in mipmap levels
                 osgPPU::Shader* lumShaderMipmap = new osgPPU::Shader();
-                lumShaderMipmap->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/luminance_mipmap_fp.glsl"));
+                lumShaderMipmap->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/luminance_mipmap_fp.glsl"));
                 lumShaderMipmap->setName("LuminanceShaderMipmap");
 
                 // setup input texture
@@ -120,7 +120,7 @@ class HDRRendering
             {
                 // setup brightpass shader
                 osgPPU::Shader* brightpassSh = new osgPPU::Shader();
-                brightpassSh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/brightpass_fp.glsl"));
+                brightpassSh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/brightpass_fp.glsl"));
                 brightpassSh->setName("BrightpassShader");
                 
                 brightpassSh->add("g_fMiddleGray", osg::Uniform::FLOAT);
@@ -141,9 +141,9 @@ class HDRRendering
                 blury->setName("BlurVertical");
                 
                 // read shaders from file
-                osg::Shader* vshader = osg::Shader::readShaderFile(osg::Shader::VERTEX, "Data/gauss_convolution_vp.glsl");
-                osg::Shader* fhshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/gauss_convolution_1Dx_fp.glsl");
-                osg::Shader* fvshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/gauss_convolution_1Dy_fp.glsl");
+                osg::Shader* vshader = osg::Shader::readShaderFile(osg::Shader::VERTEX, "Data/glsl/gauss_convolution_vp.glsl");
+                osg::Shader* fhshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/gauss_convolution_1Dx_fp.glsl");
+                osg::Shader* fvshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/gauss_convolution_1Dy_fp.glsl");
 
                 // setup horizontal blur shaders
                 osgPPU::Shader* gaussx = new osgPPU::Shader();
@@ -193,7 +193,7 @@ class HDRRendering
 
                 // setup shader
                 osgPPU::Shader* sh = new osgPPU::Shader();
-                sh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/tonemap_hdr_fp.glsl"));
+                sh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/tonemap_hdr_fp.glsl"));
                 sh->setName("HDRResultShader");
                 
                 sh->add("fBlurFactor", osg::Uniform::FLOAT);
@@ -223,7 +223,7 @@ class HDRRendering
 
                 // create shader which do compute the adapted luminance value
                 osgPPU::Shader* adaptedShader = new osgPPU::Shader();
-                adaptedShader->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/luminance_adapted_fp.glsl"));
+                adaptedShader->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/luminance_adapted_fp.glsl"));
                 adaptedShader->setName("AdaptLuminanceShader");
 
                 // setup computed current luminance  input texture
