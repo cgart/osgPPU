@@ -36,16 +36,26 @@ namespace osgPPU
                 if (false && fbo_ext && fbo_ext->isSupported())
                 {
                     // create temporary fbo
-                    
+                    //printf("FBO supported\n");
 
                 // fbo is not supported, then do fill the texture with values in classical way
                 }else
                 {
+                    // create temporary image which is initialized with 0 values
+                    osg::ref_ptr<osg::Image> img = new osg::Image();
+                    img->allocateImage(texture.getTextureWidth(), texture.getTextureHeight(), 1, 
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
+
+                    // fill the image with 0 values
+                    memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
+
+                    // create the texture in usual OpenGL way
                     glTexImage2D( GL_TEXTURE_2D, 0, texture.getInternalFormat(),
                         texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
                         texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                         texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
-                        NULL);          
+                        img->data());          
                 }
             }
 
