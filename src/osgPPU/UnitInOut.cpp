@@ -19,6 +19,7 @@
 #include <osgPPU/Utility.h>
 
 #include <osg/Texture2D>
+#include <osg/GL2Extensions>
 
 namespace osgPPU
 {
@@ -35,8 +36,58 @@ namespace osgPPU
                 osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(state.getContextID(),true);
                 if (false && fbo_ext && fbo_ext->isSupported())
                 {
+                    #if 0
+                    // create the texture in usual OpenGL way
+                    glTexImage2D( GL_TEXTURE_2D, 0, texture.getInternalFormat(),
+                        texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
+                        NULL);          
+
                     // create temporary fbo
-                    //printf("FBO supported\n");
+                    GLuint fboID = 0;
+                    fbo_ext->glGenFramebuffersEXT(1, &fboID);
+                    if (fboID == 0)
+                    {
+                        osg::notify(osg::WARN) << "osgPPU::UnitInOut::SubloadCallback() - FrameBufferObject: could not create the FBO" << std::endl;
+                        return;
+                    }
+
+                    // get texture object
+                    osg::Texture::TextureObject *tobj = texture.getTextureObject(state.getContextID());
+                    if (!tobj || tobj->_id == 0)
+                    {
+                        osg::notify(osg::WARN) << "osgPPU::UnitInOut::SubloadCallback() - Could not get the according texture object" << std::endl;
+                        return;
+                    }
+
+                    // bind fbo and attach the texture
+                    fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fboID);
+                    fbo_ext->glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tobj->_id, 0);
+                    GLenum fbostatus = fbo_ext->glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+                    if (fbostatus != GL_FRAMEBUFFER_COMPLETE_EXT)
+                    {
+                        printf("STATUS %d\n", fbostatus);
+                        printf("%dx%d - %d, %d\n",texture.getTextureWidth(), texture.getTextureHeight(),
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
+                    }
+
+                    // push current opengl state and prepare for clearing
+                    glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
+                    glViewport(0,0,texture.getTextureWidth(),texture.getTextureHeight());
+
+                    // clear the texture, this will force to write 0s to the texture
+                    glClearColor(1,0,0,0);
+                    glClear(GL_COLOR_BUFFER_BIT);
+
+                    // restore opengl state
+                    glPopAttrib();
+
+                    // cleanup the fbo 
+                    fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+                    fbo_ext->glDeleteFramebuffersEXT(1, &fboID);
+                    #endif
 
                 // fbo is not supported, then do fill the texture with values in classical way
                 }else
