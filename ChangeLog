@@ -1,3 +1,83 @@
+2008-05-07 19:58  art
+
+	* [r119]
+	  
+
+2008-05-07 19:57  art
+
+	* [r118]
+	  From Stephane Lamoliatte:
+	  - updated the main CMake file to allow the user to use the float
+	  or
+	  double type for BoundingBox / BoundingSphere / Matrix / Plane.
+	  - updated CMake modules to install the library in the bin
+	  directory for
+	  Visual Studio (the same behaviour as OpenSceneGraph)
+	  - removed compiler errors in Visual Studio 2005 (Visitor.cpp /
+	  Visitor.h) using the ref_ptr<CleanTraverseMaskVisitor>
+	  - updated the CMake file of the osgPPU plug'in to take into
+	  account "Base.h"
+	  - updated the CMake file of the dof example to take into account
+	  "dofppu.h"
+	  - modified the dof and hdr example code to center the viewer
+	  window on
+	  the main screen
+	  - modified the dof and hdr example code to load shader using the
+	  osgbd_glsl plug'in (now add the bin directory to the
+	  OSG_FILE_PATH
+	  before running example)
+	  - removed the empty lib directory
+
+2008-05-07 19:56  art
+
+	* [r117]
+	  - remove Data
+
+2008-05-07 19:10  art
+
+	* [r116]
+	  - support for FBO clearing of outpu ttexture added, however still
+	  not well tested, hence currently disabled
+
+2008-05-07 18:02  art
+
+	* [r115]
+	  - UnitInOut now do allocate the output texture by itself.
+	  - the output texture is filled with 0 values in the beginning
+	  preventing of getting unitialized values out of the texture
+	  - TODO: implement texture clearing with FBO to support much
+	  faster creation
+	  - during the initialization of UnitInOut a small stall can be
+	  percieved due to uploading of high amount of data to the GPU
+
+2008-05-07 17:42  art
+
+	* [r114]
+	  - to reflect the changes of the previous patch from bob Kuehne
+	  the Data directory is
+	  now located under src/examples/Data. During hte configuration of
+	  the build process
+	  all the data is copied into the bin/Data/ which
+	  - lib and bin direcotries are removed, you will find them after
+	  the build process in your current build directory
+	  - moved scripts to the doc directory to cleanup the main
+	  directory
+
+2008-05-07 17:25  art
+
+	* [r113]
+	  - rearranged the Data directory
+
+2008-05-07 17:16  art
+
+	* [r112]
+	  - mv Data directory to the src/examples/
+
+2008-05-07 08:57  art
+
+	* [r111]
+	  - just few changes of the Visitor to the previous version
+
 2008-05-06 22:59  art
 
 	* [r110]

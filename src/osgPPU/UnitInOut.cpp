@@ -33,10 +33,10 @@ namespace osgPPU
             void load (const osg::Texture2D &texture, osg::State &state) const
             {
                 // if fbo is supported, then perform quick clearing of texture
+                #if 0
                 osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(state.getContextID(),true);
                 if (false && fbo_ext && fbo_ext->isSupported())
                 {
-                    #if 0
                     // create the texture in usual OpenGL way
                     glTexImage2D( GL_TEXTURE_2D, 0, texture.getInternalFormat(),
                         texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
@@ -87,10 +87,10 @@ namespace osgPPU
                     // cleanup the fbo 
                     fbo_ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
                     fbo_ext->glDeleteFramebuffersEXT(1, &fboID);
-                    #endif
 
                 // fbo is not supported, then do fill the texture with values in classical way
                 }else
+                #endif
                 {
                     // create temporary image which is initialized with 0 values
                     osg::ref_ptr<osg::Image> img = new osg::Image();
