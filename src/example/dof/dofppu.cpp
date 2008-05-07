@@ -222,7 +222,12 @@ int main(int argc, char **argv)
 
     // just make it singlethreaded since I get some problems if not in this mode
     viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    viewer->setUpViewInWindow(0,0,640,480);
+    unsigned int screenWidth;
+    unsigned int screenHeight;
+    osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
+    unsigned int windowWidth = 640;
+    unsigned int windowHeight = 480;
+    viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
 
     // setup scene
     osg::Group* node = new osg::Group();

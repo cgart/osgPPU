@@ -69,6 +69,35 @@ INCLUDE(OsgPPUMacroUtils)
 
 
 ################################################################################
+# Some usefull definition
+################################################################################
+OPTION(OSG_USE_FLOAT_MATRIX "Set to ON to build OpenSceneGraph with float Matrix instead of double." OFF)
+MARK_AS_ADVANCED(OSG_USE_FLOAT_MATRIX)
+IF(OSG_USE_FLOAT_MATRIX)        
+    ADD_DEFINITIONS(-DOSG_USE_FLOAT_MATRIX)
+ENDIF(OSG_USE_FLOAT_MATRIX)        
+
+OPTION(OSG_USE_FLOAT_PLANE "Set to ON to build OpenSceneGraph with float Plane instead of double." OFF)
+MARK_AS_ADVANCED(OSG_USE_FLOAT_PLANE)
+IF(OSG_USE_FLOAT_PLANE)        
+    ADD_DEFINITIONS(-DOSG_USE_FLOAT_PLANE)
+ENDIF(OSG_USE_FLOAT_PLANE)        
+
+OPTION(OSG_USE_FLOAT_BOUNDINGSPHERE "Set to ON to build OpenSceneGraph with float BoundingSphere instead of double." ON)
+MARK_AS_ADVANCED(OSG_USE_FLOAT_BOUNDINGSPHERE)
+IF(NOT OSG_USE_FLOAT_BOUNDINGSPHERE)        
+    ADD_DEFINITIONS(-DOSG_USE_DOUBLE_BOUNDINGSPHERE)
+ENDIF(NOT OSG_USE_FLOAT_BOUNDINGSPHERE)        
+
+OPTION(OSG_USE_FLOAT_BOUNDINGBOX "Set to ON to build OpenSceneGraph with float BoundingBox instead of double." ON)
+MARK_AS_ADVANCED(OSG_USE_FLOAT_BOUNDINGBOX)
+IF(NOT OSG_USE_FLOAT_BOUNDINGBOX)      
+    ADD_DEFINITIONS(-DOSG_USE_DOUBLE_BOUNDINGBOX)
+ENDIF(NOT OSG_USE_FLOAT_BOUNDINGBOX)        
+################################################################################
+
+
+################################################################################
 # Create bin and lib directories if required
 ################################################################################
 #IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")

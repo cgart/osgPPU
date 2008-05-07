@@ -43,7 +43,8 @@ SET(TARGET_DEFAULT_LABEL_PREFIX "Plugins")
 SET(TARGET_SRC 
     ReaderWriterPPU.cpp
     IO_Unit.cpp
-    Base.cpp 
+    Base.cpp
+    Base.h
 )
 SET(TARGET_ADDED_LIBRARIES osgPPU )
 SETUP_PLUGIN(ppu)

@@ -23,61 +23,6 @@ namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-// Helper visitor to perform traverse mask swapping
-//------------------------------------------------------------------------------
-class CleanTraverseMaskVisitor : public osg::NodeVisitor
-{
-public:
-
-    CleanTraverseMaskVisitor() : osg::NodeVisitor()
-    {
-    }
-
-    void apply (osg::Group &node)
-    {
-        Unit* unit = dynamic_cast<Unit*>(&node);
-        if (unit)
-        {
-            unit->mbTraversed = unit->mbTraversedMask;
-        }
-        node.traverse(*this);
-    }
-};
-
-
-//------------------------------------------------------------------------------
-// Helper visitor to setup maximum number of input attachments
-//------------------------------------------------------------------------------
-class SetMaximumInputsVisitor : public osg::NodeVisitor
-{
-public:
-
-    SetMaximumInputsVisitor(unsigned int max) : osg::NodeVisitor()
-    {
-        mMaxUnitInputIndex = max;
-    }
-
-    void apply (osg::Group &node)
-    {
-        Unit* unit = dynamic_cast<Unit*>(&node);
-        if (unit)
-        {
-            osg::StateSet* ss = unit->getOrCreateStateSet();
-
-            // remove all unneccessary textures
-            for (unsigned int i=mMaxUnitInputIndex+1; i < ss->getTextureAttributeList().size(); i++)
-            {
-                ss->removeTextureAttribute(i, osg::StateAttribute::TEXTURE);
-            }
-
-        }
-        node.traverse(*this);
-    }
-
-    unsigned int mMaxUnitInputIndex;
-};
-
-//------------------------------------------------------------------------------
 Visitor::Visitor(Processor* proc) : osg::NodeVisitor()
 {
     setTraversalMode(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN);
@@ -95,7 +40,6 @@ Visitor::Visitor(Processor* proc) : osg::NodeVisitor()
 //------------------------------------------------------------------------------
 Visitor::~Visitor()
 {
-    if (mCleanTraversedMaskVisitor) delete mCleanTraversedMaskVisitor;
 }
 
 

@@ -140,7 +140,7 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
     IF(NOT MSVC)
         SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES DEBUG_POSTFIX "")
     ELSE(NOT MSVC)
-    	IF(OSGPPU_MSVC_VERSIONED_DLL) 
+    	#IF(OSGPPU_MSVC_VERSIONED_DLL) 
     		   		
 				#this is a hack... the build place is set to lib/<debug or release> by LIBARARY_OUTPUT_PATH equal to OUTPUT_LIBDIR
 				#the .lib will be crated in ../ so going straight in lib by the IMPORT_PREFIX property
@@ -149,15 +149,15 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
 				#changing bin to something else breaks this hack
 				#the dll are placed in bin/${OSG_PLUGINS} 
 				
-    		SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../../bin/${OSG_PLUGINS}/")
-            SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES IMPORT_PREFIX "../")
-    	ELSE(OSGPPU_MSVC_VERSIONED_DLL)
+    		#SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../../bin/${OSG_PLUGINS}/")
+            #SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES IMPORT_PREFIX "../")
+    	#ELSE(OSGPPU_MSVC_VERSIONED_DLL)
     		
     		#in standard mode (unversioned) the .lib and .dll are placed in lib/<debug or release>/${OSG_PLUGINS}.
     		#here the PREFIX property has been used, the same result would be accomplidhe by prepending ${OSG_PLUGINS}/ to OUTPUT_NAME target property
     		
     		SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "${OSG_PLUGINS}/")
-    	ENDIF(OSGPPU_MSVC_VERSIONED_DLL)
+    	#ENDIF(OSGPPU_MSVC_VERSIONED_DLL)
     ENDIF(NOT MSVC)
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "${TARGET_LABEL}")
  
@@ -280,7 +280,7 @@ MACRO(HANDLE_MSVC_DLL)
                 SET(LIB_SOVERSION ${OPENSCENEGRAPH_SOVERSION})
         ENDIF(${ARGC} GREATER 1)
 	
-        SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES PREFIX "../../bin/${LIB_PREFIX}${LIB_SOVERSION}-")
+        SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES PREFIX "../../bin/")
         SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES IMPORT_PREFIX "../")
 
 #	 SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES PREFIX "../../bin/osg${OPENSCENEGRAPH_SOVERSION}-")

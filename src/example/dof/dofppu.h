@@ -9,6 +9,8 @@
 #include <osgPPU/UnitBypass.h>
 #include <osgPPU/UnitTexture.h>
 #include <osgPPU/UnitDepthbufferBypass.h>
+#include <osgDB/ReaderWriter>
+#include <osgDB/ReadFile>
 
 
 //---------------------------------------------------------------
@@ -37,6 +39,9 @@ class DoFRendering
         //------------------------------------------------------------------------
         void createDoFPipeline(osgPPU::Processor* parent, osgPPU::Unit*& lastUnit, float zNear, float zFar)
         {
+            osg::ref_ptr<osgDB::ReaderWriter::Options> fragmentOptions = new osgDB::ReaderWriter::Options("fragment");
+            osg::ref_ptr<osgDB::ReaderWriter::Options> vertexOptions = new osgDB::ReaderWriter::Options("vertex");
+            
             // the first unit will bypass the color output of the camera
             osgPPU::UnitBypass* bypass = new osgPPU::UnitBypass();
             bypass->setName("ColorBypass");
@@ -63,9 +68,9 @@ class DoFRendering
             osgPPU::Shader* gaussy = new osgPPU::Shader();
             {
                 // read shaders from file
-                osg::Shader* vshader = osg::Shader::readShaderFile(osg::Shader::VERTEX, "Data/glsl/gauss_convolution_vp.glsl");
-                osg::Shader* fhshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/gauss_convolution_1Dx_fp.glsl");
-                osg::Shader* fvshader = osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/gauss_convolution_1Dy_fp.glsl");
+                osg::Shader* vshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_vp.glsl", vertexOptions.get());
+                osg::Shader* fhshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dx_fp.glsl", fragmentOptions.get());
+                osg::Shader* fvshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dy_fp.glsl", fragmentOptions.get());
 
                 // setup horizontal blur shaders
                 gaussx->addShader(vshader);
@@ -141,7 +146,7 @@ class DoFRendering
 
                 // setup shader
                 osgPPU::Shader* sh = new osgPPU::Shader();
-                sh->addShader(osg::Shader::readShaderFile(osg::Shader::FRAGMENT, "Data/glsl/depth_of_field_fp.glsl"));
+                sh->addShader(osgDB::readShaderFile("Data/glsl/depth_of_field_fp.glsl", fragmentOptions.get()));
                 sh->setName("DoFResultShader");
                 
                 sh->add("focalLength", osg::Uniform::FLOAT);

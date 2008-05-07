@@ -1,6 +1,18 @@
 How to use examples
 ===============================
-The bin/ irectory does contain some examples and tools coming together
+
+ATTENTION: 
+Examples do load .ppu and .glsl files out of the Data directory, which can
+be found in the main direcotry of osgPPU. In order that this files are found
+you have to setup the OSG_FILE_PATH environment variable accordingly.
+Hence on Unix systems do following:
+  export OSG_FILE_PATH=$OSG_FILE_PATH:/path/were/osgPPU/is/installed/
+
+Other solution would be just to copy the Data/ directory under your bin/
+directory to let examnple run
+
+
+The Data/ irectory does contain some examples and tools coming together
 witht the osgPPU package. Use them to see how all the things are setted up.
 Use the viewer to see the .ppu files which you can find in the bin/Data/
 directory.
@@ -10,6 +22,7 @@ For example:
 will show you how the motionblur effect can be realized with the osgPPU.
 The corresponding .ppu file does contain a main setup for the correct
 effect pipeline.
+
 
 
 
@@ -60,13 +73,7 @@ system should help guide you through the process:
     http://www.openscenegraph.org/projects/osg/wiki/Support/PlatformSpecifics/VisualStudio
 
 
-How to build and run examples
-===============================
 
-The examples are compiled together with the library.
-The executable is then copied to the bin directory.
-All the data, which are used by the examples can be
-found also under bin/Data
 
 How to build osg plugin osgdb_ppu
 ===============================
@@ -74,12 +81,12 @@ The plugin is build together with the complete library.
 However to install the library file in correct plugin
 directory you have to specify the version of osg with:
 
-    cmake . -DOSG_VERSION=2.2
+    cmake . -DOSG_VERSION=2.5.x
 
 The consecutive call of "make install" would install
-the ppu plugin under PREFIX/lib/osgPlugins-2.4/.
+the ppu plugin under PREFIX/lib/osgPlugins-2.5.x/.
 If no version was specified then the installation path
-is PREFIX/lib/osgPlugins/
+is PREFIX/lib/osgPlugins-2.4.0/
 
 
    

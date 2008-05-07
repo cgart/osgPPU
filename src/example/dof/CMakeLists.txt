@@ -6,6 +6,7 @@ SET(TARGET_SRC
     dofppu.cpp
 )
 SET(TARGET_H 
+	dofppu.h
     osgteapot.h
 )
 #### end var setup  ###
