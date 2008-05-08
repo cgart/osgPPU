@@ -11,12 +11,6 @@ IF(MINGW)
     SET(OSG_PLUGIN_PREFIX "mingw_")
 ENDIF(MINGW)
 
-#MESSAGE("Provide osg version number to install the plugin into right directory with -DOSG_VERSION=")
-SET(OSG_PLUGINS osgPlugins)
-IF(OSG_VERSION)
-    SET(OSG_PLUGINS osgPlugins-${OSG_VERSION})
-ENDIF(OSG_VERSION)
-
 
 ###########################################
 # Settings for plugin
