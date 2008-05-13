@@ -1,3 +1,18 @@
+2008-05-08 11:29  art
+
+	* [r121]
+	  - CMake build system changed to automatically detect the
+	  installed osg version and to install the plugins under this
+	  directory.
+	  - thanks to Robert Osfield for his suggestions
+
+2008-05-07 20:21  art
+
+	* [r120]
+	  - Disable the FBO clearing of undefined texture values, now a
+	  simple temporary image is used to upload 0 values to fresh output
+	  textures
+
 2008-05-07 19:58  art
 
 	* [r119]

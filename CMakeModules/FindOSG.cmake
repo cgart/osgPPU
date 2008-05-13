@@ -38,23 +38,23 @@
 
 FIND_PATH(OSG_INCLUDE_DIR osg/Node
     PATHS
-			$ENV{OSG_SOURCE_DIR}
-			$ENV{OSGDIR}
-			$ENV{OSG_DIR}
-			$ENV{OSG_ROOT}
-			${OSG_DIR}
-			${CMAKE_INSTALL_PREFIX}
-			${CMAKE_PREFIX_PATH}
-			/usr/local/
-			/usr/
-			/sw/ # Fink
-			/opt/local/# DarwinPorts
-			/opt/csw/# Blastwave
-			/opt/
-			/usr/freeware/
-			[HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;OSG_ROOT]/
-			~/Library/Frameworks
-			/Library/Frameworks
+        $ENV{OSG_SOURCE_DIR}
+        $ENV{OSGDIR}
+        $ENV{OSG_DIR}
+        $ENV{OSG_ROOT}
+        ${OSG_DIR}
+        ${CMAKE_INSTALL_PREFIX}
+        ${CMAKE_PREFIX_PATH}
+        /usr/local/
+        /usr/
+        /sw/ # Fink
+        /opt/local/# DarwinPorts
+        /opt/csw/# Blastwave
+        /opt/
+        /usr/freeware/
+        [HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;OSG_ROOT]/
+        ~/Library/Frameworks
+        /Library/Frameworks
     PATH_SUFFIXES
         include
 )
@@ -69,8 +69,8 @@ FIND_LIBRARY(${MYLIBRARY}
         $ENV{OSG_BUILD}
         $ENV{OSG_BUILD_DIR}
         $ENV{OSG_DIR}
-		    $ENV{OSG_HOME}
-		    $ENV{OSG_ROOT}
+        $ENV{OSG_HOME}
+        $ENV{OSG_ROOT}
         ${OSG_LIBRARY_DIR}
         ${OSG_DIR}
         ${CMAKE_INSTALL_PREFIX}

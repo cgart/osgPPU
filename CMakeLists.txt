@@ -4,8 +4,7 @@ PROJECT(osgPPU)
 
 SET(CMAKE_MODULE_PATH "${osgPPU_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
-#SET(OSG_VERSION "2.4.0" CACHE STRING "Version of the OpenSceneGraph for which the osgdb_ppu plugin is built")
-SET(OSG_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "Path where to find the osg libraries")
+SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
 
 
 #######################################

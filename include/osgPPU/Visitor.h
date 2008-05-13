@@ -28,18 +28,6 @@
 namespace osgPPU
 {
 
-//! Node visitor used to setup the units correctly
-/**
-* This visitor do work on the unit graph. It checks if a unit
-* was added to the graph and set its inputs and outputs correctly.
-* The processor does usually apply this visitor to its subgraph.
-*
-* Another feature of that visitor is to resolve cycles in the unit subgraph.
-* This is done in the optimization mode, where the visitor do inserts
-* a node into the cycle which blocks the cyclic traversion. Hence the optimization
-* step has always be done before traversing the unit graph in a usual way.
-**/
-
 //------------------------------------------------------------------------------
 // Helper visitor to perform traverse mask swapping
 //------------------------------------------------------------------------------
@@ -95,6 +83,17 @@ public:
     unsigned int mMaxUnitInputIndex;
 };
 
+//! Node visitor used to setup the units correctly
+/**
+* This visitor do work on the unit graph. It checks if a unit
+* was added to the graph and set its inputs and outputs correctly.
+* The processor does usually apply this visitor to its subgraph.
+*
+* Another feature of that visitor is to resolve cycles in the unit subgraph.
+* This is done in the optimization mode, where the visitor do inserts
+* a node into the cycle which blocks the cyclic traversion. Hence the optimization
+* step has always be done before traversing the unit graph in a usual way.
+**/
 class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
 {
     public:

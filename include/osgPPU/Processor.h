@@ -150,7 +150,7 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         **/
         virtual void init();
 
-        osg::ref_ptr<osg::Camera> mCamera;
+        osg::observer_ptr<osg::Camera> mCamera;
         osg::ref_ptr<Visitor>   mVisitor;
 
         friend class Visitor;
