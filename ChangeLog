@@ -1,3 +1,11 @@
+2008-05-13 09:36  art
+
+	* [r122]
+	  - osg::ref_ptr for the Camera object in the Processor class
+	  changed to osg::observer_ptr to overcome possible memory leaks,
+	  thanks to Stephane for that.
+	  - smal doc and build fixes
+
 2008-05-08 11:29  art
 
 	* [r121]

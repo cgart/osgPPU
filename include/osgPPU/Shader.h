@@ -36,6 +36,10 @@ namespace osgPPU
  * The shader class does encapsulate osg::Program and osg::Uniforms in one class.
  * The using of shader programs is therefor simplified. Shaders can be bound 
  * to any osg::StateSet.
+ * NOTE: The shader class is deprecated. It will be replaced by a little bit different
+ * interface in the next release. Hence try not to be very dependent on this implementation.
+ * Shaders can be easyly bounded to Units by using Unit's StateSets. 
+ *
  **/
 class OSGPPU_EXPORT Shader : public osg::Object
 {
