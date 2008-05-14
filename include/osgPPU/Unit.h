@@ -228,9 +228,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         inline GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
 
         /**
-         * Assign a shader used when computing the output data of the ppu.
-         * Shaders are one of the main aspects of the ppu rendering.
-         * @param sh Shader used by this ppu to generate output from the input.
+        * Assign a shader used when computing the output data of the ppu.
+        * Shaders are one of the main aspects of the ppu rendering.
+        * @param sh Shader used by this ppu to generate output from the input.
+        * NOTE: You can also apply shaders by using Unit's StateSet.
         **/
         inline void setShader(Shader* sh) { mShader = sh; dirty(); }
 
