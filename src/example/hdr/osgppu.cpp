@@ -2,6 +2,7 @@
 #include <osgViewer/Renderer>
 #include <osgGA/TrackballManipulator>
 #include <osgDB/WriteFile>
+#include <osgViewer/ViewerEventHandlers>
 
 #include "osgteapot.h"
 #include "hdrppu.h"
@@ -359,6 +360,7 @@ int main(int argc, char **argv)
 
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));
+    viewer->addEventHandler( new osgViewer::StatsHandler() );
                     
     // run viewer                
     return viewer->run();

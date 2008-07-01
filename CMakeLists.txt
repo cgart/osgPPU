@@ -22,13 +22,12 @@ ENDIF(DYNAMIC_OSGPPU)
 #######################################
 # Library files
 #######################################
-FIND_PACKAGE(OpenGL)
-FIND_PACKAGE(OSG)
-FIND_PACKAGE(OpenThreads)
+FIND_PACKAGE( OpenGL REQUIRED )
+FIND_PACKAGE( OSG REQUIRED )
 
 INCLUDE_DIRECTORIES(BEFORE
     ${OPENGL_INCLUDE_DIR}
-    ${OSG_INCLUDE_DIR}
+    ${OSG_INCLUDE_DIRS}
     ${SOURCE_DIR}/include 
 )
 
@@ -37,6 +36,8 @@ SET(GL_LIBS
   ${OPENGL_glu_LIBRARY}
 )
 
+# MESSAGE( "project path: ${PROJECT_BINARY_DIR}" )
+# MESSAGE( "source  path: ${osgPPU_SOURCE_DIR}" )
 
 #######################################
 # Solution definition

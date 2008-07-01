@@ -35,7 +35,6 @@ namespace osgPPU
     UnitOutCapture::UnitOutCapture() : UnitOut()
     {
         mPath = ".";
-        mCaptureNumber = 0;
         mExtension = "png";
     }
     
@@ -50,18 +49,16 @@ namespace osgPPU
     {
         if (getActive() && renderInfo.getState())
         {
-            // if we want to capture the framebuffer
-            char filename[256];
-            
             // for each input texture do
             for (unsigned int i=0; i < mInputTex.size(); i++)
             {
-                // create file name
-                sprintf( filename, "%s/%d_%04d.%s", mPath.c_str(), i, mCaptureNumber, mExtension.c_str());
-                std::cout << "Capture " << mCaptureNumber << " frame to " << filename << " ...";
-                std::cout.flush();
+                // create file name (allocate memory big enough to be just safe)
+                char* filename = (char*)malloc(sizeof(char) * (mPath.length() + mExtension.length() + 32));
+                sprintf( filename, "%s/%d_%04d.%s", mPath.c_str(), i, mCaptureNumber[i], mExtension.c_str());
+                osg::notify(osg::WARN) << "osgPPU::UnitOutCapture::Capture " << mCaptureNumber[i] << " frame to " << filename << " ...";
+                osg::notify(osg::WARN).flush();
             
-                mCaptureNumber++;
+                mCaptureNumber[i]++;
     
                 // input texture 
                 osg::Texture* input = getInputTexture(i);
@@ -72,17 +69,18 @@ namespace osgPPU
                 // retrieve texture content
                 osg::ref_ptr<osg::Image> img = new osg::Image();
                 img->readImageFromCurrentTexture(renderInfo.getContextID(), false);
-                //img->readPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE);
                 osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
-                //write_png(filename, img->data(), w, h, 4, 8, PNG_COLOR_TYPE_RGBA, 1);
                 if (res.success())
-                    std::cout << " OK" << std::endl;
+                    osg::notify(osg::WARN) << " OK" << std::endl;
                 else
-                    std::cout << " failed! (" << res.message() << ")" << std::endl;
+                    osg::notify(osg::WARN) << " failed! (" << res.message() << ")" << std::endl;
                             
                 // unbind the texture back 
                 if (input != NULL)
                     renderInfo.getState()->applyTextureMode(0, input->getTextureTarget(), false);
+
+                // release character memory
+                free(filename);
             }
         }
         UnitOut::noticeFinishRendering(renderInfo, drawable);

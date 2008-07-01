@@ -65,7 +65,7 @@ namespace osgPPU
             std::string mPath;
     
             //! Current number of the capture file 
-            int mCaptureNumber;
+            std::map<int,int> mCaptureNumber;
     
             //! file extensions
             std::string mExtension;

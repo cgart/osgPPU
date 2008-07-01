@@ -71,7 +71,7 @@ void ColorAttribute::UpdateCallback::operator()(osg::StateAttribute* sa, osg::No
         bm->mTime = nv->getFrameStamp()->getReferenceTime();
 
         // if current time is passed the start time
-        if (bm->mStartTime <= bm->mTime)
+        if (bm->mStartTime <= bm->mTime && bm->mEndTime > bm->mTime)
         {
             // compute interpolation factors
             float factor = (bm->mTime - bm->mStartTime) / (bm->mEndTime - bm->mStartTime);
