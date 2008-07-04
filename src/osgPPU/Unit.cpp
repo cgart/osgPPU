@@ -15,6 +15,7 @@
  ***************************************************************************/
 
 #include <osgPPU/Unit.h>
+#include <osgPPU/UnitInOut.h>
 #include <osgPPU/Processor.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/Utility.h>
@@ -34,7 +35,6 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 Unit::Unit() : osg::Group(),
     mbDirty(true),
-    mOutputInternalFormat(GL_RGBA16F_ARB),
     mInputTexIndexForViewportReference(0),
     mbActive(true),
     mbTraversed(false),
@@ -47,9 +47,6 @@ Unit::Unit() : osg::Group(),
     mGeode = new osg::Geode();
     mGeode->setCullingActive(false);
     addChild(mGeode.get());
-
-    // add empty mrt=0 output texture 
-    setOutputTexture(NULL, 0);
             
     // initialze projection matrix
     sProjectionMatrix = new osg::RefMatrix(osg::Matrix::ortho(0,1,0,1,0,1));
@@ -91,7 +88,6 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mGeode(ppu.mGeode),
     mColorAttribute(ppu.mColorAttribute),
     mbDirty(ppu.mbDirty),
-    mOutputInternalFormat(ppu.mOutputInternalFormat),
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
     mbTraversed(ppu.mbTraversed),
@@ -151,18 +147,6 @@ void Unit::setInputTextureIndexForViewportReference(int index)
 
         dirty();
     }
-}
-
-
-//------------------------------------------------------------------------------
-void Unit::setOutputTexture(osg::Texture* outTex, int mrt)
-{
-    if (outTex)
-        mOutputTex[mrt] = outTex;
-    else
-        mOutputTex[mrt] = osg::ref_ptr<osg::Texture>(NULL);
-
-    dirty();
 }
 
 //------------------------------------------------------------------------------
@@ -297,23 +281,6 @@ void Unit::assignViewport()
     {
         getOrCreateStateSet()->setAttribute(mViewport.get(), osg::StateAttribute::ON);
     }
-}
-
-//--------------------------------------------------------------------------
-void Unit::setOutputInternalFormat(GLenum format)
-{
-    mOutputInternalFormat = format;
-    
-    // now generate output texture's and assign them to fbo 
-    TextureMap::iterator it = mOutputTex.begin();
-    for (;it != mOutputTex.end(); it++)
-    {
-        if (it->second.valid()){
-            it->second->setInternalFormat(mOutputInternalFormat);
-            it->second->setSourceFormat(createSourceTextureFormat(mOutputInternalFormat));
-        }
-    }
-
 }
 
 //--------------------------------------------------------------------------
@@ -655,12 +622,16 @@ void Unit::printDebugInfo()
         }
     }
 
-    osg::notify(level) << std::endl << "\t output: ";
-    for (unsigned int i=0; i < getOutputTextureMap().size(); i++)
+    UnitInOut* inout = dynamic_cast<UnitInOut*>(this);
+    if (inout)
     {
-        osg::Texture* tex = getOutputTexture(i);
-        osg::notify(level) << " " << std::hex << tex << std::dec << " ";
-        if (tex) osg::notify(level) << "(" << tex->getTextureWidth() << "x" << tex->getTextureHeight() << " )";
+        osg::notify(level) << std::endl << "\t output: ";
+        for (unsigned int i=0; i < inout->getOutputTextureMap().size(); i++)
+        {
+            osg::Texture* tex = inout->getOutputTexture(i);
+            osg::notify(level) << " " << std::hex << tex << std::dec << " ";
+            if (tex) osg::notify(level) << "(" << tex->getTextureWidth() << "x" << tex->getTextureHeight() << " )";
+        }
     }
 
     osg::notify(level) << std::endl;

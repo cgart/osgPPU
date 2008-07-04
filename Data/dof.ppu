@@ -4,7 +4,6 @@ osgPPU::Processor {
     name "ColorBypass"
     isActive 1
     inputTextureIndexForViewportReference 0
-    outputInternalFormat 34842
 
     PPUOutput {
       PPU UnitInResampleOut_1
@@ -509,7 +508,6 @@ osgPPU::Processor {
     name "PipelineResult"
     isActive 1
     inputTextureIndexForViewportReference -1
-    outputInternalFormat 34842
 
     PPUOutput {
     }
@@ -772,7 +770,6 @@ osgPPU::Processor {
     name "DepthBypass"
     isActive 1
     inputTextureIndexForViewportReference 0
-    outputInternalFormat 34842
 
     PPUOutput {
       PPU UnitInOut_3

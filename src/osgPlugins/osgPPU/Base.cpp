@@ -137,3 +137,36 @@ const char* Texture_getInternalFormatStr(int value)
     return NULL;
 }
 
+
+//--------------------------------------------------------------------------
+bool Texture_matchOutputTypeStr(const char* str, osgPPU::UnitInOut::TextureType& value)
+{
+    if (     strcmp(str,"TEXTURE_2D")==0) value = osgPPU::UnitInOut::TEXTURE_2D;
+    else if (strcmp(str,"TEXTURE_CUBEMAP")==0) value = osgPPU::UnitInOut::TEXTURE_CUBEMAP;
+    else
+    {
+        osgDB::Field::FieldType type = osgDB::Field::calculateFieldType(str);
+        if (type==osgDB::Field::INTEGER)
+        {
+            value = (osgPPU::UnitInOut::TextureType)atoi(str);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------
+const char* Texture_getOutputTextureTypeStr(osgPPU::UnitInOut::TextureType value)
+{
+    switch(value)
+    {
+        case(osgPPU::UnitInOut::TEXTURE_2D): return "TEXTURE_2D";
+        case(osgPPU::UnitInOut::TEXTURE_CUBEMAP): return "TEXTURE_CUBEMAP";
+    }
+    return NULL;
+}

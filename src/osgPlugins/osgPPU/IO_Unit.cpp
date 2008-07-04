@@ -105,6 +105,32 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
+    std::string internalFormatStr;
+    if (fr.readSequence("outputInternalFormat", internalFormatStr))
+    { 
+        int fmt;
+        if (Texture_matchInternalFormatStr(internalFormatStr.c_str(), fmt) != 0)
+        {
+            unit.setOutputInternalFormat(fmt);
+        }else{
+            osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot read output internal format \""<< internalFormatStr << "\"." << std::endl;
+        }
+        itAdvanced = true;
+    }
+
+    std::string outputTextureTypeStr;
+    if (fr.readSequence("outputTextureType", outputTextureTypeStr))
+    { 
+        osgPPU::UnitInOut::TextureType fmt;
+        if (Texture_matchOutputTypeStr(outputTextureTypeStr.c_str(), fmt) != 0)
+        {
+            unit.setOutputTextureType(fmt);
+        }else{
+            osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot read output texture type \""<< outputTextureTypeStr << "\"." << std::endl;
+        }
+        itAdvanced = true;
+    }
+
     return itAdvanced;
 }
 
@@ -243,21 +269,6 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
         unit.setInputTextureIndexForViewportReference(inputTextureIndexForViewportReference);
         itAdvanced = true;
     }
-
-
-    std::string internalFormatStr;
-    if (fr.readSequence("outputInternalFormat", internalFormatStr))
-    { 
-        int fmt;
-        if (Texture_matchInternalFormatStr(internalFormatStr.c_str(), fmt) != 0)
-        {
-            unit.setOutputInternalFormat(fmt);
-        }else{
-            osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot read output internal format \""<< internalFormatStr << "\"." << std::endl;
-        }
-        itAdvanced = true;
-    }
-
 
     // read viewport 
     osg::Viewport *vp = static_cast<osg::Viewport*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Viewport>()));
@@ -495,14 +506,6 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     fout.indent() << "isActive " <<  unit.getActive() << std::endl;
     fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
     
-    // write internal format
-    {
-        const char* str = Texture_getInternalFormatStr(unit.getOutputInternalFormat());
-        
-        if (str) fout.indent() << "outputInternalFormat " << str << std::endl;
-        else fout.indent() << "outputInternalFormat " << unit.getOutputInternalFormat() << std::endl;
-    }
-
     // write ignore input indices
     {
         const std::vector<unsigned int>& index = unit.getIgnoreInputList();
@@ -647,6 +650,22 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
     const osgPPU::UnitInOut& unit = static_cast<const osgPPU::UnitInOut&>(obj);
 
     fout.indent() << "inputBypass " <<  unit.getInputBypass() << std::endl;
+
+    // write internal format
+    {
+        const char* str = Texture_getInternalFormatStr(unit.getOutputInternalFormat());
+        
+        if (str) fout.indent() << "outputInternalFormat " << str << std::endl;
+        else fout.indent() << "outputInternalFormat " << unit.getOutputInternalFormat() << std::endl;
+    }
+
+    // write output type
+    {
+        const char* str = Texture_getOutputTextureTypeStr(unit.getOutputTextureType());
+        
+        if (str) fout.indent() << "outputTextureType " << str << std::endl;
+        else fout.indent() << "outputTextureType " << unit.getOutputTextureType() << std::endl;
+    }
 
     return true;
 }

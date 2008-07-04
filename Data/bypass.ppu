@@ -5,7 +5,6 @@ osgPPU::Processor {
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference -1
-    outputInternalFormat GL_RGBA16F_ARB
 
     PPUOutput {
       PPU UnitOut_1
@@ -17,7 +16,6 @@ osgPPU::Processor {
     isActive 1
     isOffline 0
     inputTextureIndexForViewportReference -1
-    outputInternalFormat GL_RGBA16F_ARB
 
     PPUOutput {
     }

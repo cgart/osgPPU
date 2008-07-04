@@ -1,3 +1,17 @@
+2008-07-01 11:36  art
+
+	* [r125]
+	  From Bob Kuehne:
+	  fixed PPU to work with the new birfucated osg/include header
+	  structure. three changes to a FindOSG.cmake module, and then to
+	  the
+	  parent CMakeLists.txt which uses that to setup include paths.
+
+2008-05-14 15:33  art
+
+	* [r124]
+	  - Version 0.2 tagged
+
 2008-05-14 10:28  art
 
 	* [r123]

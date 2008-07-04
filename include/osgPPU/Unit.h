@@ -116,13 +116,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Return complete index to texture mapping
         **/
         const TextureMap& getInputTextureMap() const {return mInputTex;}
-
-        /**
-        * Set an output texture.
-        * @param outTex Texture used as output of this ppu 
-        * @param mrt MRT (multiple rendering target) index of this output
-        **/
-        void setOutputTexture(osg::Texture* outTex, int mrt = 0);
         
         /**
         * Get output texture of certain MRT index.
@@ -140,11 +133,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * the same as from getOutputTexture().
         **/
         virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0) { return getOutputTexture(mrt); }
-        
-        /**
-        * Set a mrt to texture map for output textures
-        **/
-        inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map; dirty();}
 
         /**
         * Get mrt index to texture mapping
@@ -214,18 +202,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
          * play with the viewport.
         **/
         void setRenderingFrustum(float left, float top, float right, float bottom);
-
-        /**
-         * Set internal format which will be used by creating the textures. The format
-         * specified here will be passed along to the osg::Texture::setInternalFormat()
-         * method when creating output textures of a corresponding ppu.
-        **/
-        void setOutputInternalFormat(GLenum format);
-
-        /**
-        * Get internal format which is used by the output textures
-        **/
-        inline GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
 
         /**
         * Assign a shader used when computing the output data of the ppu.
@@ -365,10 +341,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         
         //! Input texture
         TextureMap  mInputTex;
-        
+
         //! Output textures
         TextureMap  mOutputTex;
-
+        
         //! List of ignored inputs
         IgnoreInputList mIgnoreList;
 
@@ -398,9 +374,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! Is the unit dirty
         bool mbDirty;
-
-        //! Internal format of the output texture
-        GLenum mOutputInternalFormat;
 
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;

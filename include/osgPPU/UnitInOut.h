@@ -57,12 +57,6 @@ namespace osgPPU
             inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
 
             /**
-            * Return output texture for the specified MRT index.
-            * If no such exists, then it will be allocated.
-            **/
-            virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0);
-
-            /**
             * UnitInOut can also be used to bypass the input texture to the output
             * and perform a rendering on it. This is differently to the UnitBypass which
             * do not perform any rendering but bypasses the data. 
@@ -78,6 +72,77 @@ namespace osgPPU
             **/
             int getInputBypass() const { return mBypassedInput; }
 
+            /**
+            * Set face index to use when rendering to a cubemap
+            **/
+            void setOutputFace(int face);
+            
+            /**
+            * Get face index used when rendering to a cubemap
+            **/
+            int getOutputFace() { return mOutputCubemapFace; }
+
+            /**
+            * Type of the texture. The types can be used to specify the type 
+            * of the output texture of the UnitInOut units.
+            **/
+            enum TextureType
+            {
+                //! Texture is a osg::Texture2D
+                TEXTURE_2D,
+
+                //! Texture is a osg::TextureCubeMap
+                TEXTURE_CUBEMAP
+            };
+
+            /**
+            * Specify the type of the output texture. The next call on
+            * getOrCreateOutputTexture() will generate the output texture of the given 
+            * type if the output texture wasn't generated before. Use this
+            * to implement units based not only on 2D textures.
+            * 
+            * NOTE: Since the output textures must be all of the same type, 
+            * you have to take care about the correct output type. Default type is TEXTURE_2D.
+            **/
+            void setOutputTextureType(TextureType type);
+
+            /**
+            * Get the type of the output texture. The type can be specified by 
+            * the setOutputTextureType() method. The type must be equal for all output 
+            * textures of the same unit.
+            **/
+            TextureType getOutputTextureType() const { return mOutputType; }
+
+            /**
+            * Set internal format which will be used by creating the textures. The format
+            * specified here will be passed along to the osg::Texture::setInternalFormat()
+            * method when creating output textures of a corresponding ppu.
+            **/
+            void setOutputInternalFormat(GLenum format);
+    
+            /**
+            * Get internal format which is used by the output textures
+            **/
+            inline GLenum getOutputInternalFormat() const { return mOutputInternalFormat; }
+
+            /**
+            * Set an output texture.
+            * @param outTex Texture used as output of this ppu 
+            * @param mrt MRT (multiple rendering target) index of this output
+            **/
+            void setOutputTexture(osg::Texture* outTex, int mrt = 0);
+
+            /**
+            * Return output texture for the specified MRT index.
+            * If no such exists, then it will be allocated.
+            **/
+            virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0);
+            
+            /**
+            * Set a mrt to texture map for output textures
+            **/
+            inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map; dirty();}
+    
         protected:
         
             //! Notice about end of rendering
@@ -105,6 +170,15 @@ namespace osgPPU
 
             //! index of the bypassed input
             int mBypassedInput;
+
+            //! Which face to render cubemaps to
+            int mOutputCubemapFace;
+
+            //! Output texture type
+            TextureType mOutputType;
+
+            //! Internal format of the output texture
+            GLenum mOutputInternalFormat;
     };
 
 };
