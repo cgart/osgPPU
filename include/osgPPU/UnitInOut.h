@@ -29,6 +29,8 @@
 #define OSGPPU_MIPMAP_LEVEL_UNIFORM "osgppu_MipmapLevel"
 #define OSGPPU_MIPMAP_LEVEL_NUM_UNIFORM "osgppu_MipmapLevelNum"
 #define OSGPPU_CUBEMAP_FACE_UNIFORM "osgppu_CubeMapFace"
+#define OSGPPU_3D_SLICE_NUMBER "osgppu_ZSliceNumber"
+#define OSGPPU_3D_SLICE_INDEX "osgppu_ZSliceIndex"
 
 namespace osgPPU
 {
@@ -71,17 +73,42 @@ namespace osgPPU
             /**
             * Get bypassed input texture index.
             **/
-            int getInputBypass() const { return mBypassedInput; }
+            inline int getInputBypass() const { return mBypassedInput; }
 
             /**
             * Set face index to use when rendering to a cubemap
             **/
-            void setOutputFace(int face);
-            
+            inline void setOutputFace(unsigned int face) { mOutputCubemapFace = face; dirty(); }
+ 
             /**
             * Get face index used when rendering to a cubemap
             **/
-            int getOutputFace() { return mOutputCubemapFace; }
+            inline unsigned int getOutputFace() { return mOutputCubemapFace; }
+
+            /**
+            * Set slice index which is used to render the output to.
+            * This settings have an effect only when using 3D textures as output
+            **/
+            inline void setOutputZSlice(unsigned int slice) { mOutputZSlice = slice; dirty(); }
+
+            /**
+            * Get Z slice which is used to render the output to if 3D
+            * texture is used as output.
+            **/
+            inline unsigned int getOutputZSlice() { return mOutputZSlice; }
+
+            /**
+            * Specify the depth of the output texture when using a 3D or layered texture 
+            * as output texture.
+            **/
+            void setOutputDepth(unsigned int depth);
+
+            /**
+            * Get depth of the output texture. The returned value is the value which 
+            * you specify by the setOutputDepth() method and might be different to the 
+            * real output texture depth. 
+            **/
+            inline unsigned int getOutputDepth() { return mOutputDepth; }
 
             /**
             * Type of the texture. The types can be used to specify the type 
@@ -93,7 +120,10 @@ namespace osgPPU
                 TEXTURE_2D,
 
                 //! Texture is a osg::TextureCubeMap
-                TEXTURE_CUBEMAP
+                TEXTURE_CUBEMAP,
+
+                //! 3D texture is used of the output
+                TEXTURE_3D
             };
 
             /**
@@ -105,14 +135,14 @@ namespace osgPPU
             * NOTE: Since the output textures must be all of the same type, 
             * you have to take care about the correct output type. Default type is TEXTURE_2D.
             **/
-            void setOutputTextureType(TextureType type);
+            inline void setOutputTextureType(TextureType type) { mOutputType = type; dirty(); }
 
             /**
             * Get the type of the output texture. The type can be specified by 
             * the setOutputTextureType() method. The type must be equal for all output 
             * textures of the same unit.
             **/
-            TextureType getOutputTextureType() const { return mOutputType; }
+            inline TextureType getOutputTextureType() const { return mOutputType; }
 
             /**
             * Set internal format which will be used by creating the textures. The format
@@ -173,7 +203,13 @@ namespace osgPPU
             int mBypassedInput;
 
             //! Which face to render cubemaps to
-            int mOutputCubemapFace;
+            unsigned int mOutputCubemapFace;
+
+            //! Slice index to which the output is rendered to
+            unsigned int mOutputZSlice;
+
+            //! Depth of the 3D texture when used 
+            unsigned int mOutputDepth;
 
             //! Output texture type
             TextureType mOutputType;

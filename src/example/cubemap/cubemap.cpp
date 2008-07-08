@@ -310,7 +310,6 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
     
         // this camera will be used to get the texture from
         processor->setCamera(Cameras.front().get());
-        processor->dirtyUnitSubgraph();
 
         // add processor as subgraph 
         group->addChild(processor);

@@ -20,10 +20,49 @@
 
 #include <osg/TextureCubeMap>
 #include <osg/Texture2D>
+#include <osg/Texture3D>
 #include <osg/GL2Extensions>
 
 namespace osgPPU
 {
+    //------------------------------------------------------------------------------
+    // Helper class for filling the generated texture with default pixel values
+    //------------------------------------------------------------------------------
+    class Subload3DCallback : public osg::Texture3D::SubloadCallback
+    {
+        public:
+            // fill texture with default pixel values 
+            void load (const osg::Texture3D &texture, osg::State &state) const
+            {
+                // do only anything if such textures are supported
+                osg::Texture3D::Extensions* ext = osg::Texture3D::getExtensions(state.getContextID(), true);
+                if (ext && ext->isTexture3DSupported())
+                {
+                    // create temporary image which is initialized with 0 values
+                    osg::ref_ptr<osg::Image> img = new osg::Image();
+                    img->allocateImage(texture.getTextureWidth(), texture.getTextureHeight(), texture.getTextureDepth(), 
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
+    
+                    // fill the image with 0 values
+                    memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
+    
+                    // create the texture in usual OpenGL way
+                    ext->glTexImage3D( GL_TEXTURE_3D, 0, texture.getInternalFormat(),
+                        texture.getTextureWidth(), texture.getTextureHeight(), texture.getTextureDepth(),
+                        texture.getBorderWidth(), texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
+                        img->data());          
+                }
+            }
+
+            // no subload, because while we want to subload the texture should be already valid
+            void subload (const osg::Texture3D &texture, osg::State &state) const 
+            {
+
+            }
+    };
+
     //------------------------------------------------------------------------------
     // Helper class for filling the generated texture with default pixel values
     //------------------------------------------------------------------------------
@@ -110,6 +149,8 @@ namespace osgPPU
         mFBO(unit.mFBO),
         mBypassedInput(unit.mBypassedInput),
         mOutputCubemapFace(unit.mOutputCubemapFace),
+        mOutputZSlice(unit.mOutputZSlice),
+        mOutputDepth(unit.mOutputDepth),
         mOutputType(unit.mOutputType),
         mOutputInternalFormat(unit.mOutputInternalFormat)
     {
@@ -119,6 +160,8 @@ namespace osgPPU
     UnitInOut::UnitInOut() : Unit(),
         mBypassedInput(-1),
         mOutputCubemapFace(0),
+        mOutputZSlice(0),
+        mOutputDepth(1),
         mOutputType(TEXTURE_2D),
         mOutputInternalFormat(GL_RGBA16F_ARB)
     {
@@ -157,6 +200,13 @@ namespace osgPPU
         {
             osg::Uniform* faceUniform = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_CUBEMAP_FACE_UNIFORM, osg::Uniform::INT);
             faceUniform->set((int)mOutputCubemapFace);
+        }else if (mOutputType == TEXTURE_3D)
+        {
+            osg::Uniform* sliceCount = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_3D_SLICE_NUMBER, osg::Uniform::INT);
+            sliceCount->set((int)mOutputDepth);
+
+            osg::Uniform* sliceIndex = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_3D_SLICE_INDEX, osg::Uniform::INT);
+            sliceIndex->set((int)mOutputZSlice);
         }
 
         // setup bypassed output if required
@@ -199,14 +249,6 @@ namespace osgPPU
     }
 
     //------------------------------------------------------------------------------
-    void UnitInOut::setOutputFace(int face)
-    {
-        mOutputCubemapFace = face;
-
-        dirty();
-    }
-
-    //------------------------------------------------------------------------------
     void UnitInOut::setOutputTexture(osg::Texture* outTex, int mrt)
     {
         if (outTex)
@@ -215,12 +257,6 @@ namespace osgPPU
             mOutputTex[mrt] = osg::ref_ptr<osg::Texture>(NULL);
     
         dirty();
-    }
-
-    //------------------------------------------------------------------------------
-    void UnitInOut::setOutputTextureType(TextureType type)
-    {
-        mOutputType = type;
     }
 
     //--------------------------------------------------------------------------
@@ -241,6 +277,17 @@ namespace osgPPU
     }
 
     //------------------------------------------------------------------------------
+    void UnitInOut::setOutputDepth(unsigned int depth)
+    {
+        mOutputDepth = depth;
+        dirty();
+
+        // TODO: maybe some differentiation between MRT outputs is here required
+        // However no idea if different slices of different 3D textures could be 
+        // used as MRT output. Have to check that, art 08. July, 2008
+    }
+
+    //------------------------------------------------------------------------------
     osg::Texture* UnitInOut::getOrCreateOutputTexture(int mrt)
     {
         // if already exists, then return back
@@ -253,11 +300,14 @@ namespace osgPPU
         {
             mTex = new osg::Texture2D();
             dynamic_cast<osg::Texture2D*>(mTex)->setSubloadCallback(new Subload2DCallback());
-        }
-        else if (mOutputType == TEXTURE_CUBEMAP)
+        }else if (mOutputType == TEXTURE_CUBEMAP)
         {
             mTex = new osg::TextureCubeMap();
             dynamic_cast<osg::TextureCubeMap*>(mTex)->setSubloadCallback(new SubloadCubeMapCallback());
+        }else if (mOutputType == TEXTURE_3D)
+        {
+            mTex = new osg::Texture3D();
+            dynamic_cast<osg::Texture3D*>(mTex)->setSubloadCallback(new Subload3DCallback());
         }else
         {
             osg::notify(osg::FATAL) << "osgPPU::UnitInOut::getOrCreateOutputTexture() - " << getName() << " non-supported texture type specified!" << std::endl;
@@ -268,6 +318,7 @@ namespace osgPPU
         mTex->setResizeNonPowerOfTwoHint(false);
         mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
         mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+        mTex->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
         mTex->setInternalFormat(getOutputInternalFormat());
         mTex->setSourceFormat(createSourceTextureFormat(getOutputInternalFormat()));
         mTex->setBorderColor(osg::Vec4(0,0,0,0));
@@ -333,6 +384,19 @@ namespace osgPPU
                 if (textureCreated && mViewport.valid())
                     cubemapTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
                 mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(cubemapTex, mOutputCubemapFace));
+                continue;
+            }
+
+            // check whenever the output texture is a 3D texture 
+            osg::Texture3D* tex3D = dynamic_cast<osg::Texture3D*>(texture);
+            if (tex3D != NULL)
+            {
+                if (textureCreated && mViewport.valid())
+                {
+                    // we create a 3D texture with the same amount of slices as we have index specified.
+                    tex3D->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth);
+                }
+                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(tex3D, mOutputZSlice));
                 continue;
             }
 

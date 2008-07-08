@@ -1,3 +1,18 @@
+2008-07-08 17:29  art
+
+	* [r128]
+	  - cubemap example missing Data added
+
+2008-07-08 12:25  art
+
+	* [r127]
+	  - Render-to-CubeMap example added
+	  - the example should be extended to really changed the color
+	  values of hte input cubemap texture. However this requires
+	  transformation of texel coordinates from the cubespace into 2d
+	  space. Hence this is just a color example ;)
+	  - UnitInOut do now support renderin to cubemaps
+
 2008-07-04 12:55  art
 
 	* [r126]

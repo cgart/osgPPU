@@ -456,7 +456,7 @@ public:
             _inputUnitsFound = true;
             
         // if it is a processor, then get the camera attachments as inputs
-        }else if (proc != NULL)
+        }else if (proc != NULL && proc->getCamera())
         {
             // get first color attachment from the camera
             osg::Camera::BufferAttachmentMap& map = proc->getCamera()->getBufferAttachmentMap();
@@ -529,6 +529,13 @@ void Unit::setupInputsFromParents()
         if (fp._processor == NULL)
         {
             osg::notify(osg::FATAL) << "osgPPU::Unit::setupInputsFromParents() - " << getName() <<" - is not able to find the unit processor!" << std::endl;
+            return;
+        }
+
+        // check if no camera is specified, then we have an error
+        if (fp._processor != NULL && !fp._processor->getCamera())
+        {
+            osg::notify(osg::WARN) << "osgPPU::Unit::setupInputsFromParents() - " << getName() <<" - no camera attached and viewport is not specified!" << std::endl;
             return;
         }
 
