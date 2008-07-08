@@ -131,6 +131,27 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
+    unsigned int face = 0;
+    if (fr.readSequence("outputFace", face))
+    { 
+        unit.setOutputFace(face);
+        itAdvanced = true;
+    }
+
+    unsigned int depth = 0;
+    if (fr.readSequence("outputDepth", depth))
+    { 
+        unit.setOutputDepth(depth);
+        itAdvanced = true;
+    }
+
+    unsigned int slice = 0;
+    if (fr.readSequence("outputZSlice", slice))
+    { 
+        unit.setOutputZSlice(slice);
+        itAdvanced = true;
+    }
+
     return itAdvanced;
 }
 
@@ -666,6 +687,11 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
         if (str) fout.indent() << "outputTextureType " << str << std::endl;
         else fout.indent() << "outputTextureType " << unit.getOutputTextureType() << std::endl;
     }
+
+    // write output face
+    fout.indent() << "outputFace " << unit.getOutputFace() << std::endl;
+    fout.indent() << "outputDepth " << unit.getOutputDepth() << std::endl;
+    fout.indent() << "outputZSlice " << unit.getOutputZSlice() << std::endl;
 
     return true;
 }

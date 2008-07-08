@@ -1,3 +1,15 @@
+2008-07-08 19:14  art
+
+	* [r130]
+	  - forgott to add the files ;)
+
+2008-07-08 19:14  art
+
+	* [r129]
+	  - Render-to-3D-texture support added.
+	  - Simple example demonstrating how to use osgPPU to render to
+	  certain slices of the 3D texture is shown.
+
 2008-07-08 17:29  art
 
 	* [r128]

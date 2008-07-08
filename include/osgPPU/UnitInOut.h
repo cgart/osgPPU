@@ -83,7 +83,7 @@ namespace osgPPU
             /**
             * Get face index used when rendering to a cubemap
             **/
-            inline unsigned int getOutputFace() { return mOutputCubemapFace; }
+            inline unsigned int getOutputFace() const { return mOutputCubemapFace; }
 
             /**
             * Set slice index which is used to render the output to.
@@ -95,7 +95,7 @@ namespace osgPPU
             * Get Z slice which is used to render the output to if 3D
             * texture is used as output.
             **/
-            inline unsigned int getOutputZSlice() { return mOutputZSlice; }
+            inline unsigned int getOutputZSlice() const { return mOutputZSlice; }
 
             /**
             * Specify the depth of the output texture when using a 3D or layered texture 
@@ -108,7 +108,7 @@ namespace osgPPU
             * you specify by the setOutputDepth() method and might be different to the 
             * real output texture depth. 
             **/
-            inline unsigned int getOutputDepth() { return mOutputDepth; }
+            inline unsigned int getOutputDepth() const { return mOutputDepth; }
 
             /**
             * Type of the texture. The types can be used to specify the type 
