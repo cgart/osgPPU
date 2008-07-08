@@ -87,6 +87,13 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         bool setInputToUniform(Unit* parent, const std::string& uniform, bool add = false);
 
         /**
+        * Set input texture of this unit as uniform of this unit.
+        * @param index Input texture index to be used as input 
+        * @param uniform Name of the uniform
+        **/
+        bool setInputToUniform(int index, const std::string& uniform);
+
+        /**
         * Remove an assigned parent output uniform. @see assignParentToUniform()
         * @param uniform Name of the uniform
         * @param del Should this unit be removed from the child list of the parent

@@ -152,6 +152,13 @@ namespace osgPPU
         mGeode->removeDrawables(0, mGeode->getNumDrawables());
         mGeode->addDrawable(mDrawable.get());
 
+        // setup unfiroms
+        if (mOutputType == TEXTURE_CUBEMAP)
+        {
+            osg::Uniform* faceUniform = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_CUBEMAP_FACE_UNIFORM, osg::Uniform::INT);
+            faceUniform->set((int)mOutputCubemapFace);
+        }
+
         // setup bypassed output if required
         if (mBypassedInput >= 0 && mBypassedInput < (int)getNumParents())
         {
@@ -315,7 +322,7 @@ namespace osgPPU
             {
                 if (textureCreated && mViewport.valid())
                     tex2D->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(tex2D));
+                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(tex2D));
                 continue;
             }
 
@@ -325,7 +332,7 @@ namespace osgPPU
             {
                 if (textureCreated && mViewport.valid())
                     cubemapTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + i, osg::FrameBufferAttachment(cubemapTex, mOutputCubemapFace));
+                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(cubemapTex, mOutputCubemapFace));
                 continue;
             }
 

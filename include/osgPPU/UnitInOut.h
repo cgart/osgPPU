@@ -28,6 +28,7 @@
 
 #define OSGPPU_MIPMAP_LEVEL_UNIFORM "osgppu_MipmapLevel"
 #define OSGPPU_MIPMAP_LEVEL_NUM_UNIFORM "osgppu_MipmapLevelNum"
+#define OSGPPU_CUBEMAP_FACE_UNIFORM "osgppu_CubeMapFace"
 
 namespace osgPPU
 {

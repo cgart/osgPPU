@@ -1,6 +1,7 @@
 ADD_SUBDIRECTORY(hdr)
 ADD_SUBDIRECTORY(viewer)
 ADD_SUBDIRECTORY(dof)
+ADD_SUBDIRECTORY(cubemap)
 
 
 ################################################################################

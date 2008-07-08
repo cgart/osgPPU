@@ -1,3 +1,13 @@
+2008-07-04 12:55  art
+
+	* [r126]
+	  From Sean Carmody
+	  - support for output to CubeMaps from out of UnitInOut units
+	  - implementation was extended for future implementation of
+	  non-2d-output texture types
+	  - small changes in the interface: all set-methods about output
+	  texture are now moved to UnitInOut from Unit
+
 2008-07-01 11:36  art
 
 	* [r125]

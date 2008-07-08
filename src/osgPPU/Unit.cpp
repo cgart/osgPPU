@@ -154,7 +154,7 @@ bool Unit::setInputToUniform(Unit* parent, const std::string& uniform, bool add)
 {
     if (parent == NULL || uniform.length() < 1) return false;
 
-    // add this uniform as a child of the parent if required
+    // add this unit as a child of the parent if required
     if (add && !parent->containsNode(this)) parent->addChild(this);
 
     // check if this is a valid parent of this node
@@ -174,6 +174,13 @@ bool Unit::setInputToUniform(Unit* parent, const std::string& uniform, bool add)
     dirty();
 
     return true;
+}
+
+//--------------------------------------------------------------------------
+bool Unit::setInputToUniform(int index, const std::string& uniform)
+{
+    osg::notify(osg::FATAL) << "osgPPU::Unit::setInputToUniform(int,string) - currently not implemented" << std::endl;
+    return false;
 }
 
 //--------------------------------------------------------------------------
