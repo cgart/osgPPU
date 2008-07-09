@@ -314,10 +314,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         virtual void setupInputsFromParents();
         
         //! Method to let the unit know that the rendering will now beginns
-        virtual void  noticeBeginRendering (osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
+        virtual void  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) {};
 
         //! Let the unit know that the drawing is done.
-        virtual void  noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
+        virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* ) {};
 
         //! Notice underlying classes, that viewport size is changed
         virtual void noticeChangeViewport() {}

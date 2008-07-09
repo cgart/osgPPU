@@ -160,14 +160,14 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         * Use this method to catch up the initialization process of a unit. 
         * @param unit Pointer to the unit which is initialized
         **/
-        virtual void onUnitInit(Unit* unit) {}
+        virtual void onUnitInit(Unit*) {}
 
         /**
         * Callback method for derived classes to detect whenever a unit is get updated.
         * This method is called once per frame for every unit whenever it is updated.
         * @param unit Pointer to the unit which is updated
         **/
-        virtual void onUnitUpdate(Unit* unit) {}
+        virtual void onUnitUpdate(Unit*) {}
 
     private:
 

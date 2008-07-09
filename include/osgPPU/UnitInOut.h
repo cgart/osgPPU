@@ -44,6 +44,9 @@ namespace osgPPU
         public:
             META_Node(osgPPU,UnitInOut);
         
+            //! Mapping of MRt to ZSlice
+            typedef std::map<unsigned int, unsigned int> OutputSliceMap;
+
             //! Create default ppfx 
             UnitInOut();
             UnitInOut(const UnitInOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
@@ -87,15 +90,24 @@ namespace osgPPU
 
             /**
             * Set slice index which is used to render the output to.
-            * This settings have an effect only when using 3D textures as output
+            * This settings have an effect only when using 3D textures as output.
+            * The given slice will be defined for each MRT output.
+            * @param slice Index of the slice (z-offset) to render the results to 
+            * @param mrt MRT index of the output to be rendered to the given slice. This allows 
+            * to specify which output to connect with which slice
             **/
-            inline void setOutputZSlice(unsigned int slice) { mOutputZSlice = slice; dirty(); }
+            inline void setOutputZSlice(unsigned int slice, unsigned int mrt = 0) { mOutputZSlice[mrt] = slice; dirty(); }
 
             /**
             * Get Z slice which is used to render the output to if 3D
             * texture is used as output.
             **/
-            inline unsigned int getOutputZSlice() const { return mOutputZSlice; }
+            inline unsigned int getOutputZSlice(unsigned int mrt) { return mOutputZSlice[mrt]; }
+
+            /**
+            * Get the mapping between MRT and Z-Offset slices. @see setOutputZSlice()
+            **/
+            inline const OutputSliceMap& getOutputZSliceMap() const { return mOutputZSlice; }
 
             /**
             * Specify the depth of the output texture when using a 3D or layered texture 
@@ -206,7 +218,7 @@ namespace osgPPU
             unsigned int mOutputCubemapFace;
 
             //! Slice index to which the output is rendered to
-            unsigned int mOutputZSlice;
+            OutputSliceMap mOutputZSlice;
 
             //! Depth of the 3D texture when used 
             unsigned int mOutputDepth;

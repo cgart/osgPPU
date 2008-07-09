@@ -145,10 +145,29 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
-    unsigned int slice = 0;
-    if (fr.readSequence("outputZSlice", slice))
-    { 
-        unit.setOutputZSlice(slice);
+    // input to uniform map
+    if (fr.matchSequence("OutputSliceMap {"))
+    {
+        int entry = fr[0].getNoNestedBrackets();
+
+        fr += 2;
+        
+        while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
+        {
+            int mrt = 0, slice = 0;
+            if (fr[0].getInt(mrt) && fr[1].getInt(slice))
+            { 
+                unit.setOutputZSlice(slice,mrt);
+            }else
+            {
+                osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot read OutputSliceMap parameters." << std::endl;            
+            }
+            fr += 2;         
+        }
+        
+        // skip trailing '}'
+        ++fr;
+        
         itAdvanced = true;
     }
 
@@ -691,7 +710,22 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
     // write output face
     fout.indent() << "outputFace " << unit.getOutputFace() << std::endl;
     fout.indent() << "outputDepth " << unit.getOutputDepth() << std::endl;
-    fout.indent() << "outputZSlice " << unit.getOutputZSlice() << std::endl;
+
+    // for each output map write
+    if (unit.getOutputTextureType() == osgPPU::UnitInOut::TEXTURE_3D)
+    {
+        osgPPU::UnitInOut::OutputSliceMap::const_iterator it = unit.getOutputZSliceMap().begin();
+        fout.writeBeginObject("OutputSliceMap");
+        fout.moveIn();
+    
+        for (; it != unit.getOutputZSliceMap().end(); it++)
+        {
+            fout.indent() << it->first << " " << it->second << std::endl;
+        }
+        
+        fout.moveOut();
+        fout.writeEndObject();
+    }
 
     return true;
 }

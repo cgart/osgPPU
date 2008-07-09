@@ -160,7 +160,6 @@ namespace osgPPU
     UnitInOut::UnitInOut() : Unit(),
         mBypassedInput(-1),
         mOutputCubemapFace(0),
-        mOutputZSlice(0),
         mOutputDepth(1),
         mOutputType(TEXTURE_2D),
         mOutputInternalFormat(GL_RGBA16F_ARB)
@@ -205,8 +204,16 @@ namespace osgPPU
             osg::Uniform* sliceCount = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_3D_SLICE_NUMBER, osg::Uniform::INT);
             sliceCount->set((int)mOutputDepth);
 
-            osg::Uniform* sliceIndex = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_3D_SLICE_INDEX, osg::Uniform::INT);
-            sliceIndex->set((int)mOutputZSlice);
+            for (OutputSliceMap::const_iterator it = getOutputZSliceMap().begin(); it != getOutputZSliceMap().end(); it++)
+            {
+                osg::Uniform* sliceIndex = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_3D_SLICE_INDEX, osg::Uniform::INT, getOutputZSliceMap().size());
+                sliceIndex->setElement(it->first, (int)it->second);
+
+                if (getOutputZSliceMap().size() <= it->first)
+                {
+                    osg::notify(osg::WARN) << "osgPPU::UnitInOut::init() - specified mrt index " << it->first << " is not valid. Results might be wrong!" << std::endl;
+                }
+            }
         }
 
         // setup bypassed output if required
@@ -393,11 +400,17 @@ namespace osgPPU
             {
                 if (textureCreated && mViewport.valid())
                 {
-                    // we create a 3D texture with the same amount of slices as we have index specified.
+                    // we create a 3D texture with the same amount of slices as we have indices specified.
                     tex3D->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth);
                 }
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(tex3D, mOutputZSlice));
+
+                // for each mrt to slice mapping do
+                for (OutputSliceMap::const_iterator jt = getOutputZSliceMap().begin(); jt != getOutputZSliceMap().end(); jt++)
+                {            
+                    mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + jt->first, osg::FrameBufferAttachment(tex3D, jt->second));
+                }
                 continue;
+
             }
 
             // if we are here, then output texture type is not supported, hence give some warning
