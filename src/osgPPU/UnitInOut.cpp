@@ -364,15 +364,16 @@ namespace osgPPU
                 // preallocate the texture
                 texture = getOrCreateOutputTexture(it->first);
                 textureCreated = true;
+
+                // check that the viewport must be valid at this time
+                // we check it here, because we only want to set the size, if texture is fresh
+                if (!mViewport.valid())
+                {
+                    osg::notify(osg::FATAL) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " cannot set output texture size, because viewport is invalid" << std::endl;
+                    continue;
+                }
             }
 
-            // check that the viewport must be valid at this time
-            // we check it here, because we only want to set the size, if texture is fresh
-            if (textureCreated && !mViewport.valid())
-            {
-                osg::notify(osg::FATAL) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " cannot set output texture size, because viewport is invalid" << std::endl;
-                continue;
-            }
 
             // check whenever the output texture is a 2D texture 
             osg::Texture2D* tex2D = dynamic_cast<osg::Texture2D*>(texture);

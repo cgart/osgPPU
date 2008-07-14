@@ -644,7 +644,19 @@ void Unit::printDebugInfo()
         {
             osg::Texture* tex = inout->getOutputTexture(i);
             osg::notify(level) << " " << std::hex << tex << std::dec << " ";
-            if (tex) osg::notify(level) << "(" << tex->getTextureWidth() << "x" << tex->getTextureHeight() << " )";
+            if (tex)
+            {
+                osg::notify(level) << "(" << tex->getTextureWidth() << "x" << tex->getTextureHeight() << " ";
+                if (inout->getOutputZSliceMap().size() > 1)
+                {
+                    UnitInOut::OutputSliceMap::const_iterator it = inout->getOutputZSliceMap().begin();
+                    osg::notify(level) << "{"; 
+                    for (; it != inout->getOutputZSliceMap().end(); it++)
+                        osg::notify(level) << it->first << "->" << it->second << ",";
+                    osg::notify(level) << "}";
+                }
+                osg::notify(level) << ")";
+            }
         }
     }
 

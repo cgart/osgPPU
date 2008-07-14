@@ -1,3 +1,20 @@
+2008-07-09 13:40  art
+
+	* [r133]
+	  - Support for MRT for 3D textures as output textures added. The
+	  supprot should be tested!
+
+2008-07-08 19:21  art
+
+	* [r132]
+	  - forgot to add the Image ;)
+
+2008-07-08 19:20  art
+
+	* [r131]
+	  - Render-to-Cubemap/3DTexture parameters to the osgPPU .ppu
+	  Plugin added.
+
 2008-07-08 19:14  art
 
 	* [r130]

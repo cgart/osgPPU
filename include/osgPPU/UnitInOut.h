@@ -189,10 +189,10 @@ namespace osgPPU
         protected:
         
             //! Notice about end of rendering
-            virtual void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
+            virtual void noticeFinishRendering(osg::RenderInfo &, const osg::Drawable* ) {};
 
             //! Notice about begin of rendering
-            virtual void noticeBeginRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable) {};
+            virtual void noticeBeginRendering(osg::RenderInfo &, const osg::Drawable* ) {};
             
             //! Viewport changed
             virtual void noticeChangeViewport();
