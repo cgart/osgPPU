@@ -185,7 +185,7 @@ namespace osgPPU
 
         // setup the attachments according to the outputs
         for (int i=0; i < numLevel; i++)
-            mMipmapFBO[i]->setAttachment(GL_COLOR_ATTACHMENT0_EXT + mrt, osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
+            mMipmapFBO[i]->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + mrt), osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
     }
 
 

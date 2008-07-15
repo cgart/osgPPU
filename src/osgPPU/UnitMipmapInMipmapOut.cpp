@@ -125,7 +125,7 @@ namespace osgPPU
                     }
         
                     // set fbo of current level with to this output         
-                    fbo->setAttachment(GL_COLOR_ATTACHMENT0_EXT + mrt, osg::FrameBufferAttachment(output.get(), level));
+                    fbo->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + mrt), osg::FrameBufferAttachment(output.get(), level));
                 }
     
                 // store fbo

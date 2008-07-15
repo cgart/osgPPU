@@ -381,7 +381,7 @@ namespace osgPPU
             {
                 if (textureCreated && mViewport.valid())
                     tex2D->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(tex2D));
+                mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + it->first), osg::FrameBufferAttachment(tex2D));
                 continue;
             }
 
@@ -391,7 +391,7 @@ namespace osgPPU
             {
                 if (textureCreated && mViewport.valid())
                     cubemapTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
-                mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + it->first, osg::FrameBufferAttachment(cubemapTex, mOutputCubemapFace));
+                mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + it->first), osg::FrameBufferAttachment(cubemapTex, mOutputCubemapFace));
                 continue;
             }
 
@@ -408,7 +408,7 @@ namespace osgPPU
                 // for each mrt to slice mapping do
                 for (OutputSliceMap::const_iterator jt = getOutputZSliceMap().begin(); jt != getOutputZSliceMap().end(); jt++)
                 {            
-                    mFBO->setAttachment(GL_COLOR_ATTACHMENT0_EXT + jt->first, osg::FrameBufferAttachment(tex3D, jt->second));
+                    mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + jt->first), osg::FrameBufferAttachment(tex3D, jt->second));
                 }
                 continue;
 
