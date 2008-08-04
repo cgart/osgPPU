@@ -26,6 +26,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/BarrierNode.h
     ${HEADER_PATH}/Utility.h
     ${HEADER_PATH}/ColorAttribute.h
+    ${HEADER_PATH}/ShaderAttribute.h
 )
 
 ADD_LIBRARY(${LIB_NAME}
@@ -47,6 +48,7 @@ ADD_LIBRARY(${LIB_NAME}
     Visitor.cpp
     Utility.cpp
     ColorAttribute.cpp
+    ShaderAttribute.cpp
 )
 
 LINK_WITH_VARIABLES(${LIB_NAME}     

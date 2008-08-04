@@ -16,6 +16,7 @@
 
 #include <osgPPU/ShaderAttribute.h>
 #include <osg/StateAttribute>
+#include <assert.h>
 
 #define DEBUG_SH 0
 
@@ -26,7 +27,6 @@ namespace osgPPU
 ShaderAttribute::ShaderAttribute()
 {
     mDirtyTextureBindings = true;
-    mDirty = true;
     mMaxTextureUnits = 8;
 }
 
@@ -35,14 +35,13 @@ ShaderAttribute::ShaderAttribute(const ShaderAttribute& sh, const osg::CopyOp& c
     mTexUnits(sh.mTexUnits),
     mDirtyTextureBindings(sh.mDirtyTextureBindings),
     mMaxTextureUnits(sh.mMaxTextureUnits),
-    mDirty(sh.mDirty),
     osg::Program(sh, copyop)
 {
     setName(sh.getName());
 
     // copy attributes
-    osg::Program::AttribBindingList::const_iterator it = sh->getAttribBindingList().begin();
-    for (; it != sh->getAttribBindingList().end(); it ++)
+    osg::Program::AttribBindingList::const_iterator it = sh.getAttribBindingList().begin();
+    for (; it != sh.getAttribBindingList().end(); it ++)
         addBindAttribLocation(it->first, it->second);
 
     // copy uniforms
@@ -57,9 +56,6 @@ ShaderAttribute::ShaderAttribute(const ShaderAttribute& sh, const osg::CopyOp& c
         u->copyData(*jt->second.first);
         mUniforms[jt->first] = osg::StateSet::RefUniformPair(u, jt->second.second);
     }
-
-    // mark as dirty, because now we need to reset all the uniforms
-    dirty();
 }
 
 
@@ -73,7 +69,6 @@ ShaderAttribute::~ShaderAttribute()
 void ShaderAttribute::setMaximalSupportedTextureUnits(int i)
 {
     mMaxTextureUnits = i;
-    mDirtyTextureBindings = true;
 }
 
 //--------------------------------------------------------------------------
@@ -121,35 +116,7 @@ osg::Uniform::Type ShaderAttribute::convertToUniformType(const std::string& name
 void ShaderAttribute::addParameter(const std::string& name, osg::Uniform* param, osg::StateAttribute::OverrideValue mode)
 {
     if (param)
-    {
-        // add to the database
         mUniforms[name] = osg::StateSet::RefUniformPair(param, mode);
-
-        // iterate over all known parents and setup the uniform also there
-        for (unsigned i=0; getNumParents(); i++)
-        {
-            Uniform* u = getParent(i)->getUniform(name);
-
-            // ok parent has the same named uniform but of different type, hence
-            if (u && u->getType() != param->getType())
-            {
-                osg::notify(osg::WARN) << "osgPPU::ShaderAttribute::add() - uniform " << name <<
-                    " already exists in parent " << getParent(i)->getName() << "(" << i <<
-                    ") but has different type. Don't know whjat to do!" << std::endl;
-                continue;
-            }
-
-            // ok add uniform to the parent if no such already found
-            if (!u)
-            {
-                getParent(i)->addUniform(param, mode);
-                mParents[getParent(i)] = false;
-            }
-        }
-
-        // mark as globally dirty
-        dirty();
-    }
 }
 
 //--------------------------------------------------------------------------
@@ -195,15 +162,7 @@ void ShaderAttribute::del(const std::string& name)
     // remove uniform from our database
     osg::StateSet::UniformList::iterator it = mUniforms.find(name);
     if (it != mUniforms.end())
-    {
         mUniforms.erase(it);
-    }
-
-    // remove uniform also from parents
-    for (unsigned i=0; i < getNumParents(); i++)
-    {
-
-    }
 }
 
 //--------------------------------------------------------------------------
@@ -395,82 +354,34 @@ bool ShaderAttribute::bindFragData(const std::string& name, unsigned int index)
 void ShaderAttribute::setUniformList(const osg::StateSet::UniformList& list)
 {
     mUniforms = list;
-    mDirtyTextureBindings = false;
-    mDirty = true;
 }
 
 //--------------------------------------------------------------------------
-void ShaderAttribute::apply(const osg::State& state) const
+void ShaderAttribute::apply(osg::State& state) const
 {
-    // first apply all the uniforms to all the parents of this stateattribute
-    if (mDirty)
-    {
-        for (unsigned i=0; i < getNumParents(); i++)
-        {
-            osg::StateSet* parent = getParent(i);
+    // first apply the program as it is
+    osg::Program::apply(state);
 
-        }
+    // this have to be our object
+    const Program::PerContextProgram* lastAppliedProgram = state.getLastAppliedProgramObject();
+    if (lastAppliedProgram == NULL) return;
+    //assert(lastAppliedProgram == getPCP(state.getContextID()));
+
+    // now apply all uniforms which are in the database
+    for (osg::StateSet::UniformList::const_iterator it = mUniforms.begin(); it != mUniforms.end(); it++)
+    {
+        if (it->second.second == osg::StateAttribute::ON)
+            lastAppliedProgram->apply(*(it->second.first));
     }
 
-    // reset all boundings
-    if (mDirtyTextureBindings) resetBindings(ss);
-
-    // add all uniforms from the list to the state
-    ss->setUniformList(mUniforms);
-
-    // setup callback function for this program
-    mProgram->setUpdateCallback(new Shader::UpdateCallback(this, updateBindings ? ss : NULL));
-
-    // enable the program
-    ss->setAttributeAndModes(getProgram(), osg::StateAttribute::ON);
-
-    // inform abotu enable state changing
-    onEnable(ss);
-
-    #if DEBUG_SH
-    printf("Enable Shader %s\n", getName().c_str());
-    osg::StateSet::UniformList::const_iterator jt = getUniformList().begin();
-    for (; jt != getUniformList().end(); jt++)
-    {
-        float fval = -1.0;
-        int ival = -1;
-        if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
-        {
-            jt->second.first->get(ival);
-            printf("\t%s : %d \n", jt->first.c_str(), ival);//, (jt->second.second & osg::StateAttribute::ON) != 0);
-        }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
-            jt->second.first->get(fval);
-            printf("\t%s : %f \n", jt->first.c_str(), fval);//, (jt->second.second & osg::StateAttribute::ON) != 0);
-        }
-    }
-    printf("\n");
-    #endif
+    // if texture boundings are dirty, then reset them
+    if (mDirtyTextureBindings)
+        const_cast<ShaderAttribute*>(this)->resetTextureUniforms();
 }
 
 //--------------------------------------------------------------------------
-void Shader::disable(osg::StateSet* ss)
+void ShaderAttribute::resetTextureUniforms()
 {
-    if (!ss) return;
-
-    // remove update callback
-    mProgram->setUpdateCallback(NULL);
-
-    // disable the program
-    ss->setAttributeAndModes(getProgram(), osg::StateAttribute::OFF);
-
-    // we mark our bindings as dirty, so they will be updated by the next enable
-    mDirtyTextureBindings = true;
-
-    // inofrm about disablign the shader
-    onDisable(ss);
-}
-
-//--------------------------------------------------------------------------
-void Shader::resetBindings(osg::StateSet* ss)
-{
-    // do nothing if not valid stateset
-    if (!ss) return;
-
     // enable texture units and bind them
     TexUnitDb::iterator it = mTexUnits.begin();
     std::vector<TexUnit*> units(mMaxTextureUnits);
@@ -517,76 +428,30 @@ void Shader::resetBindings(osg::StateSet* ss)
         }
     }
 
-    // remove all previous texture attributes
-    //for (int i=0; i < mMaxTextureUnits; i++)
-    //{
-    //    ss->removeTextureAttribute(i, osg::StateAttribute::TEXTURE);
-    //}
-
-    #if DEBUG_SH
-    printf("%s-%s set:\n", getName().c_str(), mProgram->getName().c_str());
-    #endif
-
     // now iterate through the units and set them
     for (unsigned int i=0; i < units.size(); i++)
     {
         if (units[i] != NULL)
         {
-            #if DEBUG_SH
-            printf("\t%s[%d] = %d (%p)", units[i]->name.c_str(), units[i]->element, i, units[i]->t.get());
-            #endif
-
             // if texture specified so assign it
             if (units[i]->t.valid())
             {
-                ss->setTextureAttribute(i, units[i]->t.get());// osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
-
-                #if DEBUG_SH
-                printf(" added (%dx%d - internal_fmt = 0x%x)", units[i]->t->getTextureWidth(), units[i]->t->getTextureHeight(), units[i]->t.get()->getInternalFormat());
-                #endif
+                // for each parent stateset we set apply the textures accordingly
+                for (unsigned j=0; j < getNumParents(); j++)
+                    getParent(j)->setTextureAttribute(i, units[i]->t.get());
 
                 // setup default texture properties
                 if (get("g_TextureWidth")) set(i, "g_TextureWidth", units[i]->t->getTextureWidth());
                 if (get("g_TextureHeight")) set(i, "g_TextureHeight", units[i]->t->getTextureHeight());
-                if (get`("g_TextureDepth")) set(i, "g_TextureDepth", units[i]->t->getTextureDepth());
+                if (get("g_TextureDepth")) set(i, "g_TextureDepth", units[i]->t->getTextureDepth());
             }
-            #if DEBUG_SH
-            printf("\n");
-            #endif
 
             // set unit number for this uniform
             set(units[i]->element, units[i]->name, (int)i);
         }
     }
 
-    #if DEBUG_SH
-    printf("done\n\n");
-    #endif
-
     mDirtyTextureBindings = false;
-}
-
-//--------------------------------------------------------------------------
-Shader::UpdateCallback::UpdateCallback(Shader* sh, osg::StateSet* ss) : osg::StateAttribute::Callback()
-{
-    mShader = sh;
-    mStateSet = ss;
-}
-
-//--------------------------------------------------------------------------
-void Shader::UpdateCallback::operator()(osg::StateAttribute* ss, osg::NodeVisitor* nv)
-{
-    // if this is an update visitor
-    //if (nv && nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR))
-    {
-        // check if texture bindings changed
-        if (mShader->mDirtyTextureBindings && mStateSet.valid()) mShader->resetBindings(mStateSet.get());
-
-        // do nothing if shader is not specified
-        mShader->update();
-
-        //printf("update shader: %s (%s): %d %d\n", mShader->getName().c_str(), mShader->getResourceName().c_str(), mShader->mDirtyTextureBindings, mStateSet.valid());
-    }
 }
 
 }; //end namespace

@@ -28,6 +28,10 @@ Shader::Shader()
     mProgram = new osg::Program();
     mDirtyBoundings = true;
     mMaxTextureUnits = 8;
+
+    // DEPRECATED information
+    osg::notify(osg::WARN) << "osgPPU::Shader::Shader() - using of the shader class is deprecated. You better use ShaderAttribute or"
+       << " apply shader programs (osg::Program) directly to Unit's StateSet. " << std::endl;
 }
 
 //--------------------------------------------------------------------------
@@ -43,7 +47,7 @@ Shader::Shader(const Shader& sh, const osg::CopyOp& copyop)
     mProgram->setName(sh.mProgram->getName());
     for (unsigned int i=0; i < sh.mProgram->getNumShaders(); i++)
         mProgram->addShader(new osg::Shader(*(sh.mProgram->getShader(i))));
-    
+
     // copy attributes
     osg::Program::AttribBindingList::const_iterator it = sh.mProgram->getAttribBindingList().begin();
     for (; it != sh.mProgram->getAttribBindingList().end(); it ++)
@@ -56,8 +60,8 @@ Shader::Shader(const Shader& sh, const osg::CopyOp& copyop)
     {
         osg::ref_ptr<osg::Uniform> u = new osg::Uniform(
                         jt->second.first->getType(),
-                        jt->second.first->getName(), 
-                        jt->second.first->getNumElements()); 
+                        jt->second.first->getName(),
+                        jt->second.first->getNumElements());
         u->copyData(*jt->second.first);
         mUniforms[jt->first] = osg::StateSet::RefUniformPair(u, jt->second.second);
         /*osg::ref_ptr<osg::Uniform> u = copyop(jt->second.first.get());
@@ -78,7 +82,7 @@ void Shader::setProgram(osg::Program* program)
     {
         mProgram->addShader(new osg::Shader(*(program->getShader(i))));
     }
-    
+
     // copy attributes
     osg::Program::AttribBindingList::const_iterator it = program->getAttribBindingList().begin();
     for (; it != program->getAttribBindingList().end(); it ++)
@@ -93,8 +97,8 @@ void Shader::copyToShader(Shader* sh)
     if (sh == NULL) return;
     sh->mProgram = new osg::Program(*mProgram);
     sh->mTexUnits = mTexUnits;
-    sh->mUniforms = mUniforms;  
-    sh->mPropertyMap = mPropertyMap;    
+    sh->mUniforms = mUniforms;
+    sh->mPropertyMap = mPropertyMap;
     sh->mDirtyBoundings = mDirtyBoundings;
 }
 
@@ -103,20 +107,20 @@ void Shader::copyFromShader(Shader* sh)
 {
     if (sh == NULL) return;
     mTexUnits = sh->mTexUnits;
-    mPropertyMap = sh->mPropertyMap;    
+    mPropertyMap = sh->mPropertyMap;
     mDirtyBoundings = sh->mDirtyBoundings;
-    
+
     // copy program
     mProgram = new osg::Program();
     mProgram->setName(sh->mProgram->getName());
     for (unsigned int i=0; i < sh->mProgram->getNumShaders(); i++)
         mProgram->addShader(new osg::Shader(*sh->mProgram->getShader(i)));
-    
+
     // copy attributes
     osg::Program::AttribBindingList::const_iterator it = sh->mProgram->getAttribBindingList().begin();
     for (; it != sh->mProgram->getAttribBindingList().end(); it ++)
         mProgram->addBindAttribLocation(it->first, it->second);
-    
+
     // copy uniforms
     mUniforms.clear();
     osg::StateSet::UniformList::const_iterator jt = sh->mUniforms.begin();
@@ -124,10 +128,10 @@ void Shader::copyFromShader(Shader* sh)
     {
         osg::ref_ptr<osg::Uniform> u = new osg::Uniform(
                         jt->second.first->getType(),
-                        jt->second.first->getName(), 
-                        jt->second.first->getNumElements()); 
+                        jt->second.first->getName(),
+                        jt->second.first->getNumElements());
         u->copyData(*jt->second.first);
-        mUniforms[jt->first] = osg::StateSet::RefUniformPair(u, jt->second.second);              
+        mUniforms[jt->first] = osg::StateSet::RefUniformPair(u, jt->second.second);
     }
 }
 #endif
@@ -149,40 +153,40 @@ void Shader::setMaximalSupportedTextureUnits(int i)
 osg::Uniform::Type Shader::convertToUniformType(const std::string& name)
 {
 #define value(str, type) if (name == std::string(str)) return type;
-    
+
     value("float", osg::Uniform::FLOAT)
     value("vec2", osg::Uniform::FLOAT_VEC2)
     value("vec3", osg::Uniform::FLOAT_VEC3)
     value("vec4", osg::Uniform::FLOAT_VEC4)
-    
+
     value("bool", osg::Uniform::BOOL)
     value("bvec2", osg::Uniform::BOOL_VEC2)
     value("bvec3", osg::Uniform::BOOL_VEC3)
     value("bvec4", osg::Uniform::BOOL_VEC4)
-                
+
     value("int", osg::Uniform::INT)
     value("ivec2", osg::Uniform::INT_VEC2)
     value("ivec3", osg::Uniform::INT_VEC3)
     value("ivec4", osg::Uniform::INT_VEC4)
-                
+
     value("mat2", osg::Uniform::FLOAT_MAT2)
     value("mat3", osg::Uniform::FLOAT_MAT3)
     value("mat4", osg::Uniform::FLOAT_MAT4)
-                
+
     value("sampler1D", osg::Uniform::SAMPLER_1D)
     value("sampler2D", osg::Uniform::SAMPLER_2D)
     value("sampler3D", osg::Uniform::SAMPLER_3D)
     value("samplerCube", osg::Uniform::SAMPLER_CUBE)
     value("sampler1DShadow", osg::Uniform::SAMPLER_1D_SHADOW)
     value("sampler2DShadow", osg::Uniform::SAMPLER_2D_SHADOW)
-    
+
     #ifdef _SH40_
     value("sampler1DArray", osg::Uniform::SAMPLER_1D_ARRAY)
     value("sampler2DArray", osg::Uniform::SAMPLER_2D_ARRAY)
     value("sampler1DArrayShadow", osg::Uniform::SAMPLER_1D_ARRAY_SHADOW)
     value("sampler2DArrayShadow", osg::Uniform::SAMPLER_2D_ARRAY_SHADOW)
     #endif
-    
+
 #undef value
     return osg::Uniform::FLOAT;
 }
@@ -221,11 +225,11 @@ void Shader::add(osg::Uniform* uniform)
     // create a copy of the uniform
     osg::Uniform* u = new osg::Uniform(
                     uniform->getType(),
-                    uniform->getName(), 
-                    uniform->getNumElements()); 
+                    uniform->getName(),
+                    uniform->getNumElements());
     u->copyData(*uniform);
 
-    addParameter(u->getName(), u); 
+    addParameter(u->getName(), u);
 }
 
 
@@ -237,8 +241,8 @@ void Shader::add(osg::StateSet::RefUniformPair uniform)
     // create a copy of the uniform
     osg::Uniform* u = new osg::Uniform(
                     uniform.first->getType(),
-                    uniform.first->getName(), 
-                    uniform.first->getNumElements()); 
+                    uniform.first->getName(),
+                    uniform.first->getNumElements());
     u->copyData(*(uniform.first));
 
     mUniforms[u->getName()] = osg::StateSet::RefUniformPair(u, uniform.second);
@@ -267,7 +271,7 @@ osg::Uniform* Shader::get(const std::string& name)
     osg::StateSet::UniformList::const_iterator it = mUniforms.begin();
     for (; it != mUniforms.end(); it++)
     {
-        if (it->first == name) return it->second.first.get();    
+        if (it->first == name) return it->second.first.get();
     }
     return NULL;
 }
@@ -305,7 +309,7 @@ bool Shader::set(unsigned int index, const std::string& name, bool b0, bool b1, 
 bool Shader::set(unsigned int index, const std::string& name, int i0){
     osg::Uniform* u = get(name);
     if (!u) return false;
-    u->setElement(index, i0);   
+    u->setElement(index, i0);
     onSetUniform(u);
     return true;
 }
@@ -395,7 +399,7 @@ bool Shader::set(unsigned int index, const std::string& name, const osg::Matrixf
 
 //--------------------------------------------------------------------------
 bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, int unit)
-{   
+{
     // check whenever such an uniform already exists, if not so add it
     if (!isUniformExists(name)) add(name, osg::Uniform::INT, 1);
     /*else{
@@ -414,16 +418,16 @@ bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, 
         printf("You want to bind a texture to %s[%d], but there is only %d elements registered\n", name.c_str(), index, get(name)->getNumElements());
         return false;
     }
-    
-    // check if we have already such one setted to an element 
+
+    // check if we have already such one setted to an element
     TexUnitDb::iterator it = mTexUnits.find(name);
-    
+
     // there exists already such binding
     if (it != mTexUnits.end())
     {
         // check if there is any bounding for the given index
         std::map<int, TexUnit>::iterator jt = it->second.find(index);
-        
+
         // ok there is such one, so proceed only if we want to change something
         if (jt != it->second.end())
         {
@@ -440,24 +444,24 @@ bool Shader::bind(unsigned int index, const std::string& name, osg::Texture* t, 
     tu.element = index;
     tu.unit = unit;
     tu.name = name;
-    
+
     // add new texunit into database
     (mTexUnits[name])[index] = tu;
-    
-    // texture boundings are dirty now    
+
+    // texture boundings are dirty now
     mDirtyBoundings = true;
 
     //printf("%s bind %s-%d\n", getName().c_str(), name.c_str(), unit);
-    
+
     // just set value if predefined
     if (unit >= 0)
     {
         set(index, name, (int)unit);
     }
 
-    // inform derived classes  about this 
+    // inform derived classes  about this
     onBindTexture(tu);
-   
+
     return true;
 }
 
@@ -488,19 +492,19 @@ void Shader::setUniformList(const osg::StateSet::UniformList& list)
 
 //--------------------------------------------------------------------------
 void Shader::enable(osg::StateSet* ss, bool updateBindings)
-{    
+{
     // reset all boundings
     if (mDirtyBoundings || updateBindings) resetBindings(ss);
-       
+
     // add all uniforms from the list to the state
     ss->setUniformList(mUniforms);
-    
+
     // setup callback function for this program
     mProgram->setUpdateCallback(new Shader::UpdateCallback(this, updateBindings ? ss : NULL));
 
     // enable the program
     ss->setAttributeAndModes(getProgram(), osg::StateAttribute::ON);
-    
+
     // inform abotu enable state changing
     onEnable(ss);
 
@@ -531,40 +535,40 @@ void Shader::disable(osg::StateSet* ss)
 
     // remove update callback
     mProgram->setUpdateCallback(NULL);
-    
+
     // disable the program
     ss->setAttributeAndModes(getProgram(), osg::StateAttribute::OFF);
-    
+
     // we mark our bindings as dirty, so they will be updated by the next enable
     mDirtyBoundings = true;
 
     // inofrm about disablign the shader
-    onDisable(ss);    
+    onDisable(ss);
 }
 
 //--------------------------------------------------------------------------
 void Shader::resetBindings(osg::StateSet* ss)
-{    
+{
     // do nothing if not valid stateset
     if (!ss) return;
-    
+
     // enable texture units and bind them
     TexUnitDb::iterator it = mTexUnits.begin();
     std::vector<TexUnit*> units(mMaxTextureUnits);
     for (int i=0; i < mMaxTextureUnits; i++) units.push_back(NULL);
 
-    // first assign specified units 
+    // first assign specified units
     for (; it != mTexUnits.end(); it++)
     {
         // now go through all elements
         std::map<int, TexUnit>::iterator jt = it->second.begin();
         for (; jt != it->second.end(); jt++)
         {
-            // check if unit was specified 
+            // check if unit was specified
             if (jt->second.unit >= 0 && jt->second.unit < mMaxTextureUnits)
             {
-                // check if unit is free 
-                if (units[jt->second.unit] == NULL) 
+                // check if unit is free
+                if (units[jt->second.unit] == NULL)
                     units[jt->second.unit] = &jt->second;
                 else {
                     printf("Shader::enable() - You have specified a unit number %d to %s in %s which is already given!\n", jt->second.unit, it->first.c_str(), getName().c_str());
@@ -572,8 +576,8 @@ void Shader::resetBindings(osg::StateSet* ss)
             }
         }
     }
-    
-    // now for the rest assign free units 
+
+    // now for the rest assign free units
     it = mTexUnits.begin();
     for (; it != mTexUnits.end(); it++)
     {
@@ -581,10 +585,10 @@ void Shader::resetBindings(osg::StateSet* ss)
         std::map<int, TexUnit>::iterator jt = it->second.begin();
         for (; jt != it->second.end(); jt++)
         {
-            // check if unit was specified 
+            // check if unit was specified
             if (jt->second.unit < 0 || jt->second.unit >=mMaxTextureUnits)
             {
-                // iterate through unit list and search for first free place 
+                // iterate through unit list and search for first free place
                 for (unsigned int i=0; i < units.size(); i++)
                     if (units[i] == NULL){
                         units[i] = &jt->second;
@@ -593,32 +597,32 @@ void Shader::resetBindings(osg::StateSet* ss)
             }
         }
     }
-    
+
     // remove all previous texture attributes
     //for (int i=0; i < mMaxTextureUnits; i++)
     //{
     //    ss->removeTextureAttribute(i, osg::StateAttribute::TEXTURE);
     //}
-    
-    #if DEBUG_SH    
+
+    #if DEBUG_SH
     printf("%s-%s set:\n", getName().c_str(), mProgram->getName().c_str());
     #endif
-    
+
     // now iterate through the units and set them
     for (unsigned int i=0; i < units.size(); i++)
     {
         if (units[i] != NULL)
         {
-            #if DEBUG_SH    
+            #if DEBUG_SH
             printf("\t%s[%d] = %d (%p)", units[i]->name.c_str(), units[i]->element, i, units[i]->t.get());
-            #endif 
+            #endif
 
             // if texture specified so assign it
             if (units[i]->t.valid())
             {
                 ss->setTextureAttribute(i, units[i]->t.get());// osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
-                
-                #if DEBUG_SH    
+
+                #if DEBUG_SH
                 printf(" added (%dx%d - internal_fmt = 0x%x)", units[i]->t->getTextureWidth(), units[i]->t->getTextureHeight(), units[i]->t.get()->getInternalFormat());
                 #endif
 
@@ -627,7 +631,7 @@ void Shader::resetBindings(osg::StateSet* ss)
                 if (isUniformExists("g_TextureHeight")) set(i, "g_TextureHeight", units[i]->t->getTextureHeight());
                 if (isUniformExists("g_TextureDepth")) set(i, "g_TextureDepth", units[i]->t->getTextureDepth());
             }
-            #if DEBUG_SH    
+            #if DEBUG_SH
             printf("\n");
             #endif
 
@@ -636,7 +640,7 @@ void Shader::resetBindings(osg::StateSet* ss)
         }
     }
 
-    #if DEBUG_SH    
+    #if DEBUG_SH
     printf("done\n\n");
     #endif
 
@@ -652,13 +656,13 @@ Shader::UpdateCallback::UpdateCallback(Shader* sh, osg::StateSet* ss) : osg::Sta
 
 //--------------------------------------------------------------------------
 void Shader::UpdateCallback::operator()(osg::StateAttribute* ss, osg::NodeVisitor* nv)
-{    
+{
     // if this is an update visitor
     //if (nv && nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR))
     {
         // check if texture bindings changed
         if (mShader->mDirtyBoundings && mStateSet.valid()) mShader->resetBindings(mStateSet.get());
-        
+
         // do nothing if shader is not specified
         mShader->update();
 

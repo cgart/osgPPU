@@ -18,7 +18,7 @@ class Viewer : public osgViewer::Viewer
         float mOldTime;
         HDRRendering mHDRSetup;
         bool mbInitialized;
-                
+
     public:
         //! Default construcotr
         Viewer(osg::ArgumentParser& args) : osgViewer::Viewer(args)
@@ -29,7 +29,7 @@ class Viewer : public osgViewer::Viewer
 
         //! Get the ppu processor
         osgPPU::Processor* getProcessor() { return mProcessor.get(); }
-        
+
         //! Create camera resulting texture
         static osg::Texture* createRenderTexture(int tex_width, int tex_height)
         {
@@ -103,7 +103,7 @@ class Viewer : public osgViewer::Viewer
             mProcessor->setCamera(getCamera());
             mProcessor->setName("Processor");
             mProcessor->dirtyUnitSubgraph();
-                            
+
             // we want to simulate hdr rendering, hence setup the pipeline
             // for the hdr rendering
             osgPPU::Unit* firstUnit = NULL;
@@ -121,10 +121,6 @@ class Viewer : public osgViewer::Viewer
                 fpstext->setPosition(0.01, 0.95);
                 lastUnit->addChild(fpstext);
             }
-            
-
-            // write pipeline to a file
-            //osgDB::writeObjectFile(*mProcessor, "hdr.ppu");
 
             // now just as a gimmick do setup a text ppu, to render some info on the screen
             osgPPU::UnitText* pputext = new osgPPU::UnitText();
@@ -133,18 +129,18 @@ class Viewer : public osgViewer::Viewer
             pputext->setText("osgPPU rocks!");
             pputext->setPosition(0.025, 0.425);
             lastUnit->addChild(pputext);
-            
+
             // The following setup does show how to include an offline ppu into the graph
-            // This unit will just render the content of the input unit in a small window 
+            // This unit will just render the content of the input unit in a small window
             // over the screen.
             if (1)
             {
-                // This is a simple texture unit, which do just provide a given texture 
+                // This is a simple texture unit, which do just provide a given texture
                 // to the output, so that all children units can access this texture as input.
                 osgPPU::UnitTexture* unittex = new osgPPU::UnitTexture();
 
-                // it doesn't matter where to put this unit in the graph, because it 
-                // does not use any input. However so that this unit is updated every 
+                // it doesn't matter where to put this unit in the graph, because it
+                // does not use any input. However so that this unit is updated every
                 // frame we put it somewhere, in this case under the processor
                 mProcessor->addChild(unittex);
 
@@ -156,7 +152,7 @@ class Viewer : public osgViewer::Viewer
                 img->setImage(osgDB::readImageFile("Data/Images/reflect.rgb"));
                 unittex->setTexture(img);
 
-                // create picture in picture ppu 
+                // create picture in picture ppu
                 osgPPU::UnitInOut* bgppu = new osgPPU::UnitInOut();
                 bgppu->setName("PictureInPicturePPU");
 
@@ -182,7 +178,7 @@ class Viewer : public osgViewer::Viewer
                 vp->x() = 10;
                 vp->y() = 10;
                 vp->width() *= 0.4;
-                vp->height() *= 0.3;                
+                vp->height() *= 0.3;
                 bgppu->setViewport(vp);
 
                 // enable blending on this unit
@@ -196,11 +192,14 @@ class Viewer : public osgViewer::Viewer
             ppuout->setName("PipelineResult");
             ppuout->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera
             lastUnit->addChild(ppuout);
+
+            // write pipeline to a file
+            //osgDB::writeObjectFile(*mProcessor, "hdr.ppu");
         }
 
-        //! Update the frames        
+        //! Update the frames
         void frame(double f = USE_REFERENCE_TIME)
-        {            
+        {
             // update default viewer
             // this should also update the post processing graph
             // since it is attached to the camera
@@ -223,7 +222,10 @@ class Viewer : public osgViewer::Viewer
                 // get ppu containing the shader with the variable
                 osgPPU::Unit* ppu = mProcessor->findUnit("AdaptedLuminance");
                 if (ppu)
-                    ppu->getShader()->set("invFrameTime", frameTime);
+                {
+                    ppu->getOrCreateStateSet()->getOrCreateUniform("invFrameTime", osg::Uniform::FLOAT)->set(frameTime);
+                    //ppu->getShader()->set("invFrameTime", frameTime);
+                }
             }
 
             // print also some info about the fps number
@@ -249,7 +251,7 @@ class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
     osg::ref_ptr<Viewer> viewer;
-    
+
     KeyboardEventHandler(Viewer* v) : viewer(v)
     {
     }
@@ -346,7 +348,7 @@ int main(int argc, char **argv)
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
 
     viewer->setSceneData( node );
-        
+
     // give some info in the console
     printf("hdr [filename]\n");
     printf("Keys:\n");
@@ -361,10 +363,10 @@ int main(int argc, char **argv)
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));
     viewer->addEventHandler( new osgViewer::StatsHandler() );
-                    
-    // run viewer                
+
+    // run viewer
     return viewer->run();
 }
 
 
- 
+

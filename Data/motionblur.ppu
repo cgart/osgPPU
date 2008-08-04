@@ -10,7 +10,7 @@ osgPPU::Processor {
       PPU UnitInOut_2
     }
   }
-  
+
   osgPPU::UnitInOut {
     UniqueID UnitInOut_2
     name "MotionBlur"
@@ -28,22 +28,21 @@ osgPPU::Processor {
       PPU UnitInOut_4
     }
 
-    Shader {
-      RefUniformPair {
-        Uniform {
-          name "fMotionBlurFactor"
-          type float 1 FloatArray 1
-          {
-            0.93548
-          }
+    osgPPU::ShaderAttribute {
+        RefUniformPair {
+            Uniform {
+                name "fMotionBlurFactor"
+                type float 1 FloatArray 1
+                {
+                    0.93548
+                }
+            }
+            StateAttribute PROTECTED|OVERRIDE|ON
         }
-        StateAttribute PROTECTED|OVERRIDE|ON
-      }
-      Program {
         num_shaders 1
         Shader {
-          type FRAGMENT
-          code {
+            type FRAGMENT
+            code {
             "// Texture containing the scene (color map)"
             "uniform sampler2D Next;"
             ""
@@ -65,13 +64,12 @@ osgPPU::Processor {
             "	gl_FragColor = mix(currentValue, lastValue, fMotionBlurFactor);"
             ""
             "}"
-          }
+            }
         }
-      }
     }
     inputBypass -1
   }
-  
+
   osgPPU::UnitInOut {
     UniqueID UnitInOut_4
     name "ShowBypass"
@@ -88,12 +86,11 @@ osgPPU::Processor {
       UnitInOut_2 tex
     }
 
-    Shader {
-      Program {
+    osgPPU::ShaderAttribute {
         num_shaders 1
         Shader {
-          type FRAGMENT
-          code {
+            type FRAGMENT
+            code {
             "// Simple bypass shader which do nothing then bypass data"
             "uniform sampler2D tex;"
             "void main(void)"
@@ -101,9 +98,8 @@ osgPPU::Processor {
             "   gl_FragColor = texture2D (tex, gl_TexCoord[0].st).rgba;"
             ""
             "}"
-          }
+            }
         }
-      }
     }
 
     inputBypass -1

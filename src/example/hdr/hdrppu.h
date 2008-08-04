@@ -8,6 +8,7 @@
 #include <osgPPU/UnitOutCapture.h>
 #include <osgPPU/UnitBypass.h>
 #include <osgPPU/UnitTexture.h>
+#include <osgPPU/ShaderAttribute.h>
 #include <osgDB/ReaderWriter>
 #include <osgDB/ReadFile>
 
@@ -17,7 +18,7 @@
 //
 // The pipeline is build based on the following:
 //     http://msdn2.microsoft.com/en-us/library/bb173484(VS.85).aspx
-// 
+//
 //---------------------------------------------------------------
 class HDRRendering
 {
@@ -29,7 +30,7 @@ class HDRRendering
         float mAdaptFactor;
         float mMinLuminance;
         float mMaxLuminance;
-        
+
         // Setup default hdr values
         HDRRendering()
         {
@@ -47,7 +48,7 @@ class HDRRendering
         {
             osg::ref_ptr<osgDB::ReaderWriter::Options> fragmentOptions = new osgDB::ReaderWriter::Options("fragment");
             osg::ref_ptr<osgDB::ReaderWriter::Options> vertexOptions = new osgDB::ReaderWriter::Options("vertex");
-            
+
             // first a simple bypass to get the data from somewhere
             // there must be a camera bypass already specified
             // You need this ppu to relay on it with following ppus
@@ -78,14 +79,15 @@ class HDRRendering
             pixelLuminance->setName("ComputePixelLuminance");
             {
                 // create shader which do compute luminance per pixel
-                osgPPU::Shader* lumShader = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* lumShader = new osgPPU::ShaderAttribute();
                 lumShader->addShader(osgDB::readShaderFile("Data/glsl/luminance_fp.glsl", fragmentOptions.get()));
                 lumShader->setName("LuminanceShader");
                 lumShader->add("texUnit0", osg::Uniform::SAMPLER_2D);
                 lumShader->set("texUnit0", 0);
 
                 // set both shaders
-                pixelLuminance->setShader(lumShader);
+                //pixelLuminance->setShader(lumShader);
+                pixelLuminance->getOrCreateStateSet()->setAttributeAndModes(lumShader);
             }
             resample->addChild(pixelLuminance);
 
@@ -94,7 +96,7 @@ class HDRRendering
             sceneLuminance->setName("ComputeSceneLuminance");
             {
                 // create shader which do compute the scene's luminance in mipmap levels
-                osgPPU::Shader* lumShaderMipmap = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* lumShaderMipmap = new osgPPU::ShaderAttribute();
                 lumShaderMipmap->addShader(osgDB::readShaderFile("Data/glsl/luminance_mipmap_fp.glsl", fragmentOptions.get()));
                 lumShaderMipmap->setName("LuminanceShaderMipmap");
 
@@ -103,11 +105,12 @@ class HDRRendering
                 lumShaderMipmap->set("texUnit0", 0);
 
                 // set shader
-                sceneLuminance->setShader(lumShaderMipmap);            
+                //sceneLuminance->setShader(lumShaderMipmap);
+                sceneLuminance->getOrCreateStateSet()->setAttributeAndModes(lumShaderMipmap);
 
                 // we want that the mipmaps are generated for the input texture 0,
                 // which is the pixelLuminance
-                // Here no new textures are generated, but hte input texture is get 
+                // Here no new textures are generated, but hte input texture is get
                 // additional mipmap levels, where we store our results
                 sceneLuminance->generateMipmapForInputTexture(0);
             }
@@ -124,13 +127,14 @@ class HDRRendering
             brightpass->setName("Brightpass");
             {
                 // setup brightpass shader
-                osgPPU::Shader* brightpassSh = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* brightpassSh = new osgPPU::ShaderAttribute();
                 brightpassSh->addShader(osgDB::readShaderFile("Data/glsl/brightpass_fp.glsl", fragmentOptions.get()));
                 brightpassSh->setName("BrightpassShader");
-                
+
                 brightpassSh->add("g_fMiddleGray", osg::Uniform::FLOAT);
                 brightpassSh->set("g_fMiddleGray", mMidGrey);
-                brightpass->setShader(brightpassSh);
+                //brightpass->setShader(brightpassSh);
+                brightpass->getOrCreateStateSet()->setAttributeAndModes(brightpassSh);
 
                 // brightpass ppu does get two input textures, hence add them
                 brightpass->setInputToUniform(resample, "hdrInput", true);
@@ -144,14 +148,14 @@ class HDRRendering
                 // set name and indicies
                 blurx->setName("BlurHorizontal");
                 blury->setName("BlurVertical");
-                
+
                 // read shaders from file
                 osg::Shader* vshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_vp.glsl", vertexOptions.get());
                 osg::Shader* fhshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dx_fp.glsl", fragmentOptions.get());
                 osg::Shader* fvshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dy_fp.glsl", fragmentOptions.get());
 
                 // setup horizontal blur shaders
-                osgPPU::Shader* gaussx = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* gaussx = new osgPPU::ShaderAttribute();
                 gaussx->addShader(vshader);
                 gaussx->addShader(fhshader);
                 gaussx->setName("BlurHorizontalShader");
@@ -164,10 +168,11 @@ class HDRRendering
                 gaussx->set("radius", mHDRBlurRadius);
                 gaussx->set("texUnit0", 0);
 
-                blurx->setShader(gaussx);
-                
+                //blurx->setShader(gaussx);
+                blurx->getOrCreateStateSet()->setAttributeAndModes(gaussx);
+
                 // setup vertical blur shaders
-                osgPPU::Shader* gaussy = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* gaussy = new osgPPU::ShaderAttribute();
                 gaussy->addShader(vshader);
                 gaussy->addShader(fvshader);
                 gaussy->setName("BlurVerticalShader");
@@ -175,12 +180,13 @@ class HDRRendering
                 gaussy->add("sigma", osg::Uniform::FLOAT);
                 gaussy->add("radius", osg::Uniform::FLOAT);
                 gaussy->add("texUnit0", osg::Uniform::SAMPLER_2D);
-                
+
                 gaussy->set("sigma", mHDRBlurSigma);
                 gaussy->set("radius", mHDRBlurRadius);
                 gaussy->set("texUnit0", 0);
 
-                blury->setShader(gaussy);
+                //blury->setShader(gaussy);
+                blury->getOrCreateStateSet()->setAttributeAndModes(gaussy);
             }
 
             brightpass->addChild(blurx);
@@ -197,17 +203,18 @@ class HDRRendering
                 hdr->setName("HDR-Result");
 
                 // setup shader
-                osgPPU::Shader* sh = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* sh = new osgPPU::ShaderAttribute();
                 sh->addShader(osgDB::readShaderFile("Data/glsl/tonemap_hdr_fp.glsl", fragmentOptions.get()));
                 sh->setName("HDRResultShader");
-                
+
                 sh->add("fBlurFactor", osg::Uniform::FLOAT);
                 sh->add("g_fMiddleGray", osg::Uniform::FLOAT);
 
                 sh->set("fBlurFactor", mGlareFactor);
                 sh->set("g_fMiddleGray", mMidGrey);
 
-                hdr->setShader(sh);
+                //hdr->setShader(sh);
+                hdr->getOrCreateStateSet()->setAttributeAndModes(sh);
                 hdr->setInputTextureIndexForViewportReference(0); // we want to setup viewport based on this input
 
                 // add inputs as uniform parameters
@@ -227,7 +234,7 @@ class HDRRendering
                 adaptedlum->setName("AdaptedLuminance");
 
                 // create shader which do compute the adapted luminance value
-                osgPPU::Shader* adaptedShader = new osgPPU::Shader();
+                osgPPU::ShaderAttribute* adaptedShader = new osgPPU::ShaderAttribute();
                 adaptedShader->addShader(osgDB::readShaderFile("Data/glsl/luminance_adapted_fp.glsl", fragmentOptions.get()));
                 adaptedShader->setName("AdaptLuminanceShader");
 
@@ -238,22 +245,27 @@ class HDRRendering
                 // shader do also need the adapted luminance as input
                 adaptedShader->add("texAdaptedLuminance", osg::Uniform::SAMPLER_2D);
                 adaptedShader->set("texAdaptedLuminance", 1);
-                
+
                 // setup shader parameters
                 adaptedShader->add("maxLuminance", osg::Uniform::FLOAT);
                 adaptedShader->add("minLuminance", osg::Uniform::FLOAT);
                 adaptedShader->add("adaptScaleFactor", osg::Uniform::FLOAT);
-                adaptedShader->add("invFrameTime", osg::Uniform::FLOAT);
-                
+
+                // invFrameTime - parameter is updated during the runtime, hence add the
+                // uniform to the unit and not to the shader, so that it can be accessed easily.
+                //adaptedShader->add("invFrameTime", osg::Uniform::FLOAT);
+                adaptedlum->getOrCreateStateSet()->getOrCreateUniform("invFrameTime", osg::Uniform::FLOAT);
+
                 // Set maximum and minimum representable luminance values
                 adaptedShader->set("maxLuminance", mMaxLuminance);
                 adaptedShader->set("minLuminance", mMinLuminance);
 
                 // Set scaling factor which decides how fast eye adapts to new luminance
                 adaptedShader->set("adaptScaleFactor", mAdaptFactor);
-            
+
                 // set both shaders
-                adaptedlum->setShader(adaptedShader);
+                //adaptedlum->setShader(adaptedShader);
+                adaptedlum->getOrCreateStateSet()->setAttributeAndModes(adaptedShader);
 
                 // we just want to have this size of the viewport
                 // we do not want to have any referenced viewport, therefor -1
@@ -263,7 +275,7 @@ class HDRRendering
             // second input is the input from the scene luminance
             sceneLuminance->addChild(adaptedlum);
 
-                
+
             // The adapted luminance ppu do compute it. However if you
             // can follow me for now, you maybe encounter, that this ppu do
             // have to write into the same texture as it also read from.
@@ -278,7 +290,7 @@ class HDRRendering
 
             // now connect the output of the adaptedlum with the rest where it is needed
             adaptedlum->addChild(adaptedlumCopy);
-            
+
             adaptedlum->addChild(brightpass);
             brightpass->setInputToUniform(adaptedlum, "texAdaptedLuminance");
 

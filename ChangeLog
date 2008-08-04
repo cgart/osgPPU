@@ -1,3 +1,25 @@
+2008-07-27 15:35  art
+
+	* [r137]
+	  - ShaderAttribute continued work on it
+
+2008-07-21 18:06  art
+
+	* [r136]
+	  - ShaderAttribute class (in development) added
+
+2008-07-15 12:43  art
+
+	* [r135]
+	  - small changes in MRT support. Now no use of GLenums anymore but
+	  direct setting up through Camera::BufferAttachment
+
+2008-07-14 14:03  art
+
+	* [r134]
+	  - Render-to-3d-texture corrected
+	  - mrt support should be now correct
+
 2008-07-09 13:40  art
 
 	* [r133]

@@ -55,7 +55,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         typedef std::vector<unsigned int> IgnoreInputList;
         typedef std::map<osg::ref_ptr<Unit>, std::pair<std::string, unsigned int> > InputToUniformMap;
-        
+
         /**
         * Empty constructor. The unit will be initialized with default values.
         **/
@@ -67,8 +67,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         Unit(const Unit&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
 
         /**
-        * Release used memory by the ppu. 
-        **/        
+        * Release used memory by the ppu.
+        **/
         virtual ~Unit();
 
         /**
@@ -88,7 +88,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         /**
         * Set input texture of this unit as uniform of this unit.
-        * @param index Input texture index to be used as input 
+        * @param index Input texture index to be used as input
         * @param uniform Name of the uniform
         **/
         bool setInputToUniform(int index, const std::string& uniform);
@@ -100,7 +100,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * connected with the given uniform [default=false]
         **/
         void removeInputToUniform(const std::string& uniform, bool del = false);
-        
+
         /**
         * Remove an assigned parent output uniform. @see assignParentToUniform()
         * @param parent Pointer to the parent node
@@ -112,7 +112,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Get the map which maps uniform to input units
         **/
         inline const InputToUniformMap& getInputToUniformMap() const { return mInputToUniformMap; }
-        
+
         /**
          * Return an input texture of a certain index.
          * @param inputIndex Index of the input texture (index is equal to the texture unit)
@@ -123,7 +123,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Return complete index to texture mapping
         **/
         const TextureMap& getInputTextureMap() const {return mInputTex;}
-        
+
         /**
         * Get output texture of certain MRT index.
         * NOTE: If you haven't initialized the Unit before calling this method
@@ -162,7 +162,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Check whenever the input of the given index is ignored or not
         **/
         bool getIgnoreInput(unsigned int index) const;
-        
+
         /**
         * Initialze the unit. This method should be overwritten by the
         * derived classes to support non-standard initialization routines.
@@ -170,14 +170,14 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Hence do provide a "reinitialable"-code here ;-)
         **/
         virtual void init();
-        
+
         /**
         * Update the unit. Call this method every time you want to update
         * the unit. It is a good idea to call this method every frame otherwise
         * the behaviour of the unit might be unpredictable.
         **/
         virtual void update();
-                
+
         /**
         * Set viewport which is used for this Unit while rendering
         **/
@@ -189,7 +189,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         inline osg::Viewport* getViewport() const { return mViewport.get(); }
 
         /**
-         * Activate or deactive the ppu. An active ppu is updated during the update 
+         * Activate or deactive the ppu. An active ppu is updated during the update
          * of the post processor.
          * @param b True to activate, false to deactive
         **/
@@ -199,13 +199,13 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Check if the Unit's active flag
         **/
         inline bool getActive() const { return mbActive; }
-        
+
         /**
          * Change drawing position and size of this ppu by using the
          * new frustum planes in the orthogonal projection matrix.
          * This changes the projection matrix,
-         * therefor it is better not to change this parameters until you really 
-         * need this. If you just want to place the ppu on another position, then just 
+         * therefor it is better not to change this parameters until you really
+         * need this. If you just want to place the ppu on another position, then just
          * play with the viewport.
         **/
         void setRenderingFrustum(float left, float top, float right, float bottom);
@@ -214,21 +214,22 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Assign a shader used when computing the output data of the ppu.
         * Shaders are one of the main aspects of the ppu rendering.
         * @param sh Shader used by this ppu to generate output from the input.
-        * NOTE: You can also apply shaders by using Unit's StateSet.
+        * DEPRECATED !!!!
         **/
-        inline void setShader(Shader* sh) { mShader = sh; dirty(); }
+        inline void setShader(Shader* sh) { mShader = sh; dirty(); osg::notify(osg::WARN) << "osgPPU::Unit::setShader() is deprecated." << std::endl; }
 
         /**
-        * Get currently assigned shader
+        * Get currently assigned shader.
+        * DEPRECATED !!!!
         **/
         inline Shader* getShader() const { return mShader.get(); }
 
         /**
-        * Set index of an input texture which size is used as reference 
+        * Set index of an input texture which size is used as reference
         * for the viewport size. The viewport size will be changed according
         * to the texture size. If you change the input texture the size will
         * be also changed. Specify -1 if you do not want to have this behaviour.
-        * If -1, then by next change of the input texture the viewport size 
+        * If -1, then by next change of the input texture the viewport size
         * will not be changed.
         **/
         void setInputTextureIndexForViewportReference(int index);
@@ -262,10 +263,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * is placed here to allow acess to it from the derived units.
         **/
         void setupBlockedChildren();
-        
+
         /**
         * Set a new color attribute for this unit. This will replace the color attribute
-        * if it is already set. The color attribute can be used to bind a color to 
+        * if it is already set. The color attribute can be used to bind a color to
         * an unit. Very useful for blending units.
         **/
         void setColorAttribute(ColorAttribute* ca);
@@ -284,7 +285,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * hence you don't need to do anything.
         **/
         class DrawCallback : public osg::Drawable::DrawCallback
-        {   
+        {
             public:
                 DrawCallback(Unit* parent) : osg::Drawable::DrawCallback(), _parent(parent) {}
                 ~DrawCallback() {}
@@ -299,8 +300,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         };
 
         /**
-        * Use this method in the derived classes to implement and update some unit 
-        * specific uniforms. The base class do only update uniforms like viewport size 
+        * Use this method in the derived classes to implement and update some unit
+        * specific uniforms. The base class do only update uniforms like viewport size
         * or, if defined, input texture indices.
         **/
         virtual void updateUniforms();
@@ -312,7 +313,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * input to this unit. Call this method from derived units to setup inputs properly.
         **/
         virtual void setupInputsFromParents();
-        
+
         //! Method to let the unit know that the rendering will now beginns
         virtual void  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) {};
 
@@ -321,7 +322,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! Notice underlying classes, that viewport size is changed
         virtual void noticeChangeViewport() {}
-        
+
         //! Notice derived classes, when inpu ttexture was changed.
         virtual void noticeChangeInput() {}
 
@@ -331,12 +332,12 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! Notice derived classes, that no shader is assigned now
         virtual void noticeRemoveShader() {}
 
-        //! Assign the input texture to the quad object 
+        //! Assign the input texture to the quad object
         void assignInputTexture();
 
-        //! Assign a shader to the input texture to the quad object 
+        //! Assign a shader to the input texture to the quad object
         void assignShader();
-        
+
         //! Assign currently choosen viewport to the stateset
         void assignViewport();
 
@@ -345,37 +346,37 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! Helper function to create screen sized quads
         osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0), float l=0.0, float b=0.0, float r=1.0, float t=1.0);
-        
+
         //! Input texture
         TextureMap  mInputTex;
 
         //! Output textures
         TextureMap  mOutputTex;
-        
+
         //! List of ignored inputs
         IgnoreInputList mIgnoreList;
 
         //! Map of the uniform to parent links
         InputToUniformMap mInputToUniformMap;
-        
+
         //! Shader which will be used for rendering
         osg::ref_ptr<Shader>   mShader;
-                
-        //! Here we store a screen sized quad, so it can be used for rendering 
+
+        //! Here we store a screen sized quad, so it can be used for rendering
         osg::ref_ptr<osg::Drawable> mDrawable;
-        
+
         //! Projection matrix of the ppu (default: 2D ortho view)
         osg::ref_ptr<osg::RefMatrix> sProjectionMatrix;
-        
+
         //! Modelview matrix of the ppu (default: identity matrix)
         osg::ref_ptr<osg::RefMatrix> sModelviewMatrix;
-         
+
         //! Store here the viewport of the camera, to which one this PPUs are applied
         osg::ref_ptr<osg::Viewport> mViewport;
 
         //! This geode is used to setup the unit's drawable
         osg::ref_ptr<osg::Geode> mGeode;
-        
+
         //! Color attribute for fast direct access
         osg::ref_ptr<ColorAttribute> mColorAttribute;
 
@@ -386,7 +387,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         int mInputTexIndexForViewportReference;
 
     private:
-        bool mbActive;        
+        bool mbActive;
         bool mbTraversed; // requires to check whenever unit was already traversed
         bool mbTraversedMask; // requires to check whenever unit was laready traversed
 

@@ -27,6 +27,7 @@
 #include <osgPPU/UnitTexture.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/ColorAttribute.h>
+#include <osgPPU/ShaderAttribute.h>
 
 #include <osg/Notify>
 #include <osg/io_utils>
@@ -34,37 +35,81 @@
 #include "Base.h"
 
 //--------------------------------------------------------------------------
+bool readShaderAttribute(osg::Object& obj, osgDB::Input& fr)
+{
+    // convert given object to unit
+    osgPPU::ShaderAttribute& sh = static_cast<osgPPU::ShaderAttribute&>(obj);
+
+    bool itAdvanced = false;
+
+    int maximalSupportedTextureUnits = 0;
+    if (fr.readSequence("maximalSupportedTextureUnits", maximalSupportedTextureUnits))
+    {
+        sh.setMaximalSupportedTextureUnits(maximalSupportedTextureUnits);
+        itAdvanced = true;
+    }
+
+    // read uniform
+    if (fr.matchSequence("RefUniformPair {"))
+    {
+        fr += 2;
+
+        // read uniform
+        osg::Uniform* uniform = fr.readUniform();
+
+        // read state attribute
+        std::string stateAttribute;
+        osg::StateAttribute::GLModeValue mode = osg::StateAttribute::ON;
+        if (fr.readSequence("StateAttribute", stateAttribute))
+        {
+            StateSet_matchModeStr(stateAttribute.c_str(),mode);
+        }
+
+        ++fr;
+        itAdvanced = true;
+
+        // create refuniformpair
+        osg::StateSet::RefUniformPair pair (uniform, mode);
+
+        // add uniform to the shader
+        sh.add(pair);
+    }
+
+    return itAdvanced;
+}
+
+//--------------------------------------------------------------------------
 bool readColorAttribute(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::ColorAttribute& ca = static_cast<osgPPU::ColorAttribute&>(obj);
 
     bool itAdvanced = false;
 
     float startTime  = 0;
     if (fr.readSequence("startTime", startTime))
-    { 
+    {
         ca.setStartTime(startTime);
         itAdvanced = true;
     }
 
     float endTime  = 0;
     if (fr.readSequence("endTime", endTime))
-    { 
+    {
         ca.setEndTime(endTime);
         itAdvanced = true;
     }
 
     osg::Vec4 startColor;
     if (fr.readSequence("startColor", startColor))
-    { 
+    {
         ca.setStartColor(startColor);
         itAdvanced = true;
     }
 
     osg::Vec4 endColor;
     if (fr.readSequence("endColor", endColor))
-    { 
+    {
         ca.setEndColor(endColor);
         itAdvanced = true;
     }
@@ -75,7 +120,7 @@ bool readColorAttribute(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnitTexture(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::UnitTexture& unit = static_cast<osgPPU::UnitTexture&>(obj);
 
     bool itAdvanced = false;
@@ -93,21 +138,21 @@ bool readUnitTexture(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::UnitInOut& unit = static_cast<osgPPU::UnitInOut&>(obj);
 
     bool itAdvanced = false;
 
     int index = 0;
     if (fr.readSequence("inputBypass", index))
-    { 
+    {
         unit.setInputBypass(index);
         itAdvanced = true;
     }
 
     std::string internalFormatStr;
     if (fr.readSequence("outputInternalFormat", internalFormatStr))
-    { 
+    {
         int fmt;
         if (Texture_matchInternalFormatStr(internalFormatStr.c_str(), fmt) != 0)
         {
@@ -120,7 +165,7 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
 
     std::string outputTextureTypeStr;
     if (fr.readSequence("outputTextureType", outputTextureTypeStr))
-    { 
+    {
         osgPPU::UnitInOut::TextureType fmt;
         if (Texture_matchOutputTypeStr(outputTextureTypeStr.c_str(), fmt) != 0)
         {
@@ -133,14 +178,14 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
 
     unsigned int face = 0;
     if (fr.readSequence("outputFace", face))
-    { 
+    {
         unit.setOutputFace(face);
         itAdvanced = true;
     }
 
     unsigned int depth = 0;
     if (fr.readSequence("outputDepth", depth))
-    { 
+    {
         unit.setOutputDepth(depth);
         itAdvanced = true;
     }
@@ -151,23 +196,23 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
         int entry = fr[0].getNoNestedBrackets();
 
         fr += 2;
-        
+
         while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
         {
             int mrt = 0, slice = 0;
             if (fr[0].getInt(mrt) && fr[1].getInt(slice))
-            { 
+            {
                 unit.setOutputZSlice(slice,mrt);
             }else
             {
-                osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot read OutputSliceMap parameters." << std::endl;            
+                osg::notify(osg::WARN)<<"Unit " << unit.getName() << " cannot read OutputSliceMap parameters." << std::endl;
             }
-            fr += 2;         
+            fr += 2;
         }
-        
+
         // skip trailing '}'
         ++fr;
-        
+
         itAdvanced = true;
     }
 
@@ -184,21 +229,21 @@ bool readUnitMipmapInMipmapOut(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnitInResampleOut(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::UnitInResampleOut& unit = static_cast<osgPPU::UnitInResampleOut&>(obj);
 
     bool itAdvanced = false;
 
     float factorX = 0;
     if (fr.readSequence("factorX", factorX))
-    { 
+    {
         unit.setFactorX(factorX);
         itAdvanced = true;
     }
 
     float factorY = 0;
     if (fr.readSequence("factorY", factorY))
-    { 
+    {
         unit.setFactorY(factorY);
         itAdvanced = true;
     }
@@ -209,21 +254,21 @@ bool readUnitInResampleOut(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnitInMipmapOut(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::UnitInMipmapOut& unit = static_cast<osgPPU::UnitInMipmapOut&>(obj);
 
     bool itAdvanced = false;
 
     int inputIndex = 0;
     if (fr.readSequence("inputIndex", inputIndex))
-    { 
+    {
         unit.generateMipmapForInputTexture(inputIndex);
         itAdvanced = true;
     }
 
     int useShader = 0;
     if (fr.readSequence("useShader", useShader))
-    { 
+    {
         unit.setUseShader(useShader?true:false);
         itAdvanced = true;
     }
@@ -234,14 +279,14 @@ bool readUnitInMipmapOut(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnitText(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::UnitText& unit = static_cast<osgPPU::UnitText&>(obj);
 
     bool itAdvanced = false;
 
     int size = 0;
     if (fr.readSequence("size", size))
-    { 
+    {
         unit.setSize(size);
         itAdvanced = true;
     }
@@ -259,21 +304,21 @@ bool readUnitText(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnitOutCapture(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::UnitOutCapture& unit = static_cast<osgPPU::UnitOutCapture&>(obj);
 
     bool itAdvanced = false;
 
     std::string path = 0;
     if (fr.readSequence("Path", path))
-    { 
+    {
         unit.setPath(path);
         itAdvanced = true;
     }
 
     std::string ext = 0;
     if (fr.readSequence("Extension", ext))
-    { 
+    {
         unit.setFileExtension(ext);
         itAdvanced = true;
     }
@@ -285,32 +330,32 @@ bool readUnitOutCapture(osg::Object& obj, osgDB::Input& fr)
 //--------------------------------------------------------------------------
 bool readUnit(osg::Object& obj, osgDB::Input& fr)
 {
-    // convert given object to unit 
+    // convert given object to unit
     osgPPU::Unit& unit = static_cast<osgPPU::Unit&>(obj);
     bool itAdvanced = false;
 
     std::string name;
     if (fr.readSequence("name", name))
-    { 
+    {
         unit.setName(name);
         itAdvanced = true;
     }
 
     int isActive = 0;
     if (fr.readSequence("isActive", isActive))
-    { 
+    {
         unit.setActive(isActive?true:false);
         itAdvanced = true;
     }
 
     int inputTextureIndexForViewportReference = 0;
     if (fr.readSequence("inputTextureIndexForViewportReference", inputTextureIndexForViewportReference))
-    { 
+    {
         unit.setInputTextureIndexForViewportReference(inputTextureIndexForViewportReference);
         itAdvanced = true;
     }
 
-    // read viewport 
+    // read viewport
     osg::Viewport *vp = static_cast<osg::Viewport*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Viewport>()));
     if (vp)
     {
@@ -350,15 +395,15 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
                     ListReadOptions::List& list = opt->getList();
                     list[&unit].push_back(ppuid);
                 }else{
-                    osg::notify(osg::WARN)<<"osgPPU::readObject - Something bad happens!" << std::endl;    
+                    osg::notify(osg::WARN)<<"osgPPU::readObject - Something bad happens!" << std::endl;
                 }
             }
             ++fr;
         }
-        
+
         // skip trailing '}'
         ++fr;
-        
+
         itAdvanced = true;
     }
 
@@ -381,13 +426,13 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
                 break;
             }
         }
-        
+
         // skip trailing '}'
         ++fr;
-        
+
         itAdvanced = true;
     }
-    
+
     // input to uniform map
     if (fr.matchSequence("InputToUniformMap {"))
     {
@@ -396,14 +441,14 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
         fr += 2;
 
         std::map<std::string, std::string> inputMap;
-        
+
         while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
         {
             // get names
             inputMap[fr[0].getStr()] = fr[1].getStr();
-            fr += 2;         
+            fr += 2;
         }
-        
+
         // add element
         ListReadOptions* opt = dynamic_cast<ListReadOptions*>(const_cast<osgDB::ReaderWriter::Options*>(fr.getOptions()));
         if (opt)
@@ -413,22 +458,42 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
         }else{
             osg::notify(osg::WARN)<<"osgPPU::readObject - Something bad happens!" << std::endl;
         }
-        
+
         // skip trailing '}'
         ++fr;
-        
+
         itAdvanced = true;
     }
 
-    // read shader input 
-    if (fr.matchSequence("Shader {"))
+    // read shader attribute
+    osgPPU::ShaderAttribute* sh = static_cast<osgPPU::ShaderAttribute*>(fr.readObjectOfType(osgDB::type_wrapper<osgPPU::ShaderAttribute>()));
+    if (sh)
     {
+        unit.getOrCreateStateSet()->setAttributeAndModes(sh);
+        itAdvanced = true;
+    }
+
+    // read shader input
+    //if (fr.matchSequence("Shader {") || fr.matchSequence("ShaderAttribute {")
+    //    || fr.matchSequence("osgPPU::Shader {") || fr.matchSequence("osgPPU::ShaderAttribute {"))
+    {
+
+#if 0
         int entry = fr[0].getNoNestedBrackets();
 
         fr += 2;
 
         // create shader
-        osgPPU::Shader* shader = new osgPPU::Shader();
+        osgPPU::ShaderAttribute* shader = new osgPPU::ShaderAttribute();
+
+            // read program
+            osg::Program* program = dynamic_cast<osg::Program*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Program>()));
+            if (program)
+            {
+                shader->setProgram(program);
+                local_itrAdvanced = true;
+            }
+TODO
 
         // read data associated with the shader
         while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
@@ -442,7 +507,7 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
 
                 // read uniform
                 osg::Uniform* uniform = fr.readUniform();
-    
+
                 // read state attribute
                 std::string stateAttribute;
                 osg::StateAttribute::GLModeValue mode = osg::StateAttribute::ON;
@@ -450,36 +515,28 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
                 {
                     StateSet_matchModeStr(stateAttribute.c_str(),mode);
                 }
-                
+
                 ++fr;
                 local_itrAdvanced = true;
 
                 // create refuniformpair
                 osg::StateSet::RefUniformPair pair (uniform, mode);
 
-                // add uniform to the shader 
+                // add uniform to the shader
                 shader->add(pair);
             }
 
-            // read program
-            osg::Program* program = dynamic_cast<osg::Program*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Program>()));
-            if (program)
-            {
-                shader->setProgram(program);
-                local_itrAdvanced = true;
-            }
-
-
             if (!local_itrAdvanced) ++fr;
         }
-        
-        // set new shader to the unit 
+
+        // set new shader to the unit
         unit.setShader(shader);
 
         // skip trailing '}'
         ++fr;
-        
+
         itAdvanced = true;
+#endif
     }
 
 
@@ -488,7 +545,7 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
 }
 
 //--------------------------------------------------------------------------
-void writeShader(const osgPPU::Shader* sh, osgDB::Output& fout)
+/*void writeShader(const osgPPU::Shader* sh, osgDB::Output& fout)
 {
     // write uniform list
     osg::StateSet::UniformList::const_iterator jt = sh->getUniformList().begin();
@@ -496,7 +553,7 @@ void writeShader(const osgPPU::Shader* sh, osgDB::Output& fout)
     {
         fout.writeBeginObject("RefUniformPair");
         fout.moveIn();
-            
+
             osgDB::Registry::instance()->writeObject(static_cast<const osg::Uniform&>(*(jt->second.first)), fout);
             fout.indent() << "StateAttribute " << StateSet_getModeStr(jt->second.second) << std::endl;
 
@@ -509,12 +566,40 @@ void writeShader(const osgPPU::Shader* sh, osgDB::Output& fout)
 
     // write out shader program
     osgDB::Registry::instance()->writeObject(static_cast<const osg::Program&>(*(sh->getProgram())), fout);
+}*/
+
+//--------------------------------------------------------------------------
+bool writeShaderAttribute(const osg::Object& obj, osgDB::Output& fout)
+{
+    // convert given object to unit
+    const osgPPU::ShaderAttribute& sh = static_cast<const osgPPU::ShaderAttribute&>(obj);
+
+    fout.indent() << "maximalSupportedTextureUnits " << sh.getMaximalSupportedTextureUnits() << std::endl;
+
+    // write uniform list
+    osg::StateSet::UniformList::const_iterator jt = sh.getUniformList().begin();
+    for (; jt != sh.getUniformList().end(); jt++)
+    {
+        fout.writeBeginObject("RefUniformPair");
+        fout.moveIn();
+
+            osgDB::Registry::instance()->writeObject(static_cast<const osg::Uniform&>(*(jt->second.first)), fout);
+            fout.indent() << "StateAttribute " << StateSet_getModeStr(jt->second.second) << std::endl;
+
+        fout.moveOut();
+        fout.writeEndObject();
+    }
+
+    // write out shader program
+    //osgDB::Registry::instance()->writeObject(static_cast<const osg::Program&>(obj), fout);
+
+    return true;
 }
 
 //--------------------------------------------------------------------------
 bool writeColorAttribute(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::ColorAttribute& ca = static_cast<const osgPPU::ColorAttribute&>(obj);
 
     fout.indent() << "startTime " << ca.getStartTime() << std::endl;
@@ -528,7 +613,7 @@ bool writeColorAttribute(const osg::Object& obj, osgDB::Output& fout)
 //--------------------------------------------------------------------------
 bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::Unit& unit = static_cast<const osgPPU::Unit&>(obj);
 
     // since we do not directlz reference to other ppu's but to its textures
@@ -545,7 +630,7 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     fout.indent() << "name " <<  fout.wrapString(unit.getName()) << std::endl;
     fout.indent() << "isActive " <<  unit.getActive() << std::endl;
     fout.indent() << "inputTextureIndexForViewportReference " <<  unit.getInputTextureIndexForViewportReference() << std::endl;
-    
+
     // write ignore input indices
     {
         const std::vector<unsigned int>& index = unit.getIgnoreInputList();
@@ -557,7 +642,7 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
 
             for (unsigned int i=0; i < index.size(); i++)
             {
-                fout.indent() << index[i] << std::endl;    
+                fout.indent() << index[i] << std::endl;
             }
 
             fout.moveOut();
@@ -585,12 +670,12 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
                 }
                 fout.indent() << uid << " " << it->second.first << std::endl;
             }
-            
+
             fout.moveOut();
             fout.writeEndObject();
         }
     }
-    
+
     // for non bypass ppus do specify inputs
     fout << std::endl;
     fout.writeBeginObject("PPUOutput");
@@ -639,7 +724,7 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     }
 
     // if the unit contains shader, then
-    if (unit.getShader())
+    /*if (unit.getShader())
     {
         fout << std::endl;
         fout.writeBeginObject("Shader");
@@ -647,6 +732,20 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
             writeShader(unit.getShader(), fout);
         fout.moveOut();
         fout.writeEndObject();
+    }*/
+
+    // write shader attribute if shader attribute exists
+    osg::ref_ptr<osgPPU::ShaderAttribute> shp = new osgPPU::ShaderAttribute;
+    const osgPPU::ShaderAttribute* sh = dynamic_cast<const osgPPU::ShaderAttribute*>(unit.getStateSet()->getAttribute(shp->getType()));
+    if (sh != NULL)
+    {
+        fout << std::endl;
+        osgDB::Registry::instance()->writeObject(static_cast<const osgPPU::ShaderAttribute&>(*sh), fout);
+    }
+
+    if (unit.getShader())
+    {
+        osg::notify(osg::WARN) << "ReaderWriterPPU Plugin - you are using deprecated feature (osgPPU::Shader). This won't be written to the file. Use ShaderAttribute instead." << std::endl;
     }
 
     // write the color attribute
@@ -655,14 +754,14 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
         fout << std::endl;
         osgDB::Registry::instance()->writeObject(static_cast<const osgPPU::ColorAttribute&>(*(unit.getColorAttribute())), fout);
     }
-    
+
     return true;
 }
 
 //--------------------------------------------------------------------------
 bool writeUnitTexture(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::UnitTexture& unit = static_cast<const osgPPU::UnitTexture&>(obj);
 
     osgDB::Registry::instance()->writeObject(
@@ -674,9 +773,9 @@ bool writeUnitTexture(const osg::Object& obj, osgDB::Output& fout)
 //--------------------------------------------------------------------------
 bool writeUnitOutCapture(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::UnitOutCapture& unit = static_cast<const osgPPU::UnitOutCapture&>(obj);
-        
+
     fout.indent() << "Path " <<  fout.wrapString(unit.getPath()) << std::endl;
     fout.indent() << "Extension " <<  fout.wrapString(unit.getFileExtension()) << std::endl;
 
@@ -686,7 +785,7 @@ bool writeUnitOutCapture(const osg::Object& obj, osgDB::Output& fout)
 //--------------------------------------------------------------------------
 bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::UnitInOut& unit = static_cast<const osgPPU::UnitInOut&>(obj);
 
     fout.indent() << "inputBypass " <<  unit.getInputBypass() << std::endl;
@@ -694,7 +793,7 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
     // write internal format
     {
         const char* str = Texture_getInternalFormatStr(unit.getOutputInternalFormat());
-        
+
         if (str) fout.indent() << "outputInternalFormat " << str << std::endl;
         else fout.indent() << "outputInternalFormat " << unit.getOutputInternalFormat() << std::endl;
     }
@@ -702,7 +801,7 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
     // write output type
     {
         const char* str = Texture_getOutputTextureTypeStr(unit.getOutputTextureType());
-        
+
         if (str) fout.indent() << "outputTextureType " << str << std::endl;
         else fout.indent() << "outputTextureType " << unit.getOutputTextureType() << std::endl;
     }
@@ -717,12 +816,12 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
         osgPPU::UnitInOut::OutputSliceMap::const_iterator it = unit.getOutputZSliceMap().begin();
         fout.writeBeginObject("OutputSliceMap");
         fout.moveIn();
-    
+
         for (; it != unit.getOutputZSliceMap().end(); it++)
         {
             fout.indent() << it->first << " " << it->second << std::endl;
         }
-        
+
         fout.moveOut();
         fout.writeEndObject();
     }
@@ -739,7 +838,7 @@ bool writeUnitMipmapInMipmapOut(const osg::Object& obj, osgDB::Output& fout)
 //--------------------------------------------------------------------------
 bool writeUnitInMipmapOut(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::UnitInMipmapOut& unit = static_cast<const osgPPU::UnitInMipmapOut&>(obj);
 
     fout.indent() << "inputIndex " <<  unit.getGenerateMipmapForInputTextureIndex() << std::endl;
@@ -752,7 +851,7 @@ bool writeUnitInMipmapOut(const osg::Object& obj, osgDB::Output& fout)
 //--------------------------------------------------------------------------
 bool writeUnitInResampleOut(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::UnitInResampleOut& unit = static_cast<const osgPPU::UnitInResampleOut&>(obj);
 
     fout.indent() << "factorX " <<  unit.getFactorX() << std::endl;
@@ -765,7 +864,7 @@ bool writeUnitInResampleOut(const osg::Object& obj, osgDB::Output& fout)
 //--------------------------------------------------------------------------
 bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
 {
-    // convert given object to unit 
+    // convert given object to unit
     const osgPPU::UnitText& unit = static_cast<const osgPPU::UnitText&>(static_cast<const osgPPU::Unit&>(obj));
 
     fout.indent() << "size " <<  unit.getSize() << std::endl;
@@ -776,6 +875,26 @@ bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
     return true;
 }
 
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_ShaderAttributeProxy
+(
+    new osgPPU::ShaderAttribute,
+    "ShaderAttribute",
+    "Object StateAttribute Program ShaderAttribute",
+    &readShaderAttribute,
+    &writeShaderAttribute
+);
+
+// register the read and write functions with the osgDB::Registry.
+/*osgDB::RegisterDotOsgWrapperProxy g_ShaderAttributeProxy2
+(
+    new osgPPU::ShaderAttribute,
+    "Shader",
+    "Object StateAttribute Program Shader",
+    &readShaderAttribute,
+    &writeShaderAttribute
+);
+*/
 
 // register the read and write functions with the osgDB::Registry.
 osgDB::RegisterDotOsgWrapperProxy g_ColorAttributeProxy

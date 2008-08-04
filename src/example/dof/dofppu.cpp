@@ -23,7 +23,7 @@ class Viewer : public osgViewer::Viewer
         float mOldTime;
         DoFRendering mDoFSetup;
         bool mbInitialized;
-                
+
     public:
         //! Default construcotr
         Viewer(osg::ArgumentParser& args) : osgViewer::Viewer(args)
@@ -34,7 +34,7 @@ class Viewer : public osgViewer::Viewer
 
         //! Get the ppu processor
         osgPPU::Processor* getProcessor() { return mProcessor.get(); }
-        
+
         //! Create camera resulting texture
         static osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth)
         {
@@ -119,7 +119,7 @@ class Viewer : public osgViewer::Viewer
             mProcessor->setCamera(getCamera());
             mProcessor->setName("Processor");
             mProcessor->dirtyUnitSubgraph();
-                            
+
             // we want to simulate hdr rendering, hence setup the pipeline
             // for the hdr rendering
             osgPPU::Unit* lastUnit = NULL;
@@ -135,7 +135,7 @@ class Viewer : public osgViewer::Viewer
                 fpstext->setPosition(0.01, 0.95);
                 lastUnit->addChild(fpstext);
             }
-            
+
             // As a last step we setup a ppu which do render the content of the result
             // on the screenbuffer. This ppu MUST be as one of the last, otherwise you
             // will not be able to get results from the ppu pipeline
@@ -143,14 +143,14 @@ class Viewer : public osgViewer::Viewer
             ppuout->setName("PipelineResult");
             ppuout->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera
             lastUnit->addChild(ppuout);
-        
+
             // write pipeline to a file
-            //osgDB::writeObjectFile(*mProcessor, "dof.ppu");
+            osgDB::writeObjectFile(*mProcessor, "dof.ppu");
         }
 
-        //! Update the frames        
+        //! Update the frames
         void frame(double f = USE_REFERENCE_TIME)
-        {            
+        {
             // update default viewer
             // this should also update the post processing graph
             // since it is attached to the camera
@@ -185,7 +185,7 @@ class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
     osg::ref_ptr<Viewer> viewer;
-    
+
     KeyboardEventHandler(Viewer* v) : viewer(v)
     {
     }
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
     rotation->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(15.0),0.0,1.0,0.0)
                         * osg::Matrix::rotate(osg::DegreesToRadians(65.0),0.0,0.0,-1.0));
     rotation->addChild(scene);
-    
+
     node->addChild(rotation);
 
     // disable color clamping, because we want to work on real hdr values
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
 
     viewer->setSceneData( node );
-        
+
     // give some info in the console
     printf("hdr [filename]\n");
     printf("Keys:\n");
@@ -261,10 +261,10 @@ int main(int argc, char **argv)
 
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));
-                    
-    // run viewer                
+
+    // run viewer
     return viewer->run();
 }
 
 
- 
+

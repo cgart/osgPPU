@@ -38,11 +38,15 @@ namespace osgPPU
  * to define shader programs for the osgPPU::Unit or in external applications
  * as well.
  *
+ * Current version of the class do not support Uniform StateAttribute values - OVERRIDE and PROTECTED.
+ * This because the uniforms are applied directly in the apply method of the ShaderAttribute.
+ * In order to be able to use it you have to apply the uniforms directly with osg methods to the
+ * according StateSet. This wrapper is just a simpler version of osg's uniform handlings.
  **/
 class OSGPPU_EXPORT ShaderAttribute : public osg::Program
 {
     public:
-        META_Object(osgPPU, ShaderAttribute)
+        META_StateAttribute(osgPPU, ShaderAttribute, PROGRAM);
 
         /** Initialize shader to the fixed function pipeline per default **/
         ShaderAttribute();
@@ -66,12 +70,12 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
         * @param type Type of the uniform
         * @param elementCount Number of elements if you add an array, otherwise 1
         **/
-        void add(const std::string& name, osg::Uniform::Type type, unsigned int elementCount = 1, osg::StateAttribute::OverrideValue mode = osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+        void add(const std::string& name, osg::Uniform::Type type, unsigned int elementCount = 1, osg::StateAttribute::OverrideValue mode = osg::StateAttribute::ON);
 
         /**
         * Add new uniform. The uniform value will be copied.
         **/
-        void add(osg::Uniform* uniform, osg::StateAttribute::OverrideValue mode = osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+        void add(osg::Uniform* uniform, osg::StateAttribute::OverrideValue mode = osg::StateAttribute::ON);
         void add(osg::StateSet::RefUniformPair uniform);
 
         /**
@@ -140,7 +144,7 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
         bool bindTexture(unsigned int index, const std::string& name, osg::Texture* tex, int unit = -1);
 
         //! @copydoc bindTexture()
-        bool bindTexture(const std::string& name, osg::Texture* tex, int unit = -1) {return bind(0, name, tex, unit);}
+        bool bindTexture(const std::string& name, osg::Texture* tex, int unit = -1) {return bindTexture(0, name, tex, unit);}
 
         /**
         * Bind a vertex attribute to a uniform. You have to take care to deliver correct
@@ -164,7 +168,20 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
         virtual void apply (osg::State &state) const;
 
         /** @copydoc osg::StateAttribute::compare() **/
-        virtual int compare (const osg::StateAttribute &sa) const;
+        virtual int compare(const osg::StateAttribute& sa) const
+        {
+            // Check for equal types, then create the rhs variable
+            // used by the COMPARE_StateAttribute_Paramter macros below.
+            COMPARE_StateAttribute_Types(ShaderAttribute, sa)
+
+            // Compare each parameter in turn against the rhs.
+            COMPARE_StateAttribute_Parameter(mMaxTextureUnits)
+            COMPARE_StateAttribute_Parameter(mDirtyTextureBindings)
+
+            // TODO: currently no uniform comparison is made
+
+            return 0; // Passed all the above comparison macros, so must be equal.
+        }
 
         /**
         * Get uniform by a its name. If uniform was previously added or created this method will return it.
@@ -189,15 +206,26 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
         void setMaximalSupportedTextureUnits(int i);
 
         /**
-         * Dirty the shader. This will force to rebind and reset all the uniforms to the appropriate
-         * parental StateAttributes.
+         * Get maximum supported texture units. The results is the same as set by setMaximalSupportedTextureUnits() method
+         **/
+        int getMaximalSupportedTextureUnits() const { return mMaxTextureUnits; }
+
+        /**
+        * Mark the ShaderAttribute as dirty. This will force to reset all the texture binding to
+        * parental StateSets on the next apply method. @see bindTexture()
         **/
-        void dirty() { mDirty = true; }
+        void dirty() { mDirtyTextureBindings = true; }
 
     protected:
 
+        struct TexUnit{
+            osg::ref_ptr<osg::Texture> t;
+            int unit;
+            unsigned int element;
+            std::string name;
+        };
+
         typedef std::map<std::string, std::map<int,TexUnit> > TexUnitDb;
-        typedef std::map<osg::StateSet*, bool> ParentDirtyMap;
 
         //! Database to hold the texture to uniform bindings
         TexUnitDb mTexUnits;
@@ -211,31 +239,17 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
         //! maximal possible number of supported texture units
         int mMaxTextureUnits;
 
-        //! Marks if shader is dirty
-        bool mDirty;
-
-        //! List of all currently known parents and according dirty state
-        ParentDirtyMap mParents;
-
-        /** Texture tu unit mapping structure **/
-        struct TexUnit{
-            osg::ref_ptr<osg::Texture> t;
-            int unit;
-            unsigned int element;
-            std::string name;
-        };
-
         /**
          * Set parameters as uniform values.
          **/
-        void addParameter(const std::string& name, osg::Uniform* param);
+        void addParameter(const std::string& name, osg::Uniform* param, osg::StateAttribute::OverrideValue mode);
 
         /**
         * Reset texture bindings. Call this if you have rebound textures and want to force
         * to recreate texture boundings within the shader. Normally this would be called
         * automatically by the update function if you have previously called any bind function
         **/
-        void resetBindings(osg::StateSet* ss);
+        void resetTextureUniforms();
 
         //! Convert string type name into type
         osg::Uniform::Type convertToUniformType(const std::string& name);
