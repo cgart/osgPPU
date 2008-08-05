@@ -1,3 +1,11 @@
+2008-08-04 19:27  art
+
+	* [r138]
+	  - osgPPU::Shader is deprecated now
+	  - osgPPU::ShaderAttribute now works fine. Some tests required.
+	  - all *.ppu files were updated
+	  - all examples were updated
+
 2008-07-27 15:35  art
 
 	* [r137]

@@ -63,9 +63,9 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
 
         /**
         * Add new uniform. The uniform can also represent an array.
-        * The uniform will also be added to all the parent StateSet's. If
-        * a parent stateset is attached later, then the uniform will be added
-        * in the apply method.
+        * The uniform will be applied in the apply method. Unfortunately
+        * only the StateAttribute mode ON/OFF is checked. Hence PROTECTED and OVERRIDE are
+        * currently not supported.
         * @param name Name of the uniform
         * @param type Type of the uniform
         * @param elementCount Number of elements if you add an array, otherwise 1
