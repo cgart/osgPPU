@@ -577,7 +577,7 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 {
     // only if parent is valid
     if (_parent->getActive())
-    {   // _parent->printDebugInfo();
+    {    //_parent->printDebugInfo();
         // unit should know that we are about to render it
         _parent->noticeBeginRendering(ri, dr);
 
