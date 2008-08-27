@@ -40,7 +40,10 @@ namespace osgPPU
                 {
                     // create temporary image which is initialized with 0 values
                     osg::ref_ptr<osg::Image> img = new osg::Image();
-                    img->allocateImage(texture.getTextureWidth(), texture.getTextureHeight(), texture.getTextureDepth(), 
+                    img->allocateImage(
+                        texture.getTextureWidth() ? texture.getTextureWidth() : 1, 
+                        texture.getTextureHeight() ? texture.getTextureHeight() : 1, 
+                        texture.getTextureDepth() ? texture.getTextureDepth() : 1, 
                         texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
                         texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
     
@@ -74,7 +77,10 @@ namespace osgPPU
             {
                 // create temporary image which is initialized with 0 values
                 osg::ref_ptr<osg::Image> img = new osg::Image();
-                img->allocateImage(texture.getTextureWidth(), texture.getTextureHeight(), 1, 
+                img->allocateImage(
+                    texture.getTextureWidth() ? texture.getTextureWidth() : 1, 
+                    texture.getTextureHeight() ? texture.getTextureHeight() : 1, 
+                    1, 
                     texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
 
@@ -118,7 +124,10 @@ namespace osgPPU
 
                 // create temporary image which is initialized with 0 values
                 osg::ref_ptr<osg::Image> img = new osg::Image();
-                img->allocateImage(texture.getTextureWidth(), texture.getTextureHeight(), 1, 
+                img->allocateImage(
+                    texture.getTextureWidth() ? texture.getTextureWidth() : 1, 
+                    texture.getTextureHeight() ? texture.getTextureHeight() : 1, 
+                    1, 
                     texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
 
@@ -326,9 +335,9 @@ namespace osgPPU
         mTex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
         mTex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
         mTex->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
+        mTex->setBorderColor(osg::Vec4(0,0,0,0));
         mTex->setInternalFormat(getOutputInternalFormat());
         mTex->setSourceFormat(createSourceTextureFormat(getOutputInternalFormat()));
-        mTex->setBorderColor(osg::Vec4(0,0,0,0));
 
         // check if the input texture was in nearest mode
         if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MIN_FILTER) == osg::Texture2D::NEAREST)
