@@ -14,6 +14,11 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
+// base includes handling gcc++ compiler issues
+// with memset dependency up from version 4.3.x 
+#include <stdio.h>
+#include <string.h>
+
 #include <osgPPU/UnitInOut.h>
 #include <osgPPU/Processor.h>
 #include <osgPPU/Utility.h>
