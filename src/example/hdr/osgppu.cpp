@@ -314,6 +314,38 @@ public:
 
 
 //--------------------------------------------------------------------------
+// create a square with center at 0,0,0 and aligned along the XZ plan
+//--------------------------------------------------------------------------
+osg::Drawable* createSquare(float textureCoordMax=1.0f)
+{
+    // set up the Geometry.
+    osg::Geometry* geom = new osg::Geometry;
+
+    osg::Vec3Array* coords = new osg::Vec3Array(4);
+    (*coords)[0].set(-1.25f,0.0f,1.0f);
+    (*coords)[1].set(-1.25f,0.0f,-1.0f);
+    (*coords)[2].set(1.25f,0.0f,-1.0f);
+    (*coords)[3].set(1.25f,0.0f,1.0f);
+    geom->setVertexArray(coords);
+
+    osg::Vec3Array* norms = new osg::Vec3Array(1);
+    (*norms)[0].set(0.0f,-1.0f,0.0f);
+    geom->setNormalArray(norms);
+    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
+    (*tcoords)[0].set(0.0f,0.0f);
+    (*tcoords)[1].set(0.0f,textureCoordMax);
+    (*tcoords)[2].set(textureCoordMax,textureCoordMax);
+    (*tcoords)[3].set(textureCoordMax,0.0f);
+    geom->setTexCoordArray(0,tcoords);
+    
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+
+    return geom;
+}
+
+//--------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
     // parse arguments
@@ -333,9 +365,12 @@ int main(int argc, char **argv)
 
     // setup scene
     osg::Group* node = new osg::Group();
+    //osg::Image* image = osgDB::readImageFile("Data/Images/AdobeFountain2.hdr");
+    //osg::Geode* loadedModel = osg::createGeodeForImage(image);
     osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
     if (!loadedModel) loadedModel = createTeapot();
     if (!loadedModel) return 1;
+
     node->addChild(loadedModel);
 
     // disable color clamping, because we want to work on real hdr values

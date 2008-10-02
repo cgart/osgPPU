@@ -22,13 +22,14 @@ namespace osgPPU
 {
 
     //------------------------------------------------------------------------------
-    UnitDepthbufferBypass::UnitDepthbufferBypass() : UnitBypass()
+    UnitDepthbufferBypass::UnitDepthbufferBypass() : UnitCameraAttachmentBypass()
     {
+        setBufferComponent(osg::Camera::DEPTH_BUFFER);
     }
 
     //------------------------------------------------------------------------------
     UnitDepthbufferBypass::UnitDepthbufferBypass(const UnitDepthbufferBypass& u, const osg::CopyOp& copyop) :
-        UnitBypass(u, copyop)
+        UnitCameraAttachmentBypass(u, copyop)
     {
 
     }
@@ -39,51 +40,5 @@ namespace osgPPU
 
     }
 
-
-    //------------------------------------------------------------------------------
-    void UnitDepthbufferBypass::init()
-    {
-        UnitBypass::init();
-    }
-
-    //------------------------------------------------------------------------------
-    void UnitDepthbufferBypass::setupInputsFromParents()
-    {
-        // scan all parents and look for the processor
-        Processor* proc = NULL;
-        for (unsigned int i=0; i < getNumParents(); i++)
-        {
-            proc = dynamic_cast<Processor*>(getParent(i));
-            if (proc) break;
-        }
-        if (proc)
-        {
-            // get depthbuffer attachment
-            osg::Camera::BufferAttachmentMap& map = proc->getCamera()->getBufferAttachmentMap();
-            osg::Texture* input = map[osg::Camera::DEPTH_BUFFER]._texture.get();
-
-            // if no such attachment then warning
-            if (!input)
-            {
-                osg::notify(osg::WARN) << "osgPPU::UnitDepthbufferBypass::setupInputsFromParents() - processor's camera has no depth buffer attachment" << std::endl;
-            }else
-            {
-                // set the input texture
-                mInputTex.clear();
-                mInputTex[0] = input;
-                noticeChangeInput();
-
-                // the viewport should be retrieved from the input texture
-                setInputTextureIndexForViewportReference(0);
-                mOutputTex = mInputTex;
-            }
-        }else
-        {
-            osg::notify(osg::WARN) << "osgPPU::UnitDepthbufferBypass::setupInputsFromParents() - unit is not a direct child of processor" << std::endl;
-        }
-
-        // setup eventually blocked children
-        setupBlockedChildren();
-    }
 
 }; // end namespace

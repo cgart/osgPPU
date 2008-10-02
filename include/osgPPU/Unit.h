@@ -23,6 +23,7 @@
 //-------------------------------------------------------------------------
 #include <osg/Texture>
 #include <osg/Geode>
+#include <osg/Geometry>
 #include <osgPPU/ColorAttribute.h>
 
 #include <osgPPU/Export.h>
@@ -278,7 +279,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         const ColorAttribute* getColorAttribute() const { return mColorAttribute.get(); }
 
     protected:
-
+        
+        #if 1
         /**
         * This draw callback is used to setup correct drawing
         * of the unit's drawable. The callback is setted up automatically,
@@ -298,6 +300,28 @@ class OSGPPU_EXPORT Unit : public osg::Group {
             private:
                 Unit* _parent;
         };
+        #endif
+
+        #if 0
+        /**
+        * Geometry which do represents a unit quad. If you ant to have your own geometry 
+        * as unit quad, derive it from this class and overwrite the drawImplementation method.
+        **/
+        class Drawable : public osg::Geometry
+        {
+            public:
+                Drawable(Unit* parent) : osg::Geometry(), _parent(parent) {}
+                virtual ~Drawable() {};
+
+                void drawImplementation (osg::RenderInfo &renderInfo) const;
+                inline void setParent(Unit* parent) { _parent = parent; }
+                inline Unit* getParent() { return _parent; }
+                inline const Unit* getParent() const { return _parent; }
+
+            private:
+                Unit* _parent;
+        };
+        #endif
 
         /**
         * Use this method in the derived classes to implement and update some unit

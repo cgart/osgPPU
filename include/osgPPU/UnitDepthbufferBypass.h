@@ -21,32 +21,22 @@
 //-------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------
-#include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitCameraAttachmentBypass.h>
 
 namespace osgPPU
 {
-    //! Bypass teh depthbuffer attachment of the camera to the output
+    //! Bypass the depthbuffer attachment of the camera to the output
     /**
-    * This unit do not perform any rendering, however it do
-    * bypass the depthbuffer attachment of the camera of the parent processor
-    * to its output texture.
-    *
-    * This unit has to be placed directly under the processor, so that the unit
-    * get access to the processor's attachments.
+    * Just a wrapper for the UnitCameraAttachmentBypass. @see UnitCameraAttachmentBypass
     **/
-    class OSGPPU_EXPORT UnitDepthbufferBypass : public UnitBypass {
+    class OSGPPU_EXPORT UnitDepthbufferBypass : public UnitCameraAttachmentBypass {
         public:
-            META_Node(osgPPU,UnitDepthbufferBypass);
+            META_Node(osgPPU, UnitDepthbufferBypass);
         
             UnitDepthbufferBypass();
             UnitDepthbufferBypass(const UnitDepthbufferBypass& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
-            ~UnitDepthbufferBypass();
-            
-            void init();
-        
-        private:
-            void setupInputsFromParents();
+            ~UnitDepthbufferBypass();            
     };
 };
 

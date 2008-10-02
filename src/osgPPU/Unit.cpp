@@ -118,6 +118,36 @@ osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const os
 {
     osg::Geometry* geom = osg::createTexturedQuadGeometry(corner, widthVec, heightVec, l,b,r,t);
 
+    #if 0
+    Drawable* geom = new Drawable(this);
+    osg::Vec3Array* coords = new osg::Vec3Array(4);
+    (*coords)[0] = corner+heightVec;
+    (*coords)[1] = corner;
+    (*coords)[2] = corner+widthVec;
+    (*coords)[3] = corner+widthVec+heightVec;
+    geom->setVertexArray(coords);
+
+    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
+    (*tcoords)[0].set(l,t);
+    (*tcoords)[1].set(l,b);
+    (*tcoords)[2].set(r,b);
+    (*tcoords)[3].set(r,t);
+    geom->setTexCoordArray(0,tcoords);
+
+    osg::Vec4Array* colours = new osg::Vec4Array(1);
+    (*colours)[0].set(1.0f,1.0f,1.0,1.0f);
+    geom->setColorArray(colours);
+    geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+    osg::Vec3Array* normals = new osg::Vec3Array(1);
+    (*normals)[0] = widthVec^heightVec;
+    (*normals)[0].normalize();
+    geom->setNormalArray(normals);
+    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+    #endif
+
     // setup default state set
     geom->setStateSet(new osg::StateSet());
     geom->setUseDisplayList(false);
@@ -128,6 +158,7 @@ osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const os
 
     return geom;
 }
+
 
 //------------------------------------------------------------------------------
 void Unit::setRenderingFrustum(float left, float top, float right, float bottom)
@@ -460,9 +491,7 @@ public:
         {
             // get first color attachment from the camera
             osg::Camera::BufferAttachmentMap& map = proc->getCamera()->getBufferAttachmentMap();
-            osg::Texture* input = map[osg::Camera::COLOR_BUFFER]._texture.get();
-            
-            _input.push_back(input);
+            _input.push_back(map[osg::Camera::COLOR_BUFFER]._texture.get());
 
         // nothing else, then just traverse
         }else
@@ -572,12 +601,36 @@ void Unit::setupBlockedChildren()
     }
 }
 
+#if 0
+//--------------------------------------------------------------------------
+void Unit::Drawable::drawImplementation (osg::RenderInfo& ri) const
+{
+    // only if parent is valid
+    if (_parent->getActive())
+    {   //_parent->printDebugInfo();
+        // unit should know that we are about to render it
+        _parent->noticeBeginRendering(ri, this);
+
+        // set matricies used for the unit
+        ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
+        ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
+
+        // now render the drawable geometry
+        Geometry::drawImplementation(ri);
+
+        // ok rendering is done, unit can do other stuff
+        _parent->noticeFinishRendering(ri, this);
+    }
+}
+#endif
+
+#if 1
 //--------------------------------------------------------------------------
 void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
 {
     // only if parent is valid
     if (_parent->getActive())
-    {    //_parent->printDebugInfo();
+    {   //_parent->printDebugInfo();
         // unit should know that we are about to render it
         _parent->noticeBeginRendering(ri, dr);
 
@@ -592,6 +645,7 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
         _parent->noticeFinishRendering(ri, dr);
     }
 }
+#endif
 
 //--------------------------------------------------------------------------
 void Unit::printDebugInfo() 

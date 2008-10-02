@@ -4,6 +4,7 @@ ADD_SUBDIRECTORY(dof)
 ADD_SUBDIRECTORY(cubemap)
 ADD_SUBDIRECTORY(texture3D)
 ADD_SUBDIRECTORY(video)
+#ADD_SUBDIRECTORY(ssao)
 
 
 ################################################################################

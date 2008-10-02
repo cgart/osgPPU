@@ -47,7 +47,6 @@ class PPUProcessingBin : public osgUtil::RenderBin
 // This is a default rendering bin which all units are usign
 static osg::ref_ptr<osgUtil::RenderBin> DefaultBin = new PPUProcessingBin("PPUProcessingBin");
 
-
 //------------------------------------------------------------------------------
 Processor::Processor()
 {
@@ -91,6 +90,7 @@ void Processor::init()
 
     // the processor's stateset have to be activated as first in the pipeline
     mStateSet->setRenderBinDetails(100, DefaultBin->getName());
+    //mStateSet->setBinNumber(100);
     
     // setup default state set modes
     mStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
