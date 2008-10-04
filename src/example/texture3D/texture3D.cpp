@@ -34,7 +34,7 @@
 #include <iostream>
 
 //
-// A simple demo demonstrating different texturing modes, 
+// A simple demo demonstrating different texturing modes,
 // including using of texture extensions.
 //
 
@@ -64,21 +64,21 @@ class MyGraphicsContext {
                 _gc = osg::GraphicsContext::createGraphicsContext(traits.get());
             }
 
-            if (_gc.valid()) 
+            if (_gc.valid())
             {
                 _gc->realize();
                 _gc->makeCurrent();
             }
         }
-        
+
         bool valid() const { return _gc.valid() && _gc->isRealized(); }
-        
+
     private:
         osg::ref_ptr<osg::GraphicsContext> _gc;
 };
 
 
-const char* shaderSrc = 
+const char* shaderSrc =
     "uniform int osgppu_ZSliceNumber;\n"
     "uniform int osgppu_ZSliceIndex;\n"
     "\n"
@@ -96,7 +96,7 @@ const char* shaderSrc =
 osg::StateSet* createState(osgPPU::Processor* processor)
 {
     MyGraphicsContext gc;
-    if (!gc.valid()) 
+    if (!gc.valid())
     {
         osg::notify(osg::NOTICE)<<"Unable to create the graphics context required to build 3d image."<<std::endl;
         return 0;
@@ -144,8 +144,8 @@ osg::StateSet* createState(osgPPU::Processor* processor)
     image_3d->copySubImage(0,0,2,image[2].get());
     image_3d->copySubImage(0,0,3,image[3].get());
 
-    image_3d->setInternalTextureFormat(image[0]->getInternalTextureFormat());        
-    
+    image_3d->setInternalTextureFormat(image[0]->getInternalTextureFormat());
+
 
     // set up the 3d texture itself,
     // note, well set the filtering up so that mip mapping is disabled,
@@ -156,21 +156,21 @@ osg::StateSet* createState(osgPPU::Processor* processor)
     texture3D->setFilter(osg::Texture3D::MAG_FILTER,osg::Texture3D::LINEAR);
     texture3D->setWrap(osg::Texture3D::WRAP_R,osg::Texture3D::REPEAT);
     texture3D->setImage(image_3d);
-    
 
-    // setup shader program which will be applied on the cubemap 
+
+    // setup shader program which will be applied on the cubemap
     osg::Program* program = new osg::Program();
     osg::Shader* shader = new osg::Shader(osg::Shader::FRAGMENT);
     shader->setShaderSource(shaderSrc);
     program->addShader(shader);
-    
+
     // create a Unit which will work on the 3D texture to change it somehow
     osgPPU::UnitInOut* mainUnit = new osgPPU::UnitInOut();
     mainUnit->setOutputTextureType(osgPPU::UnitInOut::TEXTURE_3D);
-    mainUnit->setOutputTexture(texture3D, 0);    
+    mainUnit->setOutputTexture(texture3D, 0);
     mainUnit->getOrCreateStateSet()->setAttributeAndModes(program);
 
-    // the unit should work only on the 2nd texture 
+    // the unit should work only on the 2nd texture
     mainUnit->setOutputZSlice(1);
 
     // attach some valid viewport to prevent warnings
@@ -203,7 +203,7 @@ class UpdateStateCallback : public osg::NodeCallback
 {
     public:
         UpdateStateCallback() {}
-        
+
         void animateState(osg::StateSet* stateset, float frame)
         {
             // here we simply get any existing texgen, and then increment its
@@ -218,7 +218,7 @@ class UpdateStateCallback : public osg::NodeCallback
         }
 
         virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
-        { 
+        {
             static float oldTime = nv->getFrameStamp()->getReferenceTime();
 
             osg::StateSet* stateset = node->getStateSet();
@@ -231,10 +231,10 @@ class UpdateStateCallback : public osg::NodeCallback
             }
 
             // note, callback is repsonsible for scenegraph traversal so
-            // should always include call the traverse(node,nv) to ensure 
+            // should always include call the traverse(node,nv) to ensure
             // that the rest of cullbacks and the scene graph are traversed.
             traverse(node,nv);
-        }      
+        }
 };
 
 /** create 2,2 square with center at 0,0,0 and aligned along the XZ plan */
@@ -261,7 +261,7 @@ osg::Drawable* createSquare(float textureCoordMax=1.0f)
     (*tcoords)[2].set(textureCoordMax,0.0f);
     (*tcoords)[3].set(textureCoordMax,textureCoordMax);
     geom->setTexCoordArray(0,tcoords);
-    
+
     geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
 
     return geom;
@@ -275,10 +275,10 @@ osg::Node* createModel()
     // create processor, which will hold the data
     osgPPU::Processor* processor = new osgPPU::Processor;
 
-    // add processor as subgraph 
+    // add processor as subgraph
     group->addChild(processor);
 
-    // create the geometry of the model, just a simple 2d quad right now.    
+    // create the geometry of the model, just a simple 2d quad right now.
     osg::Geode* geode = new osg::Geode;
     geode->addDrawable(createSquare());
 
@@ -295,7 +295,7 @@ osg::Node* createModel()
     // this current limitation.
     geode->setUpdateCallback(new UpdateStateCallback());
     geode->setStateSet(createState(processor));
-    
+
     group->addChild(geode);
 
     return group;
@@ -312,7 +312,7 @@ int main(int , char **)
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer.setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
-    viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // create a model from the images and pass it to the viewer.
     viewer.setSceneData(createModel());

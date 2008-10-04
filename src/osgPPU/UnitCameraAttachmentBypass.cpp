@@ -34,7 +34,7 @@ namespace osgPPU
     {
 
     }
-    
+
     //------------------------------------------------------------------------------
     UnitCameraAttachmentBypass::~UnitCameraAttachmentBypass()
     {
@@ -73,7 +73,7 @@ namespace osgPPU
             // if no such attachment then warning
             if (!input)
             {
-                osg::notify(osg::WARN) << "osgPPU::UnitCameraattachmentBypass::setupInputsFromParents() - processor's camera has no specified buffer attachment" << std::endl;
+                osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - processor's camera has no specified buffer attachment" << std::endl;
             }else
             {
                 // set the input texture
@@ -87,7 +87,7 @@ namespace osgPPU
             }
         }else
         {
-            osg::notify(osg::WARN) << "osgPPU::UnitDepthbufferBypass::setupInputsFromParents() - unit is not a direct child of processor" << std::endl;
+            osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - unit is not a direct child of processor" << std::endl;
         }
 
         // setup eventually blocked children

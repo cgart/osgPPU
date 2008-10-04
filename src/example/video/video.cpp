@@ -31,7 +31,7 @@ osg::Texture* gUnitTexture = NULL;
 osg::Geode*   gQuad = NULL;
 
 //--------------------------------------------------------------------------
-const char* shaderSrc = 
+const char* shaderSrc =
     "uniform int osgppu_ViewportWidth;\n"
     "uniform int osgppu_ViewportHeight;\n"
     "uniform sampler2D inputTexture;\n"
@@ -80,7 +80,7 @@ osg::Drawable* createSquare(float textureCoordMax=1.0f)
     (*tcoords)[2].set(textureCoordMax,textureCoordMax);
     (*tcoords)[3].set(textureCoordMax,0.0f);
     geom->setTexCoordArray(0,tcoords);
-    
+
     geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
 
     return geom;
@@ -164,7 +164,7 @@ int main(int , char **)
     gQuad->getOrCreateStateSet()->setTextureAttributeAndModes(0, gVideoTexture);
 
     // create osgPPU's units and processor
-    osgPPU::Processor* processor = new osgPPU::Processor();
+    /*osgPPU::Processor* processor = new osgPPU::Processor();
     osgPPU::UnitTexture* unitTexture = new osgPPU::UnitTexture(gVideoTexture);
     osgPPU::UnitInOut* unitInOut = new osgPPU::UnitInOut();
 
@@ -186,8 +186,8 @@ int main(int , char **)
     // setup appropriate pipeline to perform video processing
     node->addChild(processor);
     processor->addChild(unitTexture);
-    unitTexture->addChild(unitInOut);    
-    
+    unitTexture->addChild(unitInOut);*/
+
     // add model to viewer.
     viewer->setSceneData( node );
 
@@ -200,6 +200,6 @@ int main(int , char **)
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler());
 
-    // run viewer                
+    // run viewer
     return viewer->run();
 }

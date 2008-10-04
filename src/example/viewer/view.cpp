@@ -71,14 +71,14 @@ int main(int argc, char **argv)
 
     // give some info in the console
     printf("view ppufile [osgfile]\n");
-    
+
     if (argc <= 1) return 0;
 
     // construct the viewer.
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
     // just make it singlethreaded since I get some problems if not in this mode
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     if (!loadedModel) loadedModel = createTeapot();
     if (!loadedModel) return 1;
     node->addChild(loadedModel);
-    
+
     // disable color clamping, because we want to work on real hdr values
     osg::ClampColor* clamp = new osg::ClampColor();
     clamp->setClampVertexColor(GL_FALSE);
@@ -121,9 +121,9 @@ int main(int argc, char **argv)
     // add model to viewer.
     viewer->setSceneData( node );
 
-    // run viewer                
+    // run viewer
     return viewer->run();
 }
 
 
- 
+

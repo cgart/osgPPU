@@ -221,7 +221,8 @@ int main(int argc, char **argv)
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
     // just make it singlethreaded since I get some problems if not in this mode
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::DrawThreadPerContext)
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);

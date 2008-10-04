@@ -118,7 +118,7 @@ osg::NodePath createReflector()
   osg::PositionAttitudeTransform* pat = new osg::PositionAttitudeTransform;
   pat->setPosition(osg::Vec3(0.0f,0.0f,0.0f));
   pat->setAttitude(osg::Quat(osg::inDegrees(0.0f),osg::Vec3(0.0f,0.0f,1.0f)));
-  
+
   Geode* geode_1 = new Geode;
   pat->addChild(geode_1);
 
@@ -128,18 +128,18 @@ osg::NodePath createReflector()
   ShapeDrawable* shape = new ShapeDrawable(new Sphere(Vec3(0.0f, 0.0f, 0.0f), radius * 1.5f), hints.get());
   shape->setColor(Vec4(0.8f, 0.8f, 0.8f, 1.0f));
   geode_1->addDrawable(shape);
-  
+
   osg::NodePath nodeList;
   nodeList.push_back(pat);
   nodeList.push_back(geode_1);
-  
+
   return nodeList;
 }
 
 class UpdateCameraAndTexGenCallback : public osg::NodeCallback
 {
     public:
-    
+
         typedef std::vector< osg::ref_ptr<osg::Camera> >  CameraList;
 
         UpdateCameraAndTexGenCallback(osg::NodePath& reflectorNodePath, CameraList& Cameras):
@@ -147,7 +147,7 @@ class UpdateCameraAndTexGenCallback : public osg::NodeCallback
             _Cameras(Cameras)
         {
         }
-       
+
         virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
         {
             // first update subgraph to make sure objects are all moved into position
@@ -169,43 +169,43 @@ class UpdateCameraAndTexGenCallback : public osg::NodeCallback
                 ImageData( osg::Vec3( 0,  0, -1), osg::Vec3( 0, -1,  0) )  // -Z
             };
 
-            for(unsigned int i=0; 
+            for(unsigned int i=0;
                 i<6 && i<_Cameras.size();
                 ++i)
             {
                 osg::Matrix localOffset;
                 localOffset.makeLookAt(position,position+id[i].first,id[i].second);
-                
+
                 osg::Matrix viewMatrix = worldToLocal*localOffset;
-            
+
                 _Cameras[i]->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
                 _Cameras[i]->setProjectionMatrixAsFrustum(-1.0,1.0,-1.0,1.0,1.0,10000.0);
                 _Cameras[i]->setViewMatrix(viewMatrix);
             }
         }
-        
+
     protected:
-    
+
         virtual ~UpdateCameraAndTexGenCallback() {}
-        
-        osg::NodePath               _reflectorNodePath;        
+
+        osg::NodePath               _reflectorNodePath;
         CameraList                  _Cameras;
 };
 
 class TexMatCullCallback : public osg::NodeCallback
 {
     public:
-    
+
         TexMatCullCallback(osg::TexMat* texmat):
             _texmat(texmat)
         {
         }
-       
+
         virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
         {
             // first update subgraph to make sure objects are all moved into position
             traverse(node,nv);
-            
+
             osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
             if (cv)
             {
@@ -213,14 +213,14 @@ class TexMatCullCallback : public osg::NodeCallback
                 _texmat->setMatrix(osg::Matrix::rotate(quat.inverse()));
             }
         }
-        
+
     protected:
-    
+
         osg::ref_ptr<TexMat>    _texmat;
 };
 
 
-const char* shaderSrc = 
+const char* shaderSrc =
     "uniform samplerCube input; \n"
     "uniform int osgppu_CubeMapFace;\n"
     "\n"
@@ -244,7 +244,7 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
 {
 
     osg::Group* group = new osg::Group;
-    
+
     osg::TextureCubeMap* texture = new osg::TextureCubeMap;
     texture->setTextureSize(tex_width, tex_height);
 
@@ -254,7 +254,7 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
     texture->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
     texture->setFilter(osg::TextureCubeMap::MIN_FILTER,osg::TextureCubeMap::LINEAR);
     texture->setFilter(osg::TextureCubeMap::MAG_FILTER,osg::TextureCubeMap::LINEAR);
-    
+
     // set up the render to texture cameras.
     UpdateCameraAndTexGenCallback::CameraList Cameras;
     for(unsigned int i=0; i<6; ++i)
@@ -279,12 +279,12 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
 
         // add subgraph to render
         camera->addChild(reflectedSubgraph);
-        
+
         group->addChild(camera);
-        
+
         Cameras.push_back(camera);
     }
-   
+
     // create the texgen node to project the tex coords onto the subgraph
     osg::TexGenNode* texgenNode = new osg::TexGenNode;
     texgenNode->getTexGen()->setMode(osg::TexGen::REFLECTION_MAP);
@@ -296,7 +296,7 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
     // create texture to be used as output of the units
     osg::TextureCubeMap* ppuTexture = new osg::TextureCubeMap();
     {
-        // setup texture parameters    
+        // setup texture parameters
         ppuTexture->setTextureSize(tex_width, tex_height);
         ppuTexture->setInternalFormat(GL_RGB);
         ppuTexture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
@@ -307,37 +307,37 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
 
         // create processor, which will hold the data
         osgPPU::Processor* processor = new osgPPU::Processor;
-    
+
         // this camera will be used to get the texture from
         processor->setCamera(Cameras.front().get());
 
-        // add processor as subgraph 
+        // add processor as subgraph
         group->addChild(processor);
 
-        // setup shader programm which will be applied on the cubemap 
+        // setup shader programm which will be applied on the cubemap
         osg::Program* program = new osg::Program();
         osg::Shader* shader = new osg::Shader(osg::Shader::FRAGMENT);
         shader->setShaderSource(shaderSrc);
         program->addShader(shader);
-        
+
         // setup 6 units for each face
         for (unsigned int i=0; i < 6; i++)
         {
             osgPPU::UnitInOut* unit = new osgPPU::UnitInOut();
-    
+
             // set unit to use cubemap textures as output
             unit->setOutputTextureType(osgPPU::UnitInOut::TEXTURE_CUBEMAP);
             unit->setOutputFace(i);
-    
+
             // add the given texture as output. This is needed otherwise
             // each unit will create its own texture and hence we will end up in 6 different cubemap textures.
-            // to prevent this we add the cubemap texture specified before as output texture 
+            // to prevent this we add the cubemap texture specified before as output texture
             unit->setOutputTexture(ppuTexture, 0);
-    
-            // add shader to the unit 
+
+            // add shader to the unit
             unit->getOrCreateStateSet()->setAttributeAndModes(program);
 
-            // create unfirom to point to the texture 
+            // create unfirom to point to the texture
             osg::Uniform* uniform = unit->getOrCreateStateSet()->getOrCreateUniform("input", osg::Uniform::SAMPLER_CUBE);
             uniform->set((int)0);
 
@@ -348,11 +348,11 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
     }
 
 
-    // set the reflected subgraph so that it uses the texture and tex gen settings.    
+    // set the reflected subgraph so that it uses the texture and tex gen settings.
     {
         osg::Node* reflectorNode = reflectorNodePath.front();
         group->addChild(reflectorNode);
-                
+
         osg::StateSet* stateset = reflectorNode->getOrCreateStateSet();
         stateset->setTextureAttributeAndModes(unit, ppuTexture, osg::StateAttribute::ON);
         stateset->setTextureMode(unit,GL_TEXTURE_GEN_S,osg::StateAttribute::ON);
@@ -362,13 +362,13 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
 
         osg::TexMat* texmat = new osg::TexMat;
         stateset->setTextureAttributeAndModes(unit,texmat,osg::StateAttribute::ON);
-        
+
         reflectorNode->setCullCallback(new TexMatCullCallback(texmat));
     }
-    
+
     // add the reflector scene to draw just as normal
     group->addChild(reflectedSubgraph);
-    
+
     // set an update callback to keep moving the camera and tex gen in the right direction.
     group->setUpdateCallback(new UpdateCameraAndTexGenCallback(reflectorNodePath, Cameras));
 
@@ -400,7 +400,7 @@ int main(int argc, char** argv)
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer.setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
-    viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // if user request help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
@@ -408,19 +408,19 @@ int main(int argc, char** argv)
         arguments.getApplicationUsage()->write(std::cout);
         return 1;
     }
-    
+
     unsigned tex_width = 256;
     unsigned tex_height = 256;
     while (arguments.read("--width", tex_width)) {}
     while (arguments.read("--height", tex_height)) {}
 
     osg::Camera::RenderTargetImplementation renderImplementation = osg::Camera::FRAME_BUFFER_OBJECT;
-    
+
     while (arguments.read("--fbo")) { renderImplementation = osg::Camera::FRAME_BUFFER_OBJECT; }
     while (arguments.read("--pbuffer")) { renderImplementation = osg::Camera::PIXEL_BUFFER; }
     while (arguments.read("--fb")) { renderImplementation = osg::Camera::FRAME_BUFFER; }
     while (arguments.read("--window")) { renderImplementation = osg::Camera::SEPERATE_WINDOW; }
-    
+
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
@@ -435,7 +435,7 @@ int main(int argc, char** argv)
     ref_ptr<MatrixTransform> scene = new MatrixTransform;
     scene->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(125.0),1.0,0.0,0.0));
 
-    ref_ptr<Group> reflectedSubgraph = _create_scene();    
+    ref_ptr<Group> reflectedSubgraph = _create_scene();
     if (!reflectedSubgraph.valid()) return 1;
 
     ref_ptr<Group> reflectedScene = createShadowedScene(reflectedSubgraph.get(), createReflector(), 0, viewer.getCamera()->getClearColor(),

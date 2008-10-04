@@ -32,10 +32,10 @@ ShaderAttribute::ShaderAttribute()
 
 //--------------------------------------------------------------------------
 ShaderAttribute::ShaderAttribute(const ShaderAttribute& sh, const osg::CopyOp& copyop) :
+    osg::Program(sh, copyop),
     mTexUnits(sh.mTexUnits),
     mDirtyTextureBindings(sh.mDirtyTextureBindings),
-    mMaxTextureUnits(sh.mMaxTextureUnits),
-    osg::Program(sh, copyop)
+    mMaxTextureUnits(sh.mMaxTextureUnits)
 {
     setName(sh.getName());
 
@@ -370,7 +370,7 @@ void ShaderAttribute::apply(osg::State& state) const
     // now apply all uniforms which are in the database
     for (osg::StateSet::UniformList::const_iterator it = mUniforms.begin(); it != mUniforms.end(); it++)
     {
-        if (it->second.second & osg::StateAttribute::ON == osg::StateAttribute::ON)
+        if ((it->second.second & osg::StateAttribute::ON) == osg::StateAttribute::ON)
             lastAppliedProgram->apply(*(it->second.first));
     }
 

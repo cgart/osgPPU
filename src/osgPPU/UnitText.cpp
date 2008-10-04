@@ -31,7 +31,7 @@ namespace osgPPU
     UnitText::UnitText() : osgPPU::UnitInOut()
     {
         mSize = 26.0;
-        
+
         // initialize text
         mText = new osgText::Text();
         mText->setFont();
@@ -41,17 +41,17 @@ namespace osgPPU
         // setup some defaults parameters
         mText->setLayout(osgText::Text::LEFT_TO_RIGHT);
         mText->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-        
+
         // setup stateset so that the text is rendered in unit's renderbin
         mText->getOrCreateStateSet()->setRenderBinToInherit();
     }
-    
+
     //------------------------------------------------------------------------------
     UnitText::~UnitText()
     {
 
     }
-    
+
     //------------------------------------------------------------------------------
     void UnitText::setText(osgText::Text* text)
     {
@@ -82,6 +82,6 @@ namespace osgPPU
         assignFBO();
 
     }
-        
+
 }; // end namespace
 
