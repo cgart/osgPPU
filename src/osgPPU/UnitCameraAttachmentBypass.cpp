@@ -29,8 +29,8 @@ namespace osgPPU
 
     //------------------------------------------------------------------------------
     UnitCameraAttachmentBypass::UnitCameraAttachmentBypass(const UnitCameraAttachmentBypass& u, const osg::CopyOp& copyop) :
-        _bufferComponent(u._bufferComponent),
-        UnitBypass(u, copyop)
+        UnitBypass(u, copyop),
+        _bufferComponent(u._bufferComponent)
     {
 
     }
