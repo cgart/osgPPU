@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
     // just make it singlethreaded since I get some problems if not in this mode
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
 
     // load the processor from a file
-    osgPPU::Processor* processor = static_cast<osgPPU::Processor*>(osgDB::readObjectFile(arguments[1]));
+    osg::ref_ptr<osgPPU::Processor> processor = dynamic_cast<osgPPU::Processor*>(osgDB::readObjectFile(arguments[1]));
     if (!processor)
     {
         osg::notify(osg::FATAL) << "File does not contain a valid pipeline" << std::endl;
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     processor->setCamera(viewer->getCamera());
 
     // add processor to the scene
-    node->addChild(processor);
+    node->addChild(processor.get());
 
     // add model to viewer.
     viewer->setSceneData( node );

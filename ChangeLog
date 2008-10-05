@@ -1,3 +1,46 @@
+2008-10-04 12:25  art
+
+	* [r148]
+	  - viewer run in single threaded mode
+
+2008-10-04 09:04  art
+
+	* [r147]
+	  From Adrian Egli:
+	  added parentheses in ShaderAttribute.cpp to reflect correct
+	  behaviour
+
+2008-10-02 14:08  art
+
+	* [r146]
+	  - new class UniCameraAttachmentBypass added, which brings
+	  different camera attachment sinto the pipeline
+	  - UnitDepthbuffeerBypass was reimplemented as derived class from
+	  UnitCamerAttachmentBypass
+	  - new example for Screen-Space Ambient Occlusion is in progress
+	  (it still doesn';t work properly)
+
+2008-09-19 10:03  art
+
+	* [r145]
+	  
+
+2008-09-18 09:45  art
+
+	* [r144]
+	  
+
+2008-09-10 11:18  art
+
+	* [r143]
+	  - From: Christian Heine - includes files to improve compatibility
+	  with new compiler version
+
+2008-08-27 18:31  art
+
+	* [r142]
+	  - ChangeLog
+
 2008-08-27 18:31  art
 
 	* [r141]

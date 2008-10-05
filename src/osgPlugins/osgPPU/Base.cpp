@@ -143,6 +143,7 @@ bool Texture_matchOutputTypeStr(const char* str, osgPPU::UnitInOut::TextureType&
 {
     if (     strcmp(str,"TEXTURE_2D")==0) value = osgPPU::UnitInOut::TEXTURE_2D;
     else if (strcmp(str,"TEXTURE_CUBEMAP")==0) value = osgPPU::UnitInOut::TEXTURE_CUBEMAP;
+    else if (strcmp(str,"TEXTURE_3D")==0) value = osgPPU::UnitInOut::TEXTURE_3D;
     else
     {
         osgDB::Field::FieldType type = osgDB::Field::calculateFieldType(str);
@@ -167,6 +168,7 @@ const char* Texture_getOutputTextureTypeStr(osgPPU::UnitInOut::TextureType value
     {
         case(osgPPU::UnitInOut::TEXTURE_2D): return "TEXTURE_2D";
         case(osgPPU::UnitInOut::TEXTURE_CUBEMAP): return "TEXTURE_CUBEMAP";
+        case(osgPPU::UnitInOut::TEXTURE_3D): return "TEXTURE_3D";
     }
     return NULL;
 }

@@ -242,9 +242,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         /**
         * Mark this unit as dirty. This will force it to resetup its data
-        * on next update.
+        * on next update. Also every child unit will be marked as dirty. This yields of
+        * reinitialization of children units on next update method too.
         **/
-        inline void dirty() { mbDirty = true; }
+        void dirty();
 
         /**
         * Checks whenever the unit is marked as dirty or not.
@@ -279,8 +280,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         const ColorAttribute* getColorAttribute() const { return mColorAttribute.get(); }
 
     protected:
-        
-        #if 1
+
         /**
         * This draw callback is used to setup correct drawing
         * of the unit's drawable. The callback is setted up automatically,
@@ -300,28 +300,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
             private:
                 Unit* _parent;
         };
-        #endif
-
-        #if 0
-        /**
-        * Geometry which do represents a unit quad. If you ant to have your own geometry 
-        * as unit quad, derive it from this class and overwrite the drawImplementation method.
-        **/
-        class Drawable : public osg::Geometry
-        {
-            public:
-                Drawable(Unit* parent) : osg::Geometry(), _parent(parent) {}
-                virtual ~Drawable() {};
-
-                void drawImplementation (osg::RenderInfo &renderInfo) const;
-                inline void setParent(Unit* parent) { _parent = parent; }
-                inline Unit* getParent() { return _parent; }
-                inline const Unit* getParent() const { return _parent; }
-
-            private:
-                Unit* _parent;
-        };
-        #endif
 
         /**
         * Use this method in the derived classes to implement and update some unit
@@ -412,8 +390,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
     private:
         bool mbActive;
-        bool mbTraversed; // requires to check whenever unit was already traversed
-        bool mbTraversedMask; // requires to check whenever unit was laready traversed
+
+        // Separate both folowing variables to allow update and cull traversal in different threads
+        bool mbUpdateTraversed; // requires to check whenever unit was already traversed by update visitor
+        bool mbCullTraversed; // requires to check whenever unit was already traversed by cull visitor
 
         void printDebugInfo();
         void traverse(osg::NodeVisitor& nv);
@@ -421,7 +401,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         // it is good to have friends
         friend class Processor;
         friend class Pipeline;
-        friend class CleanTraverseMaskVisitor;
+        friend class CleanUpdateTraversedVisitor;
+        friend class CleanCullTraversedVisitor;
         friend class SetMaximumInputsVisitor;
 };
 

@@ -18,6 +18,7 @@
 
 #include <osgPPU/Processor.h>
 #include <osgPPU/Unit.h>
+#include <osgPPU/Visitor.h>
 
 #include <osgDB/Registry>
 #include <osgDB/FileNameUtils>
@@ -71,8 +72,8 @@ class OutputVisitor : public osg::NodeVisitor
                 node.traverse(*this);
             }
         }
-    
-        
+
+
     private:
         osgDB::Output* _output;
         std::vector<osgPPU::Unit*> _visited;
@@ -85,12 +86,12 @@ class ReaderWriterPPU : public osgDB::ReaderWriter
 public:
     // ----------------------------------------------------------------------------------------------------
     virtual const char* className() const { return "osgPPU pipeline loader"; }
-    
+
 
     // ----------------------------------------------------------------------------------------------------
     virtual bool acceptsExtension(const std::string& extension) const
     {
-        return osgDB::equalCaseInsensitive(extension, "ppu") || osgDB::equalCaseInsensitive(extension, "osgppu");      
+        return osgDB::equalCaseInsensitive(extension, "ppu") || osgDB::equalCaseInsensitive(extension, "osgppu");
     }
 
 
@@ -106,17 +107,17 @@ public:
 
         std::ifstream fin(fileName.c_str());
         if (!fin) return ReadResult("osgPPU::readObject - Unable to open file for reading");
-        
-        // during the reading we require to read some data from the osg plugin, hence preload this library 
+
+        // during the reading we require to read some data from the osg plugin, hence preload this library
         std::string pluginLibraryName = osgDB::Registry::instance()->createLibraryNameForExtension("osg");
         osgDB::Registry::instance()->loadLibrary(pluginLibraryName);
 
-        // read input 
+        // read input
         osgDB::Input fr;
         fr.attach(&fin);
 
         // here we store the readed result
-        osgPPU::Processor* pp = new osgPPU::Processor();
+        osg::ref_ptr<osgPPU::Processor> pp = new osgPPU::Processor();
 
         // first read the pipeline
         if (fr.matchSequence((std::string(pp->libraryName()) + std::string("::") + std::string(pp->className())).c_str()))
@@ -129,7 +130,7 @@ public:
             fr.setOptions(list);
 
             // this list will contain all readed units
-            std::list<osg::ref_ptr<osgPPU::Unit> > units;
+            std::list<osgPPU::Unit*> units;
 
             // read all units in the file
             osg::Object* object = NULL;
@@ -141,18 +142,18 @@ public:
                     units.push_back(unit);
                 }
             }
-            
+
             // the option should contain now a list of output ppus
             for (ListReadOptions::List::const_iterator it = list->getList().begin(); it!= list->getList().end(); it++)
             {
                 // for each output ppu do get the corresponding object
                 for (std::list<std::string>::const_iterator kt=it->second.begin(); kt!=it->second.end(); kt++)
                 {
-                    osg::ref_ptr<osgPPU::Unit> unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(*kt));
-                    if (!unit.valid())
-                        osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find input ppu " << *kt << std::endl;    
+                    osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(*kt));
+                    if (!unit)
+                        osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find input ppu " << *kt << std::endl;
                     else
-                        it->first->addChild(unit.get());
+                        it->first->addChild(unit);
                 }
             }
 
@@ -162,20 +163,20 @@ public:
                 // for each output ppu do get the corresponding object
                 for (std::map<std::string, std::string>::const_iterator kt=it->second.begin(); kt!=it->second.end(); kt++)
                 {
-                    osg::ref_ptr<osgPPU::Unit> unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(kt->first));
-                    if (!unit.valid())
+                    osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(kt->first));
+                    if (!unit)
                         osg::notify(osg::WARN)<<"Unit " << it->first->getName() << " cannot find correct input uniform mapping " << kt->first << " to " << kt->second << std::endl;
                     else
                     {
-                        it->first->setInputToUniform(unit.get(), kt->second);
+                        it->first->setInputToUniform(unit, kt->second);
                     }
                 }
             }
 
-            // read processor's name    
+            // read processor's name
             std::string name;
             if (fr.readSequence("name", name))
-            { 
+            {
                 pp->setName(name);
             }
 
@@ -183,33 +184,39 @@ public:
             if (fr.matchSequence("PPUOutput {"))
             {
                 int entry = fr[0].getNoNestedBrackets();
-        
+
                 fr += 2;
-        
+
                 while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
                 {
                     // input is a ppu
                     if (fr[0].matchWord("PPU"))
                     {
-                        osg::ref_ptr<osgPPU::Unit> unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(fr[1].getStr()));
-                        if (unit.valid())
-                            pp->addChild(unit.get());
-                        else
-                            osg::notify(osg::FATAL)<<"osgPPU::readObject - Something bad happens, cannot parse processor!" << std::endl;    
+                        osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(fr[1].getStr()));
+                        if (unit){
+                            pp->addChild(unit);
+                        }else
+                            osg::notify(osg::FATAL)<<"osgPPU::readObject - Something bad happens, cannot parse processor!" << std::endl;
                     }
                     ++fr;
                 }
-                
+
                 // skip trailing '}'
                 ++fr;
             }
-            
+
             // skip trailing '}'
             ++fr;
 
         }
 
-        return pp;
+        // now we have to resolve cycles before returing the object
+        //osg::ref_ptr<osgPPU::Visitor> visitor = new osgPPU::Visitor(pp.get());
+        //visitor->perform(osgPPU::Visitor::RESOLVE_CYCLES, pp.get());
+        osgPPU::ResolveUnitsCyclesVisitor rv;
+        rv.run(pp.get());
+
+        return pp.get();
     }
 
 
@@ -224,7 +231,7 @@ public:
         {
             return WriteResult("osgPPU::writeObject - Wrong object to write was given. Do only support osgPPU::Processor");
         }
-        // during the writing we require to read some data from the osg plugin, hence preload this library 
+        // during the writing we require to read some data from the osg plugin, hence preload this library
         std::string pluginLibraryName = osgDB::Registry::instance()->createLibraryNameForExtension("osg");
         osgDB::Registry::instance()->loadLibrary(pluginLibraryName);
 
@@ -232,10 +239,10 @@ public:
         osgDB::Output fout(fileName.c_str());
         fout.setOptions(options);
 
-        // write to file 
+        // write to file
         if (fout)
         {
-            // convert object to processor pipeline 
+            // convert object to processor pipeline
             osgPPU::Processor& ppu = const_cast<osgPPU::Processor&>(static_cast<const osgPPU::Processor&>(obj));
 
             // we use a special traverser, hence mark the graph as non dirty for a while
@@ -245,7 +252,7 @@ public:
             // we can only write the unit graph if it is not dirty
             //if (ppu.isDirtyUnitSubgraph())
             //{
-            //    return WriteResult("osgPPU::writeObject - Unit's subgraph is still dirty, run processor first to resolve all issues");            
+            //    return WriteResult("osgPPU::writeObject - Unit's subgraph is still dirty, run processor first to resolve all issues");
             //}
 
             // write out information about the pipeline
@@ -255,13 +262,13 @@ public:
                 OutputVisitor ov(&fout);
                 ppu.traverse(ov);
 
-                // write processor's name                
+                // write processor's name
                 fout.indent() << "name " << ppu.getName() << std::endl;
 
                 // write all outputs of the processor
                 fout.writeBeginObject("PPUOutput");
                 fout.moveIn();
-                
+
                 for (unsigned int i=0; i < ppu.getNumChildren(); i++)
                 {
                     if (dynamic_cast<const osgPPU::Unit*>(ppu.getChild(i)))
@@ -272,9 +279,9 @@ public:
                             fout.createUniqueIDForObject(ppu.getChild(i), uid);
                             fout.registerUniqueIDForObject(ppu.getChild(i), uid);
                         }
-        
+
                         fout.indent() << "PPU " << uid << std::endl;
-                    }            
+                    }
                 }
 
 

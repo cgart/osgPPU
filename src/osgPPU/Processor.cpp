@@ -47,6 +47,10 @@ class PPUProcessingBin : public osgUtil::RenderBin
 // This is a default rendering bin which all units are usign
 static osg::ref_ptr<osgUtil::RenderBin> DefaultBin = new PPUProcessingBin("PPUProcessingBin");
 
+// just an instance for faster access
+static osg::ref_ptr<UnitVisitor> sCleanUpdateTraverseMaskVisitor = new CleanUpdateTraversedVisitor;
+static osg::ref_ptr<UnitVisitor> sCleanCullTraverseMaskVisitor = new CleanCullTraversedVisitor;
+
 //------------------------------------------------------------------------------
 Processor::Processor()
 {
@@ -57,10 +61,9 @@ Processor::Processor()
     // first we have to create a render bin which will hold the units
     // of the subgraph.
     if (!osgUtil::RenderBin::getRenderBinPrototype(DefaultBin->getName()))
+    {
         osgUtil::RenderBin::addRenderBinPrototype(DefaultBin->getName(), DefaultBin.get());
-
-    // create an instance of the visitor for the unit subgraph
-    mVisitor = new Visitor(this);
+    }
 
     // no culling
     setCullingActive(false);
@@ -70,7 +73,7 @@ Processor::Processor()
 Processor::Processor(const Processor& pp, const osg::CopyOp& copyop) :
     osg::Group(pp, copyop),
     mCamera(pp.mCamera),
-    mVisitor(pp.mVisitor),
+    //mVisitor(pp.mVisitor),
     mbDirty(pp.mbDirty),
     mbDirtyUnitGraph(pp.mbDirtyUnitGraph)
 {
@@ -91,7 +94,7 @@ void Processor::init()
     // the processor's stateset have to be activated as first in the pipeline
     mStateSet->setRenderBinDetails(100, DefaultBin->getName());
     //mStateSet->setBinNumber(100);
-    
+
     // setup default state set modes
     mStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
     mStateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
@@ -103,12 +106,12 @@ void Processor::init()
     mStateSet->setAttribute(new osg::BlendColor(osg::Vec4(1,1,1,1)), osg::StateAttribute::ON);
     mStateSet->setAttribute(new osg::BlendEquation(osg::BlendEquation::FUNC_ADD), osg::StateAttribute::ON);
 
-    // we shouldn't write to the depth buffer 
+    // we shouldn't write to the depth buffer
     osg::Depth* ds = new osg::Depth();
     ds->setWriteMask(false);
     mStateSet->setAttribute(ds, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
-    // the processor is of fixed function pipeline, however the childs (units) might not 
+    // the processor is of fixed function pipeline, however the childs (units) might not
     mStateSet->setAttribute(new osg::Program(), osg::StateAttribute::ON);
     mStateSet->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
     mStateSet->setAttribute(new osg::Material(), osg::StateAttribute::ON);
@@ -140,7 +143,12 @@ void Processor::setCamera(osg::Camera* camera)
 Unit* Processor::findUnit(const std::string& name)
 {
     if (!mbDirtyUnitGraph)
-        return mVisitor->findUnit(name, this);
+    {
+        FindUnitVisitor uv(name);
+        uv.run(this);
+        return uv.getResult();
+        //return mVisitor->findUnit(name, this);
+    }
     return NULL;
 }
 
@@ -149,12 +157,17 @@ bool Processor::removeUnit(Unit* unit)
 {
     if (mbDirtyUnitGraph)
     {
-        osg::notify(osg::INFO) << "osgPPU::Processor::removeUnit(" << unit->getName() << ") - cannot remove unit because the graph is not valid. " << std::endl;        
+        osg::notify(osg::INFO) << "osgPPU::Processor::removeUnit(" << unit->getName() << ") - cannot remove unit because the graph is not valid. " << std::endl;
         return false;
     }
 
-    return mVisitor->removeUnit(unit, this);
+    RemoveUnitVisitor uv(unit);
+    uv.run(this);
+
+    return true;
+    //return mVisitor->removeUnit(unit, this);
 }
+
 
 //------------------------------------------------------------------------------
 void Processor::traverse(osg::NodeVisitor& nv)
@@ -162,44 +175,50 @@ void Processor::traverse(osg::NodeVisitor& nv)
     // if not initialized before, then do it
     if (mbDirty) init();
 
-    // if we are about to do the cull traversal, then
-    if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR && mVisitor->getMode() == Visitor::NONE)
+    // if processor is propagated by the osg's visitor, then
+    if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        // setup frame stamp
-        mVisitor->setFrameStamp(const_cast<osg::FrameStamp*>(nv.getFrameStamp()));
-        mVisitor->setCullVisitor(&nv);
-
         if (mbDirtyUnitGraph)
         {
             mbDirtyUnitGraph = false;
 
-            // we have first to optimize the unit graph, so that it
-            // removes all the problematic and unused units
-            mVisitor->perform(Visitor::RESOLVE_CYCLES, this);
+            // first resolve all cycles in the set
+            ResolveUnitsCyclesVisitor rv;
+            rv.run(this);
 
             // debug information
             osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
-            osg::notify(osg::INFO) << "BEGIN " << getName() << std::endl;        
-    
-            // use the osgppu's default visitor to init the subgraph
-            mVisitor->perform(Visitor::INIT_UNIT_GRAPH, this);
-            
+            osg::notify(osg::INFO) << "BEGIN " << getName() << std::endl;
+
+            SetupUnitRenderingVisitor sv(this);
+            sv.run(this);
+
             osg::notify(osg::INFO) << "END " << getName() << std::endl;
             osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
-    
+
             // optimize subgraph
-            mVisitor->perform(Visitor::OPTIMIZE, this);
+            OptimizeUnitsVisitor ov;
+            ov.run(this);
         }
 
-        // perform updating traversion
-        mVisitor->perform(Visitor::UPDATE, this);
-    
-        // perform cull traversal
-        mVisitor->perform(Visitor::CULL, this);
+        // first we need to clear traversion bit of every unit
+        sCleanUpdateTraverseMaskVisitor->run(this);
+    }
 
-    // perform traversing only if the graph is valid
-    }else if (mbDirtyUnitGraph == false)
+    // if processor is propagated by a cull visitor, hence first clean the traverse bit
+    if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
+    {
+        // first we need to clear traversion bit of every unit
+        sCleanCullTraverseMaskVisitor->run(this);
+    }
+
+    // just a normal traversion
+    if (mbDirtyUnitGraph == false || nv.getVisitorType() == osg::NodeVisitor::NODE_VISITOR)
+    {
         osg::Group::traverse(nv);
+    }
+
+
 }
 
 

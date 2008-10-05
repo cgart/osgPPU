@@ -21,7 +21,7 @@ namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-ColorAttribute::ColorAttribute() : 
+ColorAttribute::ColorAttribute() :
     osg::StateAttribute(),
     mColor(osg::Vec4(1,1,1,1)),
     mTime(0),
@@ -86,12 +86,12 @@ void ColorAttribute::UpdateCallback::operator()(osg::StateAttribute* sa, osg::No
             bm->mColor = bm->mEndColor;
         }
 
-        // if the end time is specified as 0, then set to start value 
+        // if the end time is specified as 0, then set to start value
         if (bm->mEndTime < 0.00001)
         {
             bm->mColor = bm->mStartColor;
         }
-        
+
     }
 }
 

@@ -127,7 +127,7 @@ class Viewer : public osgViewer::Viewer
             mDoFSetup.createDoFPipeline(mProcessor.get(), lastUnit, 0.1, 100.0);
 
             // add a text ppu after the pipeline is setted up
-            {
+            if (1){
                 osgPPU::UnitText* fpstext = new osgPPU::UnitText();
                 fpstext->setName("FPSTextPPU");
                 fpstext->setSize(44);
@@ -145,7 +145,7 @@ class Viewer : public osgViewer::Viewer
             lastUnit->addChild(ppuout);
 
             // write pipeline to a file
-            osgDB::writeObjectFile(*mProcessor, "dof.ppu");
+            //osgDB::writeObjectFile(*mProcessor, "dof.ppu");
         }
 
         //! Update the frames
@@ -184,7 +184,7 @@ class Viewer : public osgViewer::Viewer
 class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
-    osg::ref_ptr<Viewer> viewer;
+    Viewer* viewer;
 
     KeyboardEventHandler(Viewer* v) : viewer(v)
     {
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 
     // just make it singlethreaded since I get some problems if not in this mode
     //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    //viewer->setThreadingModel(osgViewer::Viewer::DrawThreadPerContext)
+    //viewer->setThreadingModel(osgViewer::Viewer::CullDrawThreadPerContext);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
@@ -252,13 +252,7 @@ int main(int argc, char **argv)
     viewer->setSceneData( node );
 
     // give some info in the console
-    printf("hdr [filename]\n");
-    printf("Keys:\n");
-    printf("\tF1 - Show original input\n");
-    printf("\tF2 - Show luminance per pixel\n");
-    printf("\tF3 - Show brightpassed pixels\n");
-    printf("\tF4 - Show blurred version of brightpassed pixels\n");
-    printf("\tF5 - Show the 1x1 texture with adapted luminance value\n");
+    printf("dof [filename] - Depth of Field example\n");
 
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));

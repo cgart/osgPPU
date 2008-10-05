@@ -250,7 +250,7 @@ class Viewer : public osgViewer::Viewer
 class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
-    osg::ref_ptr<Viewer> viewer;
+    Viewer* viewer;
 
     KeyboardEventHandler(Viewer* v) : viewer(v)
     {
@@ -339,7 +339,7 @@ osg::Drawable* createSquare(float textureCoordMax=1.0f)
     (*tcoords)[2].set(textureCoordMax,textureCoordMax);
     (*tcoords)[3].set(textureCoordMax,0.0f);
     geom->setTexCoordArray(0,tcoords);
-    
+
     geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
 
     return geom;
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
     // just make it singlethreaded since I get some problems if not in this mode
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
@@ -397,7 +397,7 @@ int main(int argc, char **argv)
 
     // add a keyboard handler to react on user input
     viewer->addEventHandler(new KeyboardEventHandler(viewer.get()));
-    viewer->addEventHandler( new osgViewer::StatsHandler() );
+    //viewer->addEventHandler( new osgViewer::StatsHandler() );
 
     // run viewer
     return viewer->run();

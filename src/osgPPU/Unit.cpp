@@ -17,6 +17,7 @@
 #include <osgPPU/Unit.h>
 #include <osgPPU/UnitInOut.h>
 #include <osgPPU/Processor.h>
+#include <osgPPU/Visitor.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/Utility.h>
 
@@ -37,8 +38,8 @@ Unit::Unit() : osg::Group(),
     mbDirty(true),
     mInputTexIndexForViewportReference(0),
     mbActive(true),
-    mbTraversed(false),
-    mbTraversedMask(false)
+    mbUpdateTraversed(false),
+    mbCullTraversed(false)
 {
     // set default name
     setName("__Nameless_PPU_");
@@ -47,10 +48,10 @@ Unit::Unit() : osg::Group(),
     mGeode = new osg::Geode();
     mGeode->setCullingActive(false);
     addChild(mGeode.get());
-            
+
     // initialze projection matrix
     sProjectionMatrix = new osg::RefMatrix(osg::Matrix::ortho(0,1,0,1,0,1));
-    
+
     // setup default modelview matrix
     sModelviewMatrix = new osg::RefMatrix(osg::Matrixf::identity());
 
@@ -59,13 +60,13 @@ Unit::Unit() : osg::Group(),
     getOrCreateStateSet()->setAttribute(new osg::Program(), osg::StateAttribute::ON);
     getOrCreateStateSet()->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
 
-    // we also setup empty textures so that this unit do not get any input texture 
+    // we also setup empty textures so that this unit do not get any input texture
     // as long as one is not defined
     for (unsigned int i=0; i < 16; i++)
     {
         getOrCreateStateSet()->setTextureAttribute(i, new osg::Texture2D());
     }
-    
+
     // no culling, because we do not need it
     setCullingActive(false);
 
@@ -90,8 +91,8 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mbDirty(ppu.mbDirty),
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
-    mbTraversed(ppu.mbTraversed),
-    mbTraversedMask(ppu.mbTraversedMask)
+    mbUpdateTraversed(ppu.mbUpdateTraversed),
+    mbCullTraversed(ppu.mbCullTraversed)
 {
 
 }
@@ -118,39 +119,11 @@ osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const os
 {
     osg::Geometry* geom = osg::createTexturedQuadGeometry(corner, widthVec, heightVec, l,b,r,t);
 
-    #if 0
-    Drawable* geom = new Drawable(this);
-    osg::Vec3Array* coords = new osg::Vec3Array(4);
-    (*coords)[0] = corner+heightVec;
-    (*coords)[1] = corner;
-    (*coords)[2] = corner+widthVec;
-    (*coords)[3] = corner+widthVec+heightVec;
-    geom->setVertexArray(coords);
-
-    osg::Vec2Array* tcoords = new osg::Vec2Array(4);
-    (*tcoords)[0].set(l,t);
-    (*tcoords)[1].set(l,b);
-    (*tcoords)[2].set(r,b);
-    (*tcoords)[3].set(r,t);
-    geom->setTexCoordArray(0,tcoords);
-
-    osg::Vec4Array* colours = new osg::Vec4Array(1);
-    (*colours)[0].set(1.0f,1.0f,1.0,1.0f);
-    geom->setColorArray(colours);
-    geom->setColorBinding(osg::Geometry::BIND_OVERALL);
-
-    osg::Vec3Array* normals = new osg::Vec3Array(1);
-    (*normals)[0] = widthVec^heightVec;
-    (*normals)[0].normalize();
-    geom->setNormalArray(normals);
-    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
-
-    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
-    #endif
-
     // setup default state set
     geom->setStateSet(new osg::StateSet());
     geom->setUseDisplayList(false);
+    //geom->setDataVariance(osg::Object::DYNAMIC);
+    //geom->getOrCreateStateSet()->setDataVariance(osg::Object::DYNAMIC);
     geom->setDrawCallback(new Unit::DrawCallback(this));
 
     // remove colors from the geometry
@@ -198,7 +171,7 @@ bool Unit::setInputToUniform(Unit* parent, const std::string& uniform, bool add)
         }
 
     if (index == getNumParents()) return false;
-    
+
     // add the uniform
     mInputToUniformMap[parent] = std::pair<std::string, unsigned int>(uniform, index);
 
@@ -235,9 +208,9 @@ void Unit::removeInputToUniform(const std::string& uniform, bool del)
             dirty();
             break;
         }
-    }    
+    }
 }
-        
+
 //--------------------------------------------------------------------------
 void Unit::removeInputToUniform(Unit* parent, bool del)
 {
@@ -273,11 +246,11 @@ void Unit::assignInputTexture()
 void Unit::assignShader()
 {
     osg::StateSet* ss = getOrCreateStateSet();
-    
+
     // set shader if it is valid
     if (mShader.valid())
     {
-        // enable shader 
+        // enable shader
         mShader->enable(ss);
         ss->setAttributeAndModes(mShader->getProgram(), osg::StateAttribute::ON);
 
@@ -290,7 +263,7 @@ void Unit::assignShader()
 void Unit::removeShader()
 {
     osg::StateSet* ss = getOrCreateStateSet();
-    
+
     // set shader if it is valid
     if (mShader.valid())
     {
@@ -325,9 +298,9 @@ void Unit::assignViewport()
 void Unit::setIgnoreInput(unsigned int index, bool ignore)
 {
     bool ignored = getIgnoreInput(index);
-    
+
     // if want to ignore and not ignored before, hence do it
-    if (ignore && !ignored) 
+    if (ignore && !ignored)
     {
         mIgnoreList.push_back(index);
         dirty();
@@ -342,7 +315,7 @@ void Unit::setIgnoreInput(unsigned int index, bool ignore)
             else it++;
 
         dirty();
-    }   
+    }
 }
 
 //--------------------------------------------------------------------------
@@ -356,7 +329,7 @@ bool Unit::getIgnoreInput(unsigned int index) const
 //--------------------------------------------------------------------------
 void Unit::updateUniforms()
 {
-    // we do get the stateset of the geode, so that we do not 
+    // we do get the stateset of the geode, so that we do not
     // get problems with the shader specified on the unit' stateset
     osg::StateSet* ss = mGeode->getOrCreateStateSet();
 
@@ -382,7 +355,7 @@ void Unit::updateUniforms()
             tex->set((int)it->second.second);
         }
     }
-    
+
 }
 
 //--------------------------------------------------------------------------
@@ -404,27 +377,30 @@ void Unit::update()
 //------------------------------------------------------------------------------
 void Unit::traverse(osg::NodeVisitor& nv)
 {
-    // for the special case that we have culling or update traversion
-    if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR
-        || nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
+    // check if we have to update it
+    if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        // perform traversion only if mask valid to the flag
-        // this would give us a depth-first-traversion
-        if (mbTraversed == mbTraversedMask)
+        //printf("UNIT %s UPDATE traverse\n", getName().c_str());
+        if (mbUpdateTraversed == false)
         {
-            mbTraversed = !mbTraversedMask;
-    
-            if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR) 
-            {
-                //printf("%s - %d\n", getName().c_str(), getStateSet()->requiresUpdateTraversal());
-                getStateSet()->runUpdateCallbacks(&nv);
-            }
+            mbUpdateTraversed = true;
+
+            update();
+            getStateSet()->runUpdateCallbacks(&nv);
 
             osg::Group::traverse(nv);
         }
 
-    // for all other cases do just traverse
-    }else 
+    }else if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
+    {
+        //printf("UNIT %s CULL traverse\n", getName().c_str());
+        if (mbCullTraversed == false)
+        {
+            mbCullTraversed = true;
+            osg::Group::traverse(nv);
+        }
+
+    }else
         osg::Group::traverse(nv);
 }
 
@@ -434,13 +410,13 @@ void Unit::init()
     // collect all inputs from the units above
     setupInputsFromParents();
 
-    // check if we have input reference size 
+    // check if we have input reference size
     if (getInputTextureIndexForViewportReference() >= 0 && getInputTexture(getInputTextureIndexForViewportReference()))
     {
         // if no viewport, so create it
         if (!mViewport.valid())
             mViewport = new osg::Viewport(0,0,0,0);
-        
+
         // change viewport sizes
         mViewport->width() = getInputTexture(getInputTextureIndexForViewportReference())->getTextureWidth();
         mViewport->height() = getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
@@ -455,14 +431,13 @@ void Unit::init()
     assignViewport();
 }
 
-
 //--------------------------------------------------------------------------
 // Helper class for collecting inputs from unit parents
 //--------------------------------------------------------------------------
 class CollectInputParents : public osg::NodeVisitor
 {
 public:
-    CollectInputParents(Unit* caller) : 
+    CollectInputParents(Unit* caller) :
          osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_PARENTS),
         _caller(caller)
     {
@@ -477,7 +452,7 @@ public:
         // check if the traversed node is an unit
         if (unit != NULL && unit != _caller)
         {
-            // first force the unit to recompile its outputs 
+            // first force the unit to recompile its outputs
             // the update method should do this if it wasn't done before
             unit->update();
 
@@ -485,7 +460,7 @@ public:
             _input.push_back(unit->getOrCreateOutputTexture(0));
 
             _inputUnitsFound = true;
-            
+
         // if it is a processor, then get the camera attachments as inputs
         }else if (proc != NULL && proc->getCamera())
         {
@@ -501,27 +476,6 @@ public:
     Unit* _caller;
     std::vector<osg::Texture*> _input;
     bool _inputUnitsFound;
-};
-    
-    
-//--------------------------------------------------------------------------
-// Helper class to find the processor
-//--------------------------------------------------------------------------
-class FindProcessor: public osg::NodeVisitor
-{
-public:
-    FindProcessor() : osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_PARENTS)
-    {
-        _processor = NULL;
-    }
-
-    void apply(osg::Group& node)
-    {
-        _processor = dynamic_cast<osgPPU::Processor*>(&node);        
-        if (_processor == NULL) traverse(node);
-    }
-
-    osgPPU::Processor* _processor;
 };
 
 
@@ -545,13 +499,13 @@ void Unit::setupInputsFromParents()
     }
     if (changedInput) noticeChangeInput();
 
-    // if viewport is not defined and we need viewport from processor, then 
+    // if viewport is not defined and we need viewport from processor, then
     if (getViewport() == NULL &&
         (getInputTextureIndexForViewportReference() < 0
         || getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound))
     {
         // find the processor
-        FindProcessor fp;
+        FindProcessorVisitor fp;
         this->accept(fp);
 
         // check if processor found
@@ -601,30 +555,19 @@ void Unit::setupBlockedChildren()
     }
 }
 
-#if 0
 //--------------------------------------------------------------------------
-void Unit::Drawable::drawImplementation (osg::RenderInfo& ri) const
+void Unit::dirty()
 {
-    // only if parent is valid
-    if (_parent->getActive())
-    {   //_parent->printDebugInfo();
-        // unit should know that we are about to render it
-        _parent->noticeBeginRendering(ri, this);
+    mbDirty = true;
 
-        // set matricies used for the unit
-        ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
-        ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
-
-        // now render the drawable geometry
-        Geometry::drawImplementation(ri);
-
-        // ok rendering is done, unit can do other stuff
-        _parent->noticeFinishRendering(ri, this);
+    // mark each child unit as dirty too
+    for (unsigned int i=0; i < getNumChildren(); i++)
+    {
+        Unit* unit = dynamic_cast<Unit*>(getChild(i));
+        if (unit && unit->isDirty() == false) unit->dirty();
     }
 }
-#endif
 
-#if 1
 //--------------------------------------------------------------------------
 void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
 {
@@ -645,16 +588,15 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
         _parent->noticeFinishRendering(ri, dr);
     }
 }
-#endif
 
 //--------------------------------------------------------------------------
-void Unit::printDebugInfo() 
+void Unit::printDebugInfo()
 {
-    osg::NotifySeverity level = osg::INFO;
+    osg::NotifySeverity level = osg::DEBUG_INFO;
 
     // debug information
-    osg::notify(level) << getName() << std::endl;
-    
+    osg::notify(level) << getName() << " (" << getOrCreateStateSet()->getBinNumber() << ") run in thread " << OpenThreads::Thread::CurrentThread() << std::endl;
+
     if (getViewport() != NULL)
         osg::notify(level) << std::dec << "\t vp (ref " << (int)getInputTextureIndexForViewportReference() << "): " << (int)(getViewport()->x()) << " " << (int)(getViewport()->y()) << " " << (int)(getViewport()->width()) << " " << (int)(getViewport()->height()) << std::endl;
 
@@ -704,7 +646,7 @@ void Unit::printDebugInfo()
                 if (inout->getOutputZSliceMap().size() > 1)
                 {
                     UnitInOut::OutputSliceMap::const_iterator it = inout->getOutputZSliceMap().begin();
-                    osg::notify(level) << "{"; 
+                    osg::notify(level) << "{";
                     for (; it != inout->getOutputZSliceMap().end(); it++)
                         osg::notify(level) << it->first << "->" << it->second << ",";
                     osg::notify(level) << "}";

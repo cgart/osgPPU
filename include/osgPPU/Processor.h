@@ -41,39 +41,39 @@ class Visitor;
  * way.
  * The attached camera must provide a valid viewport and color attachment (texture)
  * which will be used as input for the pipeline.
- * 
- * The ppus are applied in a pipeline, so the output of one 
+ *
+ * The ppus are applied in a pipeline, so the output of one
  * ppu is an input to the next one. At the end of the pipeline there should be
  * a bypassout ppu specified which do render the result into the frame buffer.
- * 
+ *
  * A processor can also be used to do some multipass computation on input data.
  * In that case it is not neccessary to output the resulting data on the screen, but
  * you can use the output texture of the last ppu for any other purpose.
  **/
 class OSGPPU_EXPORT Processor : public osg::Group {
-    public: 
-    
+    public:
+
         META_Node(osgPPU, Processor);
 
         /**
          * Initialize the ppu system.
         **/
         Processor();
-         
+
         Processor(const Processor&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
-    
+
         /**
          * Release the system. This will free used memory and close all ppus.
         **/
         virtual ~Processor();
-        
+
         /**
         * Traverse method to traverse the subgraph. The unit pipeline will be updated
         * and drawed on the according node visitor types. The visitor has to provide
         * valid osg::FrameStamp so that the time get updated too.
         **/
         virtual void traverse(osg::NodeVisitor& nv);
-        
+
         /**
          * Add a camera which texture attachment can be used as input to the pipeline.
          * The camera object must be setted up to render into a texture.
@@ -82,7 +82,7 @@ class OSGPPU_EXPORT Processor : public osg::Group {
          * @param camera Camera object to use input from.
          **/
         void setCamera(osg::Camera* camera);
-        
+
         /**
          * Get camera used for this pipeline. This method returns the camera object
          * specified with setCamera().
@@ -96,26 +96,26 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         * initilize  the underlying graph properly (setup all inputs and so on).
         **/
         inline void dirtyUnitSubgraph() {mbDirtyUnitGraph = true;}
-               
+
         /**
         * Check whenever the subgraph is valid. A subgraph is valid if it can be
         * traversed by default osg traversal's, hence if it does not contain any cycles.
         * You have to traverse the processor with a
-        * CullTraverser first to resolve the cycles automatically. Afterwards the subgraph 
+        * CullTraverser first to resolve the cycles automatically. Afterwards the subgraph
         * became valid.
         **/
         inline bool isDirtyUnitSubgraph() const {return mbDirtyUnitGraph;}
 
         /**
-        * Force to mark the subgraph as non-dirty. It is not recommended to traverse 
+        * Force to mark the subgraph as non-dirty. It is not recommended to traverse
         * the graph without initializing it first. Otherwise there could be
-        * cycles which will end up in seg faults. Use this method only if 
+        * cycles which will end up in seg faults. Use this method only if
         * you know what you are doing.
         **/
         inline void markUnitSubgraphNonDirty() {mbDirtyUnitGraph = false;}
 
         /**
-        * Search in the subgraph for a unit. To be able to find the unit 
+        * Search in the subgraph for a unit. To be able to find the unit
         * you have to use unique names for it, however this is not a strict rule.
         * If nothing found return NULL.
         * @param name Unique name of the unit.
@@ -123,8 +123,8 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         Unit* findUnit(const std::string& name);
 
         /**
-        * Remove a unit from the processor's subgraph. The method will 
-        * use the visitor to remove the unit from the graph. The subgraph of the unit 
+        * Remove a unit from the processor's subgraph. The method will
+        * use the visitor to remove the unit from the graph. The subgraph of the unit
         * will be marked as dirty, so that it gets reorganized on the next traverse. All the
         * input units of the removed unit will be afterwards input units for the children
         * of the removed unit.
@@ -151,13 +151,12 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         virtual void init();
 
         osg::observer_ptr<osg::Camera> mCamera;
-        osg::ref_ptr<Visitor>   mVisitor;
 
-        friend class Visitor;
+        friend class SetupUnitRenderingVisitor;
 
         /**
         * Callback method which will be called as soon as a unit is get initialized.
-        * Use this method to catch up the initialization process of a unit. 
+        * Use this method to catch up the initialization process of a unit.
         * @param unit Pointer to the unit which is initialized
         **/
         virtual void onUnitInit(Unit*) {}
@@ -171,9 +170,9 @@ class OSGPPU_EXPORT Processor : public osg::Group {
 
     private:
 
-
         bool      mbDirty;
         bool      mbDirtyUnitGraph;
+
 };
 
 

@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 // base includes handling gcc++ compiler issues
-// with memset dependency up from version 4.3.x 
+// with memset dependency up from version 4.3.x
 #include <stdio.h>
 #include <string.h>
 
@@ -36,7 +36,7 @@ namespace osgPPU
     class Subload3DCallback : public osg::Texture3D::SubloadCallback
     {
         public:
-            // fill texture with default pixel values 
+            // fill texture with default pixel values
             void load (const osg::Texture3D &texture, osg::State &state) const
             {
                 // do only anything if such textures are supported
@@ -46,26 +46,26 @@ namespace osgPPU
                     // create temporary image which is initialized with 0 values
                     osg::ref_ptr<osg::Image> img = new osg::Image();
                     img->allocateImage(
-                        texture.getTextureWidth() ? texture.getTextureWidth() : 1, 
-                        texture.getTextureHeight() ? texture.getTextureHeight() : 1, 
-                        texture.getTextureDepth() ? texture.getTextureDepth() : 1, 
-                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
+                        texture.getTextureWidth() ? texture.getTextureWidth() : 1,
+                        texture.getTextureHeight() ? texture.getTextureHeight() : 1,
+                        texture.getTextureDepth() ? texture.getTextureDepth() : 1,
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                         texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
-    
+
                     // fill the image with 0 values
                     memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
-    
+
                     // create the texture in usual OpenGL way
                     ext->glTexImage3D( GL_TEXTURE_3D, 0, texture.getInternalFormat(),
                         texture.getTextureWidth(), texture.getTextureHeight(), texture.getTextureDepth(),
                         texture.getBorderWidth(), texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                         texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
-                        img->data());          
+                        img->data());
                 }
             }
 
             // no subload, because while we want to subload the texture should be already valid
-            void subload (const osg::Texture3D &texture, osg::State &state) const 
+            void subload (const osg::Texture3D &texture, osg::State &state) const
             {
 
             }
@@ -77,16 +77,16 @@ namespace osgPPU
     class Subload2DCallback : public osg::Texture2D::SubloadCallback
     {
         public:
-            // fill texture with default pixel values 
+            // fill texture with default pixel values
             void load (const osg::Texture2D &texture, osg::State &state) const
             {
                 // create temporary image which is initialized with 0 values
                 osg::ref_ptr<osg::Image> img = new osg::Image();
                 img->allocateImage(
-                    texture.getTextureWidth() ? texture.getTextureWidth() : 1, 
-                    texture.getTextureHeight() ? texture.getTextureHeight() : 1, 
-                    1, 
-                    texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
+                    texture.getTextureWidth() ? texture.getTextureWidth() : 1,
+                    texture.getTextureHeight() ? texture.getTextureHeight() : 1,
+                    1,
+                    texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
 
                 // fill the image with 0 values
@@ -97,11 +97,11 @@ namespace osgPPU
                     texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
                     texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
-                    img->data());          
+                    img->data());
             }
 
             // no subload, because while we want to subload the texture should be already valid
-            void subload (const osg::Texture2D &texture, osg::State &state) const 
+            void subload (const osg::Texture2D &texture, osg::State &state) const
             {
 
             }
@@ -114,10 +114,10 @@ namespace osgPPU
     {
 
         public:
-            // fill texture with default pixel values 
+            // fill texture with default pixel values
             void load (const osg::TextureCubeMap &texture, osg::State &state) const
             {
-                GLenum faceTarget[6] = 
+                GLenum faceTarget[6] =
                 {
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X,
                     GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -130,10 +130,10 @@ namespace osgPPU
                 // create temporary image which is initialized with 0 values
                 osg::ref_ptr<osg::Image> img = new osg::Image();
                 img->allocateImage(
-                    texture.getTextureWidth() ? texture.getTextureWidth() : 1, 
-                    texture.getTextureHeight() ? texture.getTextureHeight() : 1, 
-                    1, 
-                    texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(), 
+                    texture.getTextureWidth() ? texture.getTextureWidth() : 1,
+                    texture.getTextureHeight() ? texture.getTextureHeight() : 1,
+                    1,
+                    texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
 
                 // fill the image with 0 values
@@ -141,7 +141,7 @@ namespace osgPPU
 
                 // create the texture in usual OpenGL way
                 for (int n=0; n<6; n++)
-                {                
+                {
                     glTexImage2D( faceTarget[n], 0, texture.getInternalFormat(),
                         texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
                         texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
@@ -151,7 +151,7 @@ namespace osgPPU
             }
 
             // no subload, because while we want to subload the texture should be already valid
-            void subload (const osg::TextureCubeMap &texture, osg::State &state) const 
+            void subload (const osg::TextureCubeMap &texture, osg::State &state) const
             {
 
             }
@@ -169,7 +169,7 @@ namespace osgPPU
         mOutputInternalFormat(unit.mOutputInternalFormat)
     {
     }
-    
+
     //------------------------------------------------------------------------------
     UnitInOut::UnitInOut() : Unit(),
         mBypassedInput(-1),
@@ -180,16 +180,16 @@ namespace osgPPU
     {
         mFBO = new osg::FrameBufferObject();
 
-        // add empty mrt=0 output texture 
+        // add empty mrt=0 output texture
         setOutputTexture(NULL, 0);
     }
-    
+
     //------------------------------------------------------------------------------
     UnitInOut::~UnitInOut()
     {
-    
+
     }
-    
+
     //------------------------------------------------------------------------------
     void UnitInOut::assignFBO()
     {
@@ -246,7 +246,7 @@ namespace osgPPU
         assignOutputTexture();
         assignFBO();
     }
-    
+
     //------------------------------------------------------------------------------
     void UnitInOut::setInputBypass(int index)
     {
@@ -276,7 +276,7 @@ namespace osgPPU
             mOutputTex[mrt] = outTex;
         else
             mOutputTex[mrt] = osg::ref_ptr<osg::Texture>(NULL);
-    
+
         dirty();
     }
 
@@ -284,8 +284,8 @@ namespace osgPPU
     void UnitInOut::setOutputInternalFormat(GLenum format)
     {
         mOutputInternalFormat = format;
-        
-        // now generate output texture's and assign them to fbo 
+
+        // now generate output texture's and assign them to fbo
         TextureMap::iterator it = mOutputTex.begin();
         for (;it != mOutputTex.end(); it++)
         {
@@ -294,7 +294,7 @@ namespace osgPPU
                 it->second->setSourceFormat(createSourceTextureFormat(mOutputInternalFormat));
             }
         }
-    
+
     }
 
     //------------------------------------------------------------------------------
@@ -304,7 +304,7 @@ namespace osgPPU
         dirty();
 
         // TODO: maybe some differentiation between MRT outputs is here required
-        // However no idea if different slices of different 3D textures could be 
+        // However no idea if different slices of different 3D textures could be
         // used as MRT output. Have to check that, art 08. July, 2008
     }
 
@@ -321,14 +321,20 @@ namespace osgPPU
         {
             mTex = new osg::Texture2D();
             dynamic_cast<osg::Texture2D*>(mTex)->setSubloadCallback(new Subload2DCallback());
+            if (mViewport.valid())
+                dynamic_cast<osg::Texture2D*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
         }else if (mOutputType == TEXTURE_CUBEMAP)
         {
             mTex = new osg::TextureCubeMap();
             dynamic_cast<osg::TextureCubeMap*>(mTex)->setSubloadCallback(new SubloadCubeMapCallback());
+            if (mViewport.valid())
+                dynamic_cast<osg::TextureCubeMap*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
         }else if (mOutputType == TEXTURE_3D)
         {
             mTex = new osg::Texture3D();
             dynamic_cast<osg::Texture3D*>(mTex)->setSubloadCallback(new Subload3DCallback());
+            if (mViewport.valid())
+                dynamic_cast<osg::Texture3D*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth);
         }else
         {
             osg::notify(osg::FATAL) << "osgPPU::UnitInOut::getOrCreateOutputTexture() - " << getName() << " non-supported texture type specified!" << std::endl;
@@ -364,20 +370,18 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitInOut::assignOutputTexture()
     {
-        // now generate output texture's and assign them to fbo 
+        // now generate output texture's and assign them to fbo
         std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
         for (int i = 0; it != mOutputTex.end(); it++, i++)
         {
-            // get output texture 
+            // get output texture
             osg::Texture* texture = it->second.get();
-            bool textureCreated = false;
 
             // if the output texture is NULL, hence generate one
             if (texture == NULL)
             {
                 // preallocate the texture
                 texture = getOrCreateOutputTexture(it->first);
-                textureCreated = true;
 
                 // check that the viewport must be valid at this time
                 // we check it here, because we only want to set the size, if texture is fresh
@@ -388,13 +392,10 @@ namespace osgPPU
                 }
             }
 
-
-            // check whenever the output texture is a 2D texture 
+            // check whenever the output texture is a 2D texture
             osg::Texture2D* tex2D = dynamic_cast<osg::Texture2D*>(texture);
             if (tex2D != NULL)
             {
-                if (textureCreated && mViewport.valid())
-                    tex2D->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
                 mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + it->first), osg::FrameBufferAttachment(tex2D));
                 continue;
             }
@@ -403,25 +404,17 @@ namespace osgPPU
             osg::TextureCubeMap* cubemapTex = dynamic_cast<osg::TextureCubeMap*>(texture);
             if (cubemapTex != NULL)
             {
-                if (textureCreated && mViewport.valid())
-                    cubemapTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );        
                 mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + it->first), osg::FrameBufferAttachment(cubemapTex, mOutputCubemapFace));
                 continue;
             }
 
-            // check whenever the output texture is a 3D texture 
+            // check whenever the output texture is a 3D texture
             osg::Texture3D* tex3D = dynamic_cast<osg::Texture3D*>(texture);
             if (tex3D != NULL)
             {
-                if (textureCreated && mViewport.valid())
-                {
-                    // we create a 3D texture with the same amount of slices as we have indices specified.
-                    tex3D->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth);
-                }
-
                 // for each mrt to slice mapping do
                 for (OutputSliceMap::const_iterator jt = getOutputZSliceMap().begin(); jt != getOutputZSliceMap().end(); jt++)
-                {            
+                {
                     mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + jt->first), osg::FrameBufferAttachment(tex3D, jt->second));
                 }
                 continue;
@@ -432,7 +425,7 @@ namespace osgPPU
             osg::notify(osg::FATAL) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " cannot attach output texture to FBO because output texture type is not supported" << std::endl;
         }
     }
-        
+
     //------------------------------------------------------------------------------
     void UnitInOut::noticeChangeViewport()
     {

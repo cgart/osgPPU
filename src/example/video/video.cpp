@@ -25,7 +25,6 @@
 // A simple demo demonstrating video processing with osgPPU
 //
 
-osg::Uniform* gUniform = NULL;
 osg::Texture2D* gVideoTexture = NULL;
 osg::Texture* gUnitTexture = NULL;
 osg::Geode*   gQuad = NULL;
@@ -35,7 +34,6 @@ const char* shaderSrc =
     "uniform int osgppu_ViewportWidth;\n"
     "uniform int osgppu_ViewportHeight;\n"
     "uniform sampler2D inputTexture;\n"
-    "uniform int useOriginalOutput;\n"
     "\n"
     "void main () {\n"
     "\n"
@@ -45,10 +43,7 @@ const char* shaderSrc =
     "   // modify the color\n"
     "   vec3 modified = vec3( color.r * 0.2125 + color.g * 0.7154 + color.b * 0.0721 );\n"
     "\n"
-    "   if (useOriginalOutput)\n"
-    "       gl_FragColor.rgb = color; \n"
-    "   else\n"
-    "       gl_FragColor.rgb = modified; \n"
+    "   gl_FragColor.rgb = modified; \n"
     "\n"
     "   gl_FragColor.a = 1.0;\n"
     "}\n";
@@ -104,12 +99,10 @@ public:
 
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
-                    gUniform->set(1);
                     gQuad->getOrCreateStateSet()->setTextureAttributeAndModes(0, gVideoTexture);
                     printf("F1: Show original video\n");
                 }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
                 {
-                    gUniform->set(0);
                     gQuad->getOrCreateStateSet()->setTextureAttributeAndModes(0, gUnitTexture);
                     printf("F2: Show processed video\n");
                 }
@@ -130,7 +123,6 @@ int main(int , char **)
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
     // just make it singlethreaded since I get some problems if not in this mode
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
@@ -164,7 +156,7 @@ int main(int , char **)
     gQuad->getOrCreateStateSet()->setTextureAttributeAndModes(0, gVideoTexture);
 
     // create osgPPU's units and processor
-    /*osgPPU::Processor* processor = new osgPPU::Processor();
+    osgPPU::Processor* processor = new osgPPU::Processor();
     osgPPU::UnitTexture* unitTexture = new osgPPU::UnitTexture(gVideoTexture);
     osgPPU::UnitInOut* unitInOut = new osgPPU::UnitInOut();
 
@@ -179,14 +171,17 @@ int main(int , char **)
     // add shader program to the unit
     unitInOut->getOrCreateStateSet()->setAttributeAndModes(videoShader);
 
-    // setup global variables
-    gUniform = unitInOut->getOrCreateStateSet()->getOrCreateUniform("useOriginalOutput", osg::Uniform::INT);
+    // we have to setup the viewport of the InOut unit, because the texture size
+    // is not defined until the first frame is completly run through
+    unitInOut->setInputTextureIndexForViewportReference(-1);
+    unitInOut->setViewport(new osg::Viewport(0,0, image->s(), image->t()));
+    unitInOut->setName("Video processing");
     gUnitTexture = unitInOut->getOrCreateOutputTexture(0);
 
     // setup appropriate pipeline to perform video processing
     node->addChild(processor);
     processor->addChild(unitTexture);
-    unitTexture->addChild(unitInOut);*/
+    unitTexture->addChild(unitInOut);
 
     // add model to viewer.
     viewer->setSceneData( node );

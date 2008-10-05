@@ -29,166 +29,220 @@ namespace osgPPU
 {
 
 //------------------------------------------------------------------------------
-// Helper visitor to perform traverse mask swapping
+// Base class for all unit visitors
 //------------------------------------------------------------------------------
-class CleanTraverseMaskVisitor : public osg::NodeVisitor
+class UnitVisitor : public osg::NodeVisitor
+{
+    public:
+        virtual void run(osg::Group* root) { root->traverse(*this); }
+        inline  void run(osg::Group& root) { run(&root); }
+
+    virtual int getType() const { return 0; }
+};
+
+//------------------------------------------------------------------------------
+// Visitor to set update traversed flag to false
+//------------------------------------------------------------------------------
+class CleanUpdateTraversedVisitor : public UnitVisitor
 {
 public:
 
-    CleanTraverseMaskVisitor() : osg::NodeVisitor()
+    CleanUpdateTraversedVisitor() : UnitVisitor()
     {
     }
 
     void apply (osg::Group &node)
     {
         Unit* unit = dynamic_cast<Unit*>(&node);
-        if (unit)
-        {
-            unit->mbTraversed = unit->mbTraversedMask;
-        }
+        if (unit) unit->mbUpdateTraversed = false;
         node.traverse(*this);
     }
+
+    void run (osg::Group* root);
+    virtual int getType() const { return 1; }
+
+private:
+    OpenThreads::Mutex _mutex;
+};
+
+//------------------------------------------------------------------------------
+// Visitor to set update traversed flag to false
+//------------------------------------------------------------------------------
+class CleanCullTraversedVisitor : public UnitVisitor
+{
+public:
+
+    CleanCullTraversedVisitor() : UnitVisitor()
+    {
+    }
+
+    void apply (osg::Group &node)
+    {
+        Unit* unit = dynamic_cast<Unit*>(&node);
+        if (unit) unit->mbCullTraversed = false;
+        node.traverse(*this);
+    }
+
+    void run (osg::Group* root);
+    virtual int getType() const { return 2; }
+
+private:
+    OpenThreads::Mutex _mutex;
 };
 
 
 //------------------------------------------------------------------------------
 // Helper visitor to setup maximum number of input attachments
 //------------------------------------------------------------------------------
-class SetMaximumInputsVisitor : public osg::NodeVisitor
+class SetMaximumInputsVisitor : public UnitVisitor
 {
 public:
 
-    SetMaximumInputsVisitor(unsigned int max) : osg::NodeVisitor()
+    SetMaximumInputsVisitor(unsigned int max) : UnitVisitor()
     {
         mMaxUnitInputIndex = max;
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+    virtual int getType() const { return 3; }
+
+private:
+    unsigned int mMaxUnitInputIndex;
+};
+
+
+//------------------------------------------------------------------------------
+// Visitor to find a certain unit in the unit graph
+//------------------------------------------------------------------------------
+class FindUnitVisitor : public UnitVisitor
+{
+public:
+
+    FindUnitVisitor(const std::string& name) : UnitVisitor(),
+        _name(name), _result(NULL)
+    {
     }
 
     void apply (osg::Group &node)
     {
         Unit* unit = dynamic_cast<Unit*>(&node);
-        if (unit)
-        {
-            osg::StateSet* ss = unit->getOrCreateStateSet();
-
-            // remove all unneccessary textures
-            for (unsigned int i=mMaxUnitInputIndex+1; i < ss->getTextureAttributeList().size(); i++)
-            {
-                ss->removeTextureAttribute(i, osg::StateAttribute::TEXTURE);
-            }
-
-        }
-        node.traverse(*this);
+        if (unit && unit->getName() == _name)
+            _result = unit;
+        else
+            node.traverse(*this);
     }
 
-    unsigned int mMaxUnitInputIndex;
+    Unit* getResult() { return _result; }
+    virtual int getType() const { return 4; }
+
+private:
+    std::string _name;
+    Unit* _result;
 };
 
-//! Node visitor used to setup the units correctly
-/**
-* This visitor do work on the unit graph. It checks if a unit
-* was added to the graph and set its inputs and outputs correctly.
-* The processor does usually apply this visitor to its subgraph.
-*
-* Another feature of that visitor is to resolve cycles in the unit subgraph.
-* This is done in the optimization mode, where the visitor do inserts
-* a node into the cycle which blocks the cyclic traversion. Hence the optimization
-* step has always be done before traversing the unit graph in a usual way.
-**/
-class OSGPPU_EXPORT Visitor : public osg::NodeVisitor
+//------------------------------------------------------------------------------
+// Visitor to find and remove certain unit from the unit graph
+// all inputs of the unit are placed as inputs to children units
+//------------------------------------------------------------------------------
+class RemoveUnitVisitor : public UnitVisitor
 {
-    public:
-        typedef enum 
-        {
-            NONE = 0,
-            INIT_UNIT_GRAPH = 1,
-            DIRTY_ALL_UNITS = 2,
-            FIND_UNIT = 3,
-            UPDATE = 4,
-            CULL = 5,
-            RESOLVE_CYCLES = 6,
-            OPTIMIZE = 7,
-            REMOVE_UNIT = 8
-        } Mode;
+public:
 
+    RemoveUnitVisitor(const Unit* unit) : UnitVisitor(),
+        _unit(unit)
+    {
+    }
 
-        /**
-        * Setup the processor which will be used during the traversal of the graph.
-        * The processor is required to get the attached camera and other settings
-        * specified for the unit subgraph.
-        **/
-        Visitor(Processor* proc);
-        ~Visitor();
-        
-        /**
-        * Check if the traversed subgraph is valid.
-        * An unvalid subgraph exists when it is cyclic.
-        * The rendering shouldn't be performed unless the graph became valid.
-        * Use RESOLVE_CYCLES running mode to resolve all cycles first.
-        **/
-        inline bool isTraversedGraphValid() const { return mbValidSubgraph; }
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+    virtual int getType() const { return 5; }
 
-        /**
-        * Perform traversion of this visitor in the unit's subgraph.
-        * Specify the mode which is used in the traversion.
-        **/
-        void perform(Mode, osg::Group*);
-
-        /**
-        * Set culling visitor, which is used for culling the subgraph.
-        **/
-        inline void setCullVisitor(osg::NodeVisitor* nv) { mCullVisitor = nv; }
-
-        /**
-        * Find a unit in the subgraph based on its name.
-        **/
-        inline Unit* findUnit(const std::string& name, osg::Group* n)
-        {
-            mUnitToFindName = name;
-            perform(FIND_UNIT, n);
-            return mUnitToFind;
-        }
-
-        /**
-        * Remove unit from the graph
-        **/
-        inline bool removeUnit(Unit* unit, osg::Group* root)
-        {
-            mUnitToRemove = unit;
-            perform(REMOVE_UNIT, root);
-            return mUnitToRemoveResult;
-        }
-
-        /**
-        * Get current working mode of the visitor.
-        * You need this to detect if a node which is currently traversed is traversed
-        * by this visitor or not.
-        **/
-        Mode getMode() const { return mMode; }
-
-    private:
-
-        /**
-        * Apply the visitor to a unit. The apply method is called for
-        * the group, since Unit is derived from group.
-        **/
-        void apply (osg::Group &node);
-        
-        typedef std::list<Unit*> UnitSet;
-
-        osg::ref_ptr<CleanTraverseMaskVisitor> mCleanTraversedMaskVisitor;
-        Processor* mProcessor;
-        Unit* mUnitToFind;
-        Unit* mUnitToRemove;
-
-        Mode mMode;
-        std::string mUnitToFindName;
-        UnitSet mUnitSet;     
-        osg::NodeVisitor* mCullVisitor;
-
-        bool mbValidSubgraph;
-        bool mUnitToRemoveResult;
-        unsigned int mMaxUnitInputIndex;
+private:
+    const Unit* _unit;
 };
+
+
+//------------------------------------------------------------------------------
+// Visitor to optimize unit subgraph
+//------------------------------------------------------------------------------
+class OptimizeUnitsVisitor : public UnitVisitor
+{
+public:
+
+    OptimizeUnitsVisitor() : UnitVisitor(),
+        _maxUnitInputIndex(0)
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+    virtual int getType() const { return 6; }
+
+private:
+    unsigned _maxUnitInputIndex;
+};
+
+//------------------------------------------------------------------------------
+// Visitor to resolve all cycles in the unit graph
+// This will add BarrierNodes where they are needed
+//------------------------------------------------------------------------------
+class ResolveUnitsCyclesVisitor : public UnitVisitor
+{
+public:
+
+    ResolveUnitsCyclesVisitor() : UnitVisitor()
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+    virtual int getType() const { return 7; }
+};
+
+//------------------------------------------------------------------------------
+// Visitor used to setup all units in a correct order in an appropriate rendering bin
+// ev ery unit will also be initialized
+//------------------------------------------------------------------------------
+class SetupUnitRenderingVisitor : public UnitVisitor
+{
+public:
+
+    SetupUnitRenderingVisitor(Processor* proc) : UnitVisitor(), _proc(proc)
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+    virtual int getType() const { return 8; }
+private:
+    typedef std::list<Unit*> UnitSet;
+    Processor* _proc;
+    UnitSet mUnitSet;
+};
+
+
+//--------------------------------------------------------------------------
+// Helper class to find the processor
+//--------------------------------------------------------------------------
+class FindProcessorVisitor: public UnitVisitor
+{
+public:
+    FindProcessorVisitor() : UnitVisitor(), _processor(NULL)
+    {
+        setTraversalMode(osg::NodeVisitor::TRAVERSE_PARENTS);
+    }
+
+    void apply(osg::Group& node)
+    {
+        _processor = dynamic_cast<osgPPU::Processor*>(&node);
+        if (_processor == NULL) traverse(node);
+    }
+
+    osgPPU::Processor* _processor;
+    virtual int getType() const { return 9; }
+};
+
 
 }; // end namespace
 

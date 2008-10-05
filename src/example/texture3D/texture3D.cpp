@@ -20,6 +20,7 @@
 #include <osg/Geometry>
 #include <osg/Notify>
 #include <osg/Texture3D>
+#include <osg/Texture2D>
 #include <osg/TexGen>
 #include <osg/Geode>
 
@@ -30,6 +31,7 @@
 
 #include <osgPPU/Processor.h>
 #include <osgPPU/UnitInOut.h>
+#include <osgPPU/UnitTexture.h>
 
 #include <iostream>
 
@@ -157,8 +159,7 @@ osg::StateSet* createState(osgPPU::Processor* processor)
     texture3D->setWrap(osg::Texture3D::WRAP_R,osg::Texture3D::REPEAT);
     texture3D->setImage(image_3d);
 
-
-    // setup shader program which will be applied on the cubemap
+    // setup shader program which will be applied on the 3D texture
     osg::Program* program = new osg::Program();
     osg::Shader* shader = new osg::Shader(osg::Shader::FRAGMENT);
     shader->setShaderSource(shaderSrc);
@@ -166,16 +167,19 @@ osg::StateSet* createState(osgPPU::Processor* processor)
 
     // create a Unit which will work on the 3D texture to change it somehow
     osgPPU::UnitInOut* mainUnit = new osgPPU::UnitInOut();
+    mainUnit->setName("3D RTT");
+
+    // attach some valid viewport to prevent warnings
+    osg::Viewport* vp = new osg::Viewport(0,0,textureSize,textureSize);
+    mainUnit->setViewport(vp);
+
+    // the output texture is a one we specify here extra
     mainUnit->setOutputTextureType(osgPPU::UnitInOut::TEXTURE_3D);
     mainUnit->setOutputTexture(texture3D, 0);
     mainUnit->getOrCreateStateSet()->setAttributeAndModes(program);
 
     // the unit should work only on the 2nd texture
     mainUnit->setOutputZSlice(1);
-
-    // attach some valid viewport to prevent warnings
-    osg::Viewport* vp = new osg::Viewport(0,0,textureSize,textureSize);
-    mainUnit->setViewport(vp);
 
     // add the main unit to the processor
     processor->addChild(mainUnit);
