@@ -31,19 +31,18 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 // Base class for all unit visitors
 //------------------------------------------------------------------------------
-class UnitVisitor : public osg::NodeVisitor
+class OSGPPU_EXPORT UnitVisitor : public osg::NodeVisitor
 {
     public:
         virtual void run(osg::Group* root) { root->traverse(*this); }
         inline  void run(osg::Group& root) { run(&root); }
 
-    virtual int getType() const { return 0; }
 };
 
 //------------------------------------------------------------------------------
 // Visitor to set update traversed flag to false
 //------------------------------------------------------------------------------
-class CleanUpdateTraversedVisitor : public UnitVisitor
+class OSGPPU_EXPORT CleanUpdateTraversedVisitor : public UnitVisitor
 {
 public:
 
@@ -59,7 +58,6 @@ public:
     }
 
     void run (osg::Group* root);
-    virtual int getType() const { return 1; }
 
 private:
     OpenThreads::Mutex _mutex;
@@ -68,7 +66,7 @@ private:
 //------------------------------------------------------------------------------
 // Visitor to set update traversed flag to false
 //------------------------------------------------------------------------------
-class CleanCullTraversedVisitor : public UnitVisitor
+class OSGPPU_EXPORT CleanCullTraversedVisitor : public UnitVisitor
 {
 public:
 
@@ -84,7 +82,6 @@ public:
     }
 
     void run (osg::Group* root);
-    virtual int getType() const { return 2; }
 
 private:
     OpenThreads::Mutex _mutex;
@@ -94,7 +91,7 @@ private:
 //------------------------------------------------------------------------------
 // Helper visitor to setup maximum number of input attachments
 //------------------------------------------------------------------------------
-class SetMaximumInputsVisitor : public UnitVisitor
+class OSGPPU_EXPORT SetMaximumInputsVisitor : public UnitVisitor
 {
 public:
 
@@ -105,7 +102,6 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
-    virtual int getType() const { return 3; }
 
 private:
     unsigned int mMaxUnitInputIndex;
@@ -115,7 +111,7 @@ private:
 //------------------------------------------------------------------------------
 // Visitor to find a certain unit in the unit graph
 //------------------------------------------------------------------------------
-class FindUnitVisitor : public UnitVisitor
+class OSGPPU_EXPORT FindUnitVisitor : public UnitVisitor
 {
 public:
 
@@ -134,7 +130,6 @@ public:
     }
 
     Unit* getResult() { return _result; }
-    virtual int getType() const { return 4; }
 
 private:
     std::string _name;
@@ -145,7 +140,7 @@ private:
 // Visitor to find and remove certain unit from the unit graph
 // all inputs of the unit are placed as inputs to children units
 //------------------------------------------------------------------------------
-class RemoveUnitVisitor : public UnitVisitor
+class OSGPPU_EXPORT RemoveUnitVisitor : public UnitVisitor
 {
 public:
 
@@ -156,7 +151,6 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
-    virtual int getType() const { return 5; }
 
 private:
     const Unit* _unit;
@@ -166,7 +160,7 @@ private:
 //------------------------------------------------------------------------------
 // Visitor to optimize unit subgraph
 //------------------------------------------------------------------------------
-class OptimizeUnitsVisitor : public UnitVisitor
+class OSGPPU_EXPORT OptimizeUnitsVisitor : public UnitVisitor
 {
 public:
 
@@ -177,7 +171,6 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
-    virtual int getType() const { return 6; }
 
 private:
     unsigned _maxUnitInputIndex;
@@ -187,7 +180,7 @@ private:
 // Visitor to resolve all cycles in the unit graph
 // This will add BarrierNodes where they are needed
 //------------------------------------------------------------------------------
-class ResolveUnitsCyclesVisitor : public UnitVisitor
+class OSGPPU_EXPORT ResolveUnitsCyclesVisitor : public UnitVisitor
 {
 public:
 
@@ -197,14 +190,13 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
-    virtual int getType() const { return 7; }
 };
 
 //------------------------------------------------------------------------------
 // Visitor used to setup all units in a correct order in an appropriate rendering bin
 // ev ery unit will also be initialized
 //------------------------------------------------------------------------------
-class SetupUnitRenderingVisitor : public UnitVisitor
+class OSGPPU_EXPORT SetupUnitRenderingVisitor : public UnitVisitor
 {
 public:
 
@@ -214,7 +206,6 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
-    virtual int getType() const { return 8; }
 private:
     typedef std::list<Unit*> UnitSet;
     Processor* _proc;
@@ -225,7 +216,7 @@ private:
 //--------------------------------------------------------------------------
 // Helper class to find the processor
 //--------------------------------------------------------------------------
-class FindProcessorVisitor: public UnitVisitor
+class OSGPPU_EXPORT FindProcessorVisitor: public UnitVisitor
 {
 public:
     FindProcessorVisitor() : UnitVisitor(), _processor(NULL)
@@ -240,7 +231,6 @@ public:
     }
 
     osgPPU::Processor* _processor;
-    virtual int getType() const { return 9; }
 };
 
 

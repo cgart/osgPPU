@@ -37,7 +37,7 @@ float convertZ( in float near, in float far, in float depthBufferValue )
  **/
 void main(void)
 {
-    vec2 inTex = gl_TexCoord[0];
+    vec2 inTex = gl_TexCoord[0].st;
     
     // compute distance to the viewer
     float a = zFar / ( zFar - zNear );
