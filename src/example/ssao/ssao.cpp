@@ -36,9 +36,13 @@
 #include <osg/Material>
 #include <osg/PositionAttitudeTransform>
 #include <osg/ArgumentParser>
-
+#include <osg/Program>
+#include <osg/Shader>
+#include <osg/Texture2D>
 #include <osg/Camera>
 #include <osg/TexGenNode>
+
+#include <osgDB/ReadFile>
 
 #include <osgPPU/Processor.h>
 #include <osgPPU/UnitInOut.h>
@@ -47,9 +51,6 @@
 #include <osgPPU/ShaderAttribute.h>
 
 
-#include <osg/Program>
-#include <osg/Shader>
-#include <osg/Texture2D>
 
 #include <iostream>
 
@@ -176,49 +177,16 @@ osg::Camera* setupCamera(osg::Camera* camera, int w, int h)
 //-----------------------------------------------------------------------------------------
 osg::Program* createRenderShader()
 {
-    char* vSrc = 
-        "\n"
-        "void main () {\n"
-        "\n"
-        "   // bypass the texture coordinate data\n"
-        "   gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-        "\n"     
-        "   // compute position of the pixel\n"
-        "   gl_Position = ftransform();\n"
-        "\n"        
-        "   // bypass color data\n"
-        "   gl_FrontColor = gl_Color;\n"
-        "\n"        
-        "   // compute linear depth value\n"
-        "   // this is just a simple matrix multiplication\n"
-        "   // the difference is that this value is not divided by the consecutive\n"
-        "   // pipeline as for gl_Position, hence giving us what we have looked for\n"
-        "   gl_TexCoord[1] = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
-        "\n"     
-        "}\n";
+    osg::ref_ptr<osgDB::ReaderWriter::Options> fragmentOptions = new osgDB::ReaderWriter::Options("fragment");
+    osg::ref_ptr<osgDB::ReaderWriter::Options> vertexOptions = new osgDB::ReaderWriter::Options("vertex");
 
-    char* fSrc = 
-        "\n"
-        "void main () {\n"
-        "\n"
-        "   // select a color based on face \n"
-        "   gl_FragData[0].rgb =  gl_Color.rgb;\n"
-        "   gl_FragData[0].a = 1.0;\n"
-        "\n"
-        "   // output z-depth values in a scond mrt\n"
-        "   gl_FragData[1] = gl_TexCoord[1];\n"
-        "}\n";
+    osg::Shader* vshader = osgDB::readShaderFile("Data/glsl/ssao_renderscene_vp.glsl", vertexOptions.get());
+    osg::Shader* fshader = osgDB::readShaderFile("Data/glsl/ssao_renderscene_fp.glsl", fragmentOptions.get());
 
-    
     // setup program shaders
     osg::Program* program = new osg::Program();
 
-    osg::Shader* vshader = new osg::Shader(osg::Shader::VERTEX);
-    vshader->setShaderSource(vSrc);
     program->addShader(vshader);
-
-    osg::Shader* fshader = new osg::Shader(osg::Shader::FRAGMENT);
-    fshader->setShaderSource(fSrc);
     program->addShader(fshader);
     
     return program;
@@ -229,61 +197,16 @@ osg::Program* createRenderShader()
 //-----------------------------------------------------------------------------------------
 osgPPU::ShaderAttribute* createSSAOShader()
 {
-    char* vSrc = 
-        "\n"
-        "void main () {\n"
-        "\n"
-        "   // bypass the texture coordinate data\n"
-        "   gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-        "\n"
-        "   // this is the eyeview vector (just as if the scene were raytraced ;)\n"
-        "   gl_TexCoord[1] = gl_Vertex;\n"
-        "\n"     
-        "   // compute position of the RTT pixel\n"
-        "   gl_Position = ftransform();\n"
-        "\n"        
-        "}\n";
+    osg::ref_ptr<osgDB::ReaderWriter::Options> fragmentOptions = new osgDB::ReaderWriter::Options("fragment");
+    osg::ref_ptr<osgDB::ReaderWriter::Options> vertexOptions = new osgDB::ReaderWriter::Options("vertex");
 
-    char* fSrc = 
-        "uniform vec4 fk3f[32];\n"
-        "uniform vec4 fres;\n"
-        "uniform float rad;\n"
-        "uniform sampler2D tex0;\n"
-        "uniform sampler2D tex1;\n"
-        "\n"
-        "void main(void)\n"
-        "{\n"
-        "    float ez = texture2D( tex1, gl_TexCoord[0].xy ).z;\n"
-        "\n"
-        "    vec3 ep = ez * gl_TexCoord[1].xyz / gl_TexCoord[1].z;\n"
-        "\n"
-        "    vec4 pl = texture2D( tex0, gl_Color.xy*fres.xy );\n"
-        "    pl = pl*2.0 - vec4(1.0);\n"
-        "\n"
-        "    float bl = 0.0;\n"
-        "    for( int i=0; i<32; i++ )\n"
-        "    {\n"
-        "        vec3 se = ep + rad*reflect(fk3f[i].xyz,pl.xyz);\n"
-        "\n"
-        "        vec2 ss = (se.xy/se.z)*vec2(.75,1.0);\n"
-        "        vec2 sn = ss*.5 + vec2(.5);\n"
-        "        vec4 sz = texture2D(tex1,sn);\n"
-        "\n"
-        "        float zd = 50.0*max( se.z-sz.x, 0.0 );\n"
-        "        bl += 1.0/(1.0+zd*zd);\n"
-        "    }\n"
-        "    gl_FragColor.rgb = ep.rgb;//vec4(bl/32.0);\n"
-        "}\n";
+    osg::Shader* vshader = osgDB::readShaderFile("Data/glsl/ssao_vp.glsl", vertexOptions.get());
+    osg::Shader* fshader = osgDB::readShaderFile("Data/glsl/ssao_fp.glsl", fragmentOptions.get());
     
     // setup program shaders
     osgPPU::ShaderAttribute* program = new osgPPU::ShaderAttribute();
 
-    osg::Shader* vshader = new osg::Shader(osg::Shader::VERTEX);
-    vshader->setShaderSource(vSrc);
     program->addShader(vshader);
-
-    osg::Shader* fshader = new osg::Shader(osg::Shader::FRAGMENT);
-    fshader->setShaderSource(fSrc);
     program->addShader(fshader);
     
     return program;
@@ -325,16 +248,12 @@ osgPPU::Processor* createPPUPipeline(osg::Camera* viewCamera, int windowWidth, i
     unitOut->setInputToUniform(out1, "tex0");
     unitOut->setInputToUniform(out2, "tex1");
 
-    // setup uniforms
-    osg::Uniform* rad = unitOut->getOrCreateStateSet()->getOrCreateUniform("rad", osg::Uniform::FLOAT);
-    rad->set(0.4f);
-
     // setup random noise uniform data
     for (unsigned i=0; i < 32; i++)
     {
         float r = float(rand()) / float(RAND_MAX);
         osg::Uniform* fk3f = unitOut->getOrCreateStateSet()->getOrCreateUniform("rad", osg::Uniform::FLOAT);
-        
+        fk3f->set(r);
     }
 
     return proc;

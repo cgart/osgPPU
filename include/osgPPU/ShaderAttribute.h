@@ -216,14 +216,15 @@ class OSGPPU_EXPORT ShaderAttribute : public osg::Program
         **/
         void dirty() { mDirtyTextureBindings = true; }
 
-    protected:
-
         struct TexUnit{
             osg::ref_ptr<osg::Texture> t;
             int unit;
             unsigned int element;
             std::string name;
         };
+
+    protected:
+
 
         typedef std::map<std::string, std::map<int,TexUnit> > TexUnitDb;
 
