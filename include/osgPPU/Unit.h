@@ -217,7 +217,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * @param sh Shader used by this ppu to generate output from the input.
         * DEPRECATED !!!!
         **/
-        inline void setShader(Shader* sh) { mShader = sh; dirty(); osg::notify(osg::WARN) << "osgPPU::Unit::setShader() is deprecated." << std::endl; }
+        inline void setShader(Shader* sh) { mShader = sh; dirty(); }
 
         /**
         * Get currently assigned shader.
