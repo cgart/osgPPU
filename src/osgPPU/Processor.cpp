@@ -161,11 +161,10 @@ bool Processor::removeUnit(Unit* unit)
         return false;
     }
 
-    RemoveUnitVisitor uv(unit);
-    uv.run(this);
+    RemoveUnitVisitor uv;
+    uv.run(unit);
 
     return true;
-    //return mVisitor->removeUnit(unit, this);
 }
 
 

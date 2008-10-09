@@ -43,49 +43,44 @@ void CleanCullTraversedVisitor::run (osg::Group* root)
 }
 
 //------------------------------------------------------------------------------
-void RemoveUnitVisitor::apply (osg::Group &node)
+void RemoveUnitVisitor::run (osg::Group* root)
 {
-    Unit* unit = dynamic_cast<Unit*>(&node);
+    // remove operation must be atomic
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_mutex_changeUnitSubgraph);
 
-    if (unit != NULL && unit == _unit)
+    // the specified root should be the unit which we would like to remove
+    Unit* unit = dynamic_cast<Unit*>(root);
+    if (unit == NULL)
     {
-        // set all parent units as parents for the own children
-        for (unsigned int i=0; i < unit->getNumParents(); i++)
-            for (unsigned int j=0; j < unit->getNumChildren(); j++)
+        osg::notify(osg::FATAL) << "osgPPU::RemoveUnitVisitor::run() - not a valid unit was specified" << std::endl;
+        return;
+    }
+
+    // set all parent units as parents for the own children
+    for (unsigned int i=0; i < unit->getNumParents(); i++)
+        for (unsigned int j=0; j < unit->getNumChildren(); j++)
+        {
+            // copy the childonly if it is another unit
+            // TODO: some better removing strategies are required
+            if (dynamic_cast<Unit*>(unit->getChild(j)) != NULL)
             {
                 if (!unit->getParent(i)->containsNode(unit->getChild(j)))
                     unit->getParent(i)->addChild(unit->getChild(j));
             }
-
-        // mark each child as dirty
-        for (unsigned int j=0; j < unit->getNumChildren(); j++)
-        {
-            if (dynamic_cast<Unit*>(unit->getChild(j)))
-                dynamic_cast<Unit*>(unit->getChild(j))->dirty();
         }
 
-        // remove all children
-        unit->removeChildren(0, unit->getNumChildren());
+    // mark the unit as dirty, which will force to mark every child unit also as dirty
+    unit->dirty();
+    
+    // remove all children
+    unit->removeChildren(0, unit->getNumChildren());
 
-        // remove unit from its parents
-        osg::Node::ParentList parents = unit->getParents();
-        for (unsigned int i=0; i < parents.size(); i++)
-        {
-            parents[i]->removeChild(unit);
-        }
-        return;
+    // remove unit from its parents
+    osg::Node::ParentList parents = unit->getParents();
+    for (unsigned int i=0; i < parents.size(); i++)
+    {
+        parents[i]->removeChild(unit);
     }
-
-    // traverse the unit as if it where a group node
-    node.traverse(*this);
-}
-
-//------------------------------------------------------------------------------
-void RemoveUnitVisitor::run (osg::Group* root)
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_mutex_changeUnitSubgraph);
-
-    root->traverse(*this);
 }
 
 //------------------------------------------------------------------------------

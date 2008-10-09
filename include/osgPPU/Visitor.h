@@ -144,16 +144,11 @@ class OSGPPU_EXPORT RemoveUnitVisitor : public UnitVisitor
 {
 public:
 
-    RemoveUnitVisitor(const Unit* unit) : UnitVisitor(),
-        _unit(unit)
+    RemoveUnitVisitor() : UnitVisitor()
     {
     }
 
-    void apply (osg::Group &node);
     void run (osg::Group* root);
-
-private:
-    const Unit* _unit;
 };
 
 
