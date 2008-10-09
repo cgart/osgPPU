@@ -71,6 +71,7 @@ namespace osgPPU
         {
             // disable standard fbo
             getOrCreateStateSet()->removeAttribute(mFBO.get());
+            getOrCreateStateSet()->removeAttribute(mViewport.get());
 
             // this is the base level of mipmap generation
             // if the output texture is the same as input texture, then
@@ -126,6 +127,8 @@ namespace osgPPU
                     it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_NEAREST);
                 else if (filter == osg::Texture2D::NEAREST)
                     it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::NEAREST_MIPMAP_NEAREST);
+                else
+                    it->second->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::NEAREST_MIPMAP_NEAREST);
 
                 it->second->allocateMipmapLevels();
                 createAndAttachFBOs(it->second.get(), it->first);
@@ -163,6 +166,9 @@ namespace osgPPU
         mOutputHeight = height;
         mNumLevels = numLevel;
 
+        // if we do not use shader, then return
+        if (mUseShader == false) return;
+
         // generate fbo and viewport for each mipmap level if not done before
         if ((int)mMipmapFBO.size() != numLevel)
         {
@@ -189,7 +195,6 @@ namespace osgPPU
             mMipmapFBO[i]->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + mrt), osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
     }
 
-
     //--------------------------------------------------------------------------
     void UnitInMipmapOut::noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable)
     {
@@ -202,7 +207,7 @@ namespace osgPPU
 
         // get the fbo extensions
         osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(renderInfo.getContextID(),true);
-
+        
         // we don't use shader, that means that the mipmaps are generated in hardware, hence do this
         std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
         for (; it != mOutputTex.end(); it++)

@@ -364,7 +364,7 @@ void Unit::update()
     if (mbDirty)
     {
         init();
-        printDebugInfo();
+        printDebugInfo(NULL);
         updateUniforms();
         mbDirty = false;
     }
@@ -573,7 +573,7 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 {
     // only if parent is valid
     if (_parent->getActive())
-    {   //_parent->printDebugInfo();
+    {   //_parent->printDebugInfo(dr);
         // unit should know that we are about to render it
         _parent->noticeBeginRendering(ri, dr);
 
@@ -590,19 +590,24 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 }
 
 //--------------------------------------------------------------------------
-void Unit::printDebugInfo()
+void Unit::printDebugInfo(const osg::Drawable* dr)
 {
     osg::NotifySeverity level = osg::DEBUG_INFO;
+    if (level > osg::getNotifyLevel()) return;
 
     // debug information
     osg::notify(level) << getName() << " (" << getOrCreateStateSet()->getBinNumber() << ") run in thread " << OpenThreads::Thread::CurrentThread() << std::endl;
 
-    if (getViewport() != NULL)
-        osg::notify(level) << std::dec << "\t vp (ref " << (int)getInputTextureIndexForViewportReference() << "): " << (int)(getViewport()->x()) << " " << (int)(getViewport()->y()) << " " << (int)(getViewport()->width()) << " " << (int)(getViewport()->height()) << std::endl;
+    if (getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT) || (dr && dr->getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT)))
+    {
+        const osg::Viewport* viewport = dynamic_cast<const osg::Viewport*>(getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT));
+        if (viewport == NULL) viewport = dynamic_cast<const osg::Viewport*>(dr->getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT));
+        osg::notify(level) << std::dec << "\t vp (ref " << (int)getInputTextureIndexForViewportReference() << "): " << (int)(viewport->x()) << " " << (int)(viewport->y()) << " " << (int)(viewport->width()) << " " << (int)(viewport->height()) << std::endl;
+    }
 
     if (getShader() != NULL)
     {
-        osg::notify(level) << "\t shader: " << std::hex << getShader() << std::dec << std::endl;
+        osg::notify(level) << "\t shader DEPRECATED: " << std::hex << getShader() << std::dec << std::endl;
         osg::StateSet::UniformList::const_iterator jt = getShader()->getUniformList().begin();
         for (; jt != getShader()->getUniformList().end(); jt++)
         {
@@ -617,7 +622,48 @@ void Unit::printDebugInfo()
                 osg::notify(level) << "\t\t" << jt->first << " : " << fval << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
             }
         }
+    }else if (getStateSet()->getAttribute(osg::StateAttribute::PROGRAM) || (dr && dr->getStateSet()->getAttribute(osg::StateAttribute::PROGRAM)))
+    {
+        const osg::Program* prog = dynamic_cast<const osg::Program*>(getStateSet()->getAttribute(osg::StateAttribute::PROGRAM));
+        if (prog == NULL) prog = dynamic_cast<const osg::Program*>(dr->getStateSet()->getAttribute(osg::StateAttribute::PROGRAM));
+        osg::notify(level) << "\t program: " << std::hex << prog << std::dec << std::endl;
+
+        // print uniforms of the unit 
+        osg::StateSet::UniformList::const_iterator jt = getStateSet()->getUniformList().begin();
+        for (; jt != getStateSet()->getUniformList().end(); jt++)
+        {
+            float fval = -1.0;
+            int ival = -1;
+            if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
+            {
+                jt->second.first->get(ival);
+                osg::notify(level) << "\t\t" << jt->first << " : " << ival << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
+            }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
+                jt->second.first->get(fval);
+                osg::notify(level) << "\t\t" << jt->first << " : " << fval << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
+            }
+        }
+
+        // print uniforms of the drawable
+        if (dr)
+        {
+            osg::StateSet::UniformList::const_iterator jt = dr->getStateSet()->getUniformList().begin();
+            for (; jt != dr->getStateSet()->getUniformList().end(); jt++)
+            {
+                float fval = -1.0;
+                int ival = -1;
+                if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
+                {
+                    jt->second.first->get(ival);
+                    osg::notify(level) << "\t\t" << jt->first << " : " << ival << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
+                }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
+                    jt->second.first->get(fval);
+                    osg::notify(level) << "\t\t" << jt->first << " : " << fval << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
+                }
+            }
+        }
     }
+
 
     osg::notify(level) << "\t input: ";
     for (unsigned int i=0; i < getInputTextureMap().size(); i++)
@@ -654,6 +700,10 @@ void Unit::printDebugInfo()
                 osg::notify(level) << ")";
             }
         }
+
+        const osg::FrameBufferObject* fbo = dynamic_cast<const osg::FrameBufferObject*>(getStateSet()->getAttribute((osg::StateAttribute::Type) 0x101010));
+        if (fbo == NULL && dr != NULL) fbo = dynamic_cast<const osg::FrameBufferObject*>(dr->getStateSet()->getAttribute((osg::StateAttribute::Type) 0x101010));
+        osg::notify(level) << std::endl << "\t fbo: " << std::hex << fbo << std::dec << std::endl;        
     }
 
     osg::notify(level) << std::endl;

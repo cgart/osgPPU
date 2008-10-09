@@ -395,7 +395,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         bool mbUpdateTraversed; // requires to check whenever unit was already traversed by update visitor
         bool mbCullTraversed; // requires to check whenever unit was already traversed by cull visitor
 
-        void printDebugInfo();
+        void printDebugInfo(const osg::Drawable* dr);
         void traverse(osg::NodeVisitor& nv);
 
         // it is good to have friends
