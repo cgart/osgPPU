@@ -1,3 +1,47 @@
+2008-10-09 16:05  art
+
+	* [r155]
+	  - RemoveUnit procedure corrected. Now the remove process is
+	  correct and can be safely used
+
+2008-10-09 00:14  art
+
+	* [r154]
+	  - just little bit more Debug information when requested
+
+2008-10-07 20:27  art
+
+	* [r153]
+	  - remove M_LN2 constant out from the Mipmap Units and replaced by
+	  a direct computation
+
+2008-10-07 13:45  art
+
+	* [r152]
+	  - removed one of the deprecated messages
+
+2008-10-06 19:17  art
+
+	* [r151]
+	  - Some small changes before v0.3
+	  - shaders for SSAO added however the example isn't activated at
+	  now
+
+2008-10-06 09:41  art
+
+	* [r150]
+	  - Windows-Build fixes (was missing OpenThreads library)
+	  - Visitor with OSGPPU_EXPORT exported (is needed for win32 build)
+	  - Shaders corrected for very strict drivers
+
+2008-10-05 23:51  art
+
+	* [r149]
+	  - Multithreading issues corrected
+	  - new Visitor types defined, for simpler access
+	  - new example SSAO (however not fully implemented)
+	  - all problems in examples corrected
+
 2008-10-04 12:25  art
 
 	* [r148]
