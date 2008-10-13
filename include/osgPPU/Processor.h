@@ -143,6 +143,15 @@ class OSGPPU_EXPORT Processor : public osg::Group {
             return osg::BoundingSphere();
         }
 
+        /**
+        * Set wether or not osg::Clamp should be used in the osgPPU
+        * pipelines. This can be a problem when a graphics driver does not
+        * support glClamp. By default osg::Clamp will be used. If you
+        * do not want osg::Clamp in the pipelines be sure to set to false
+        * before init() is called.
+        **/
+        void useColorClamp( bool useColorClamp = true ) {mUseColorClamp = useColorClamp; mbDirty = true;}
+
     protected:
 
         /**
@@ -172,6 +181,7 @@ class OSGPPU_EXPORT Processor : public osg::Group {
 
         bool      mbDirty;
         bool      mbDirtyUnitGraph;
+        bool      mUseColorClamp;
 
 };
 
