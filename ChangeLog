@@ -1,3 +1,16 @@
+2008-10-13 10:14  art
+
+	* [r158]
+	  - From "Doug McCorkle":
+	  specify enabling/disabling of color clamping function in the
+	  processor. This is usefull in environments where color clamping
+	  is not supported or is not liked to be used.
+
+2008-10-09 21:59  art
+
+	* [r156]
+	  - v0.3 tagged
+
 2008-10-09 16:05  art
 
 	* [r155]
