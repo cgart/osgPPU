@@ -215,7 +215,7 @@ void SetupUnitRenderingVisitor::run (osg::Group* root)
     {
         // sort the unit into the according pipeline
         //(*it)->getOrCreateStateSet()->setRenderBinToInherit();
-        (*it)->getOrCreateStateSet()->setRenderBinDetails(index, binName);
+        (*it)->getOrCreateStateSet()->setRenderBinDetails(++index, binName);
         //printf("INIT %s %d\n", (*it)->getName().c_str(), index);
 
         // initialize units by updating them (the initialization process is called automagically
