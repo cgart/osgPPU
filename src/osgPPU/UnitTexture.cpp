@@ -35,6 +35,13 @@ namespace osgPPU
 
                 // remove this callback and the drawable out of the unit
                 _parent->getGeode()->removeDrawable(const_cast<osg::Drawable*>(dr));
+
+                // mark each child unit as dirty, so that they get informed, that texture was loaded
+                for (unsigned int i=0; i < _parent->getNumChildren(); i++)
+                {
+                    Unit* unit = dynamic_cast<Unit*>(_parent->getChild(i));
+                    if (unit && unit->isDirty() == false) unit->dirty();
+                }
             }
 
             mutable UnitTexture* _parent;
