@@ -8,7 +8,7 @@ MACRO(DETECT_OSG_VERSION)
     # detect if osgversion can be found
     FIND_PROGRAM(OSG_VERSION_EXE NAMES osgversion)
     IF(OSG_VERSION_EXE)
-        
+
         # get parameters out of the osgversion
         EXECUTE_PROCESS(COMMAND osgversion --major-number OUTPUT_VARIABLE OPENSCENEGRAPH_MAJOR_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
         EXECUTE_PROCESS(COMMAND osgversion --minor-number OUTPUT_VARIABLE OPENSCENEGRAPH_MINOR_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -43,7 +43,7 @@ MACRO(DETECT_OSG_VERSION)
         ENDIF(OSG_USE_FLOAT_BOUNDINGBOX MATCHES "double")
 
     ENDIF(OSG_VERSION_EXE)
-    
+
     IF (APPEND_OPENSCENEGRAPH_VERSION AND OPENSCENEGRAPH_VERSION)
         SET(OSG_PLUGINS osgPlugins-${OPENSCENEGRAPH_VERSION})
         MESSAGE(STATUS "Plugins will be installed under osgPlugins-${OPENSCENEGRAPH_VERSION} directory.")
@@ -61,7 +61,7 @@ ENDMACRO(DETECT_OSG_VERSION)
 #  NAME of the variables, so the macro gets as arguments the target name and the following list of parameters
 #  is intended as a list of variable names each one containing  the path of the libraries to link to
 #  The existance of a varibale name with _DEBUG appended is tested and, in case it' s value is used
-#  for linking to when in debug mode 
+#  for linking to when in debug mode
 #  the content of this library for linking when in debugging
 #######################################################################################################
 
@@ -104,7 +104,7 @@ ENDMACRO(LINK_EXTERNAL TRGTNAME)
 #######################################################################################################
 
 MACRO(LINK_CORELIB_DEFAULT CORELIB_NAME)
-    LINK_EXTERNAL(${CORELIB_NAME} ${OPENGL_LIBRARIES}) 
+    LINK_EXTERNAL(${CORELIB_NAME} ${OPENGL_LIBRARIES})
     LINK_WITH_VARIABLES(${CORELIB_NAME} OPENTHREADS_LIBRARY)
     IF(OPENSCENEGRAPH_SONAMES)
       SET_TARGET_PROPERTIES(${CORELIB_NAME} PROPERTIES VERSION ${OPENSCENEGRAPH_VERSION} SOVERSION ${OPENSCENEGRAPH_SOVERSION})
@@ -128,11 +128,11 @@ MACRO(SETUP_LINK_LIBRARIES)
     ######################################################################
     #
     # This set up the libraries to link to, it assumes there are two variable: one common for a group of examples or plagins
-    # kept in the variable TARGET_COMMON_LIBRARIES and an example or plugin specific kept in TARGET_ADDED_LIBRARIES 
-    # they are combined in a single list checked for unicity 
+    # kept in the variable TARGET_COMMON_LIBRARIES and an example or plugin specific kept in TARGET_ADDED_LIBRARIES
+    # they are combined in a single list checked for unicity
     # the suffix ${CMAKE_DEBUG_POSTFIX} is used for differentiating optimized and debug
     #
-    # a second variable TARGET_EXTERNAL_LIBRARIES hold the list of  libraries not differentiated between debug and optimized 
+    # a second variable TARGET_EXTERNAL_LIBRARIES hold the list of  libraries not differentiated between debug and optimized
     ##################################################################################
     SET(TARGET_LIBRARIES ${TARGET_COMMON_LIBRARIES})
 
@@ -160,7 +160,7 @@ MACRO(SETUP_LINK_LIBRARIES)
         ENDIF(TARGET_LIBRARIES_VARS)
     IF(MSVC  AND OSGPPU_MSVC_VERSIONED_DLL)
     	#when using full path name to specify linkage, it seems that already linked libs must be specified
-			LINK_EXTERNAL(${TARGET_TARGETNAME} ${OPENGL_LIBRARIES}) 
+			LINK_EXTERNAL(${TARGET_TARGETNAME} ${OPENGL_LIBRARIES})
     ENDIF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
 
 ENDMACRO(SETUP_LINK_LIBRARIES)
@@ -183,40 +183,42 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
     IF(NOT TARGET_LABEL)
             SET(TARGET_LABEL "${TARGET_DEFAULT_LABEL_PREFIX} ${TARGET_NAME}")
     ENDIF(NOT TARGET_LABEL)
-    
-# here we use the command to generate the library    
+
+# here we use the command to generate the library
 
     IF   (DYNAMIC_OSGPPU)
         ADD_LIBRARY(${TARGET_TARGETNAME} MODULE ${TARGET_SRC} ${TARGET_H})
     ELSE (DYNAMIC_OSGPPU)
         ADD_LIBRARY(${TARGET_TARGETNAME} STATIC ${TARGET_SRC} ${TARGET_H})
     ENDIF(DYNAMIC_OSGPPU)
-    
+
     #not sure if needed, but for plugins only Msvc need the d suffix
     IF(NOT MSVC)
         SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES DEBUG_POSTFIX "")
     ELSE(NOT MSVC)
-    	#IF(OSGPPU_MSVC_VERSIONED_DLL) 
-    		   		
+        SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES DEBUG_POSTFIX "d")
+
+    	#IF(OSGPPU_MSVC_VERSIONED_DLL)
+
 				#this is a hack... the build place is set to lib/<debug or release> by LIBARARY_OUTPUT_PATH equal to OUTPUT_LIBDIR
 				#the .lib will be crated in ../ so going straight in lib by the IMPORT_PREFIX property
 				#because we want dll placed in OUTPUT_BINDIR ie the bin folder sibling of lib, we can use ../../bin to go there,
 				#it is hardcoded, we should compute OUTPUT_BINDIR position relative to OUTPUT_LIBDIR ... to be implemented
 				#changing bin to something else breaks this hack
-				#the dll are placed in bin/${OSG_PLUGINS} 
-				
+				#the dll are placed in bin/${OSG_PLUGINS}
+
     		#SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../../bin/${OSG_PLUGINS}/")
             #SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES IMPORT_PREFIX "../")
     	#ELSE(OSGPPU_MSVC_VERSIONED_DLL)
-    		
+
     		#in standard mode (unversioned) the .lib and .dll are placed in lib/<debug or release>/${OSG_PLUGINS}.
     		#here the PREFIX property has been used, the same result would be accomplidhe by prepending ${OSG_PLUGINS}/ to OUTPUT_NAME target property
-    		
+
     		SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "${OSG_PLUGINS}/")
     	#ENDIF(OSGPPU_MSVC_VERSIONED_DLL)
     ENDIF(NOT MSVC)
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "${TARGET_LABEL}")
- 
+
     SETUP_LINK_LIBRARIES()
 
 #the installation path are differentiated for win32 that install in bib versus other architecture that install in lib${LIB_POSTFIX}/${OSG_PLUGINS}
@@ -242,9 +244,9 @@ MACRO(SETUP_EXE IS_COMMANDLINE_APP)
     ENDIF(NOT TARGET_LABEL)
 
     IF(${IS_COMMANDLINE_APP})
-    
+
         ADD_EXECUTABLE(${TARGET_TARGETNAME} ${TARGET_SRC} ${TARGET_H})
-        
+
     ELSE(${IS_COMMANDLINE_APP})
 
         IF(WIN32)
@@ -254,15 +256,15 @@ MACRO(SETUP_EXE IS_COMMANDLINE_APP)
         ENDIF(WIN32)
 
         ADD_EXECUTABLE(${TARGET_TARGETNAME} ${PLATFORM_SPECIFIC_CONTROL} ${TARGET_SRC} ${TARGET_H})
-        
+
     ENDIF(${IS_COMMANDLINE_APP})
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "${TARGET_LABEL}")
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})
     IF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
-    		SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../")    
+    		SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../")
     ENDIF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
-    SETUP_LINK_LIBRARIES()    
+    SETUP_LINK_LIBRARIES()
 
 ENDMACRO(SETUP_EXE)
 
@@ -276,9 +278,9 @@ MACRO(SETUP_APPLICATION APPLICATION_NAME)
         ELSE(${ARGC} GREATER 1)
             SET(IS_COMMANDLINE_APP 0)
         ENDIF(${ARGC} GREATER 1)
-            
+
         SETUP_EXE(${IS_COMMANDLINE_APP})
-        
+
     INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION bin  )
 
 ENDMACRO(SETUP_APPLICATION)
@@ -299,10 +301,10 @@ MACRO(SETUP_EXAMPLE EXAMPLE_NAME)
         ELSE(${ARGC} GREATER 1)
             SET(IS_COMMANDLINE_APP 0)
         ENDIF(${ARGC} GREATER 1)
-            
+
         SETUP_EXE(${IS_COMMANDLINE_APP})
-        
-    INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION share/OpenSceneGraph/bin  )            
+
+    INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION share/OpenSceneGraph/bin  )
 
 ENDMACRO(SETUP_EXAMPLE)
 
@@ -335,7 +337,7 @@ MACRO(HANDLE_MSVC_DLL)
         ELSE(${ARGC} GREATER 1)
                 SET(LIB_SOVERSION ${OPENSCENEGRAPH_SOVERSION})
         ENDIF(${ARGC} GREATER 1)
-	
+
         SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES PREFIX "../../bin/")
         SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES IMPORT_PREFIX "../")
 
