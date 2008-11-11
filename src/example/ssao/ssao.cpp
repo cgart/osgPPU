@@ -56,10 +56,14 @@
 
 #define NEAR_PLANE 0.01f
 #define FAR_PLANE 50.0f
+#define FOVY 30.0
 
 using namespace osg;
 
 
+//-----------------------------------------------------------------------------------------
+// Create Scene
+//-----------------------------------------------------------------------------------------
 ref_ptr<Group> _create_scene()
 {
   ref_ptr<Group> scene = new Group;
@@ -126,6 +130,7 @@ ref_ptr<Group> _create_scene()
 
 
 
+
 //-----------------------------------------------------------------------------------------
 // Create RTT texture
 //-----------------------------------------------------------------------------------------
@@ -164,22 +169,24 @@ osg::Camera* setupCamera(osg::Camera* camera, int w, int h)
     // set viewport
     camera->setViewport(new osg::Viewport(0,0,w,h));
     camera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
-    camera->setProjectionMatrixAsPerspective(30.0, float(w)/float(h), NEAR_PLANE, FAR_PLANE);
+    camera->setProjectionMatrixAsPerspective(FOVY, float(w)/float(h), NEAR_PLANE, FAR_PLANE);
 
     // tell the camera to use OpenGL frame buffer object where supported.
     camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 
     // create texture to render to
     osg::Texture* textureColor = createRenderTexture(w, h, false);
-    osg::Texture* textureLinearDepth = createRenderTexture(w, h, true);
+    osg::Texture* textureNormalDepth = createRenderTexture(w, h, false);
+    //osg::Texture* textureLinearDepth = createRenderTexture(w, h, true);
 
     // attach the texture and use it as the color buffer.
-    camera->attach(osg::Camera::COLOR_BUFFER, textureColor);
-    camera->attach(osg::Camera::DEPTH_BUFFER, textureLinearDepth);
+    camera->attach(osg::Camera::COLOR_BUFFER0, textureColor);
+    camera->attach(osg::Camera::COLOR_BUFFER1, textureNormalDepth);
+    //camera->attach(osg::Camera::DEPTH_BUFFER, textureLinearDepth);
 }
 
 
-#if 0
+#if 1
 //-----------------------------------------------------------------------------------------
 // Shader used to render the scene. The shader do output the things as a normal
 // fixed function pipeline. However the second output contains linear depth values
@@ -232,12 +239,16 @@ osgPPU::Processor* createPPUPipeline(osg::Camera* viewCamera, int windowWidth, i
 
     // setup two input units, which will bypass the both camera outputs into the pipeline
     osgPPU::UnitCameraAttachmentBypass* out1 = new osgPPU::UnitCameraAttachmentBypass;
-    out1->setBufferComponent(osg::Camera::COLOR_BUFFER);
+    out1->setBufferComponent(osg::Camera::COLOR_BUFFER0);
     out1->setName("ColorBufferInput");
 
+    //osgPPU::UnitCameraAttachmentBypass* out2 = new osgPPU::UnitCameraAttachmentBypass;
+    //out2->setBufferComponent(osg::Camera::DEPTH_BUFFER);
+    //out2->setName("DepthBufferInput");
+
     osgPPU::UnitCameraAttachmentBypass* out2 = new osgPPU::UnitCameraAttachmentBypass;
-    out2->setBufferComponent(osg::Camera::DEPTH_BUFFER);
-    out2->setName("DepthBufferInput");
+    out2->setBufferComponent(osg::Camera::COLOR_BUFFER1);
+    out2->setName("NormalDepthBufferInput");
 
     proc->addChild(out1);
     proc->addChild(out2);
@@ -256,7 +267,7 @@ osgPPU::Processor* createPPUPipeline(osg::Camera* viewCamera, int windowWidth, i
     sh->setName("SSAOShader");
     unitOut->getOrCreateStateSet()->setAttributeAndModes(sh);
     unitOut->setInputToUniform(out1, "texColorMap");
-    unitOut->setInputToUniform(out2, "texDepthMap");
+    unitOut->setInputToUniform(out2, "texNormalDepthMap");
 
     // setup random noise uniform data
     for (unsigned i=0; i < 32; i++)
@@ -270,8 +281,13 @@ osgPPU::Processor* createPPUPipeline(osg::Camera* viewCamera, int windowWidth, i
     }
 
     // setup camera parameters
+    float focalLength1 = 1.0f / tanf(FOVY * 0.5f) *  (float)windowWidth / (float)windowHeight;
+    float focalLength2 = 1.0f / tanf(FOVY * 0.5f);
     unitOut->getOrCreateStateSet()->getOrCreateUniform("zNear", osg::Uniform::FLOAT)->set(NEAR_PLANE);
     unitOut->getOrCreateStateSet()->getOrCreateUniform("zFar", osg::Uniform::FLOAT)->set(FAR_PLANE);
+    unitOut->getOrCreateStateSet()->getOrCreateUniform("focalLength", osg::Uniform::FLOAT_VEC2)->set(osg::Vec2f(focalLength1, focalLength2));
+    unitOut->getOrCreateStateSet()->getOrCreateUniform("invFocalLength", osg::Uniform::FLOAT_VEC2)->set(osg::Vec2f(1.0 / focalLength1, 1.0 / focalLength2));
+    unitOut->getOrCreateStateSet()->getOrCreateUniform("invResolution", osg::Uniform::FLOAT_VEC2)->set(osg::Vec2f(1.0 / (float)windowWidth, 1.0 / (float)windowHeight));
 
     return proc;
 }
@@ -329,12 +345,16 @@ int main(int argc, char** argv)
     ref_ptr<Group> subgraph = _create_scene();    
     if (!subgraph.valid()) return 1;
 
+    // setup render shader on the scene
+    scene->getOrCreateStateSet()->setAttributeAndModes(createRenderShader());
+    scene->getOrCreateStateSet()->getOrCreateUniform("zNear", osg::Uniform::FLOAT)->set(NEAR_PLANE);
+    scene->getOrCreateStateSet()->getOrCreateUniform("zFar", osg::Uniform::FLOAT)->set(FAR_PLANE);
     scene->addChild(subgraph.get());
     
     ref_ptr<osg::Group> root= new osg::Group;
     root->addChild(scene.get());
 
-    // setup SSAO osgPPu pipeline
+    // setup SSAO osgPPU pipeline
     setupCamera(viewer.getCamera(), tex_width, tex_height);
     root->addChild(createPPUPipeline(viewer.getCamera(), windowWidth, windowHeight));
 
