@@ -17,6 +17,7 @@
 #include <osgPPU/UnitCameraAttachmentBypass.h>
 #include <osgPPU/Processor.h>
 #include <osgPPU/BarrierNode.h>
+#include <osgPPU/UnitCamera.h>
 
 namespace osgPPU
 {
@@ -59,35 +60,43 @@ namespace osgPPU
     {
         // scan all parents and look for the processor
         Processor* proc = NULL;
+        UnitCamera* unitCam = NULL;
         for (unsigned int i=0; i < getNumParents(); i++)
         {
             proc = dynamic_cast<Processor*>(getParent(i));
             if (proc) break;
+            unitCam = dynamic_cast<UnitCamera*>(getParent(i));
+            if (unitCam) break;
         }
-        if (proc)
+        if (proc || unitCam)
         {
-            // get depthbuffer attachment
-            osg::Camera::BufferAttachmentMap& map = proc->getCamera()->getBufferAttachmentMap();
-            osg::Texture* input = map[_bufferComponent]._texture.get();
-
-            // if no such attachment then warning
-            if (!input)
+            osg::Camera* camera = NULL;
+            if (proc) camera = proc->getCamera();
+            if (unitCam) camera = unitCam->getCamera();
+            if (camera)
             {
-                osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - processor's camera has no specified buffer attachment" << std::endl;
+                osg::Camera::BufferAttachmentMap& map = camera->getBufferAttachmentMap();
+                osg::Texture* input = map[_bufferComponent]._texture.get();
+    
+                if (!input)
+                    osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - parent's camera has no specified buffer attachment" << std::endl;
+                else
+                {
+                    // set the input texture
+                    mInputTex.clear();
+                    mInputTex[0] = input;
+                    noticeChangeInput();
+    
+                    // the viewport should be retrieved from the input texture
+                    setInputTextureIndexForViewportReference(0);
+                    mOutputTex = mInputTex;
+                }
             }else
-            {
-                // set the input texture
-                mInputTex.clear();
-                mInputTex[0] = input;
-                noticeChangeInput();
+                osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - no camera found" << std::endl;
 
-                // the viewport should be retrieved from the input texture
-                setInputTextureIndexForViewportReference(0);
-                mOutputTex = mInputTex;
-            }
         }else
         {
-            osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - unit is not a direct child of processor" << std::endl;
+            osg::notify(osg::WARN) << "osgPPU::UnitCameraAttachmentBypass::setupInputsFromParents() - unit is not a direct child of Processor or UnitCamera" << std::endl;
         }
 
         // setup eventually blocked children

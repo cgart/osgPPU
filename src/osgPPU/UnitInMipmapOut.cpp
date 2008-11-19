@@ -100,6 +100,11 @@ namespace osgPPU
                 w->set((float)mMipmapViewport[i]->width());
                 h->set((float)mMipmapViewport[i]->height());
 
+                osg::Uniform* iw = ss->getOrCreateUniform(OSGPPU_VIEWPORT_INV_WIDTH_UNIFORM, osg::Uniform::FLOAT);
+                osg::Uniform* ih = ss->getOrCreateUniform(OSGPPU_VIEWPORT_INV_HEIGHT_UNIFORM, osg::Uniform::FLOAT);
+                iw->set(1.0f / (float)mMipmapViewport[i]->width());
+                ih->set(1.0f / (float)mMipmapViewport[i]->height());
+
                 osg::Uniform* ln = ss->getOrCreateUniform(OSGPPU_MIPMAP_LEVEL_NUM_UNIFORM, osg::Uniform::FLOAT);
                 ln->set((float)mNumLevels);
 

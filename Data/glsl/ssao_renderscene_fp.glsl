@@ -11,10 +11,16 @@ uniform float zFar;
  **/
 void main(void)
 {
-   // select a color based on face
-   gl_FragData[0] = gl_Color;
+   // compute simple diffuse lighting, so that the scene get more pleasant
+   vec3 eyeToLight = normalize(-gl_TexCoord[2]);
+   vec4 diffuse = gl_Color * max(dot(eyeToLight, normalize(gl_TexCoord[0].xyz)), 0.0) ;
+   gl_FragData[0].rgb = diffuse;
 
-   // output z-depth values in a scond mrt
-   gl_FragData[1] = gl_TexCoord[1];
-   gl_FragData[1].z /= zFar;
+
+   // Use face normals instead of interpolated normals to make sure that the tangent planes
+   // associated with the normals are actually tangent to the surface
+   gl_FragData[1].xyz = normalize(cross(ddx(gl_TexCoord[1].xyz), ddy(gl_TexCoord[1].xyz)));
+
+   // compute linear z-depth value
+   gl_FragData[1].w = gl_TexCoord[0].w / zFar;
 }

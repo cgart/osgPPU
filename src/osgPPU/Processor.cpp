@@ -212,7 +212,6 @@ void Processor::traverse(osg::NodeVisitor& nv)
     // if processor is propagated by a cull visitor, hence first clean the traverse bit
     if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
-        // first we need to clear traversion bit of every unit
         sCleanCullTraverseMaskVisitor->run(this);
     }
 

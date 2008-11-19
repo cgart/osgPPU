@@ -31,6 +31,8 @@
 
 #define OSGPPU_VIEWPORT_WIDTH_UNIFORM "osgppu_ViewportWidth"
 #define OSGPPU_VIEWPORT_HEIGHT_UNIFORM "osgppu_ViewportHeight"
+#define OSGPPU_VIEWPORT_INV_WIDTH_UNIFORM "osgppu_InvViewportWidth"
+#define OSGPPU_VIEWPORT_INV_HEIGHT_UNIFORM "osgppu_InvViewportHeight"
 
 namespace osgPPU
 {

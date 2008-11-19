@@ -28,6 +28,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Utility.h
     ${HEADER_PATH}/ColorAttribute.h
     ${HEADER_PATH}/ShaderAttribute.h
+    ${HEADER_PATH}/UnitCamera.h
 )
 
 ADD_LIBRARY(${LIB_NAME}
@@ -51,6 +52,7 @@ ADD_LIBRARY(${LIB_NAME}
     Utility.cpp
     ColorAttribute.cpp
     ShaderAttribute.cpp
+    UnitCamera.cpp
 )
 
 LINK_WITH_VARIABLES(${LIB_NAME}     

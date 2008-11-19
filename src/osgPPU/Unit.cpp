@@ -338,8 +338,13 @@ void Unit::updateUniforms()
     {
         osg::Uniform* w = ss->getOrCreateUniform(OSGPPU_VIEWPORT_WIDTH_UNIFORM, osg::Uniform::FLOAT);
         osg::Uniform* h = ss->getOrCreateUniform(OSGPPU_VIEWPORT_HEIGHT_UNIFORM, osg::Uniform::FLOAT);
-        w->set((float)mViewport->width());
-        h->set((float)mViewport->height());
+        if (w) w->set((float)mViewport->width());
+        if (h) h->set((float)mViewport->height());
+
+        osg::Uniform* iw = ss->getOrCreateUniform(OSGPPU_VIEWPORT_INV_WIDTH_UNIFORM, osg::Uniform::FLOAT);
+        osg::Uniform* ih = ss->getOrCreateUniform(OSGPPU_VIEWPORT_INV_HEIGHT_UNIFORM, osg::Uniform::FLOAT);
+        if (iw) iw->set(1.0f / (float)mViewport->width());
+        if (ih) ih->set(1.0f / (float)mViewport->height());
     }
 
     // setup input texture uniforms
@@ -380,10 +385,10 @@ void Unit::traverse(osg::NodeVisitor& nv)
     // check if we have to update it
     if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        //printf("UNIT %s UPDATE traverse\n", getName().c_str());
         if (mbUpdateTraversed == false)
         {
             mbUpdateTraversed = true;
+        //printf("UNIT %s UPDATE traverse\n", getName().c_str());
 
             update();
             getStateSet()->runUpdateCallbacks(&nv);
@@ -393,9 +398,9 @@ void Unit::traverse(osg::NodeVisitor& nv)
 
     }else if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
-        //printf("UNIT %s CULL traverse\n", getName().c_str());
         if (mbCullTraversed == false)
         {
+        //printf("UNIT %s (%d) CULL traverse\n", getName().c_str(), getOrCreateStateSet()->getBinNumber());
             mbCullTraversed = true;
             osg::Group::traverse(nv);
         }
@@ -586,6 +591,7 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 
         // ok rendering is done, unit can do other stuff
         _parent->noticeFinishRendering(ri, dr);
+        //printf("RENDER UNIT %s (%d) \n", _parent->getName().c_str(), _parent->getOrCreateStateSet()->getBinNumber());
     }
 }
 

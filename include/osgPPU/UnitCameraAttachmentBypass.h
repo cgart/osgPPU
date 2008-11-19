@@ -28,12 +28,16 @@ namespace osgPPU
     //! Bypass a specified camera attacment into the pipeline
     /**
     * This unit do not perform any rendering, however it do
-    * bypass any camera attachment of the camera of the parent processor
+    * bypass any camera attachment of  camera of the parent processor or unit
     * to its output texture.
     * Per default the unit do bypass the color buffer attachment.
     *
     * This unit has to be placed directly under the processor, so that the unit
     * get access to the processor's attachments.
+    *
+    * This unit can also bypass a camera attachment of UnitCamera parent unit.
+    * For this purpose the unit has to be placed directly under UnitCamera. Camera
+    * output will then be bypassed.
     **/
     class OSGPPU_EXPORT UnitCameraAttachmentBypass : public UnitBypass {
         public:
