@@ -188,25 +188,15 @@ namespace osgPPU
     
         protected:
         
-            //! Notice about end of rendering
-            virtual void noticeFinishRendering(osg::RenderInfo &, const osg::Drawable* ) {};
-
-            //! Notice about begin of rendering
-            virtual void noticeBeginRendering(osg::RenderInfo &, const osg::Drawable* ) {};
-            
             //! Viewport changed
             virtual void noticeChangeViewport();
     
-            //! called when input textures are changed
-            virtual void noticeChangeInput() {}
-    
             //! Reassign fbo if output textures changes
             virtual void assignOutputTexture();
-    
-            virtual void noticeAssignShader() {}
-            virtual void noticeRemoveShader() {}
 
-            void assignFBO();
+            virtual void assignFBO();
+
+            virtual void assignOutputPBO();
 
             //! Framebuffer object where results are written
             osg::ref_ptr<osg::FrameBufferObject>    mFBO;    

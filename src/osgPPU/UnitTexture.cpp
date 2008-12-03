@@ -90,8 +90,8 @@ namespace osgPPU
                 mViewport = new osg::Viewport(0,0,0,0);
             
             // change viewport sizes
-            mViewport->width() = getInputTexture(getInputTextureIndexForViewportReference())->getTextureWidth();
-            mViewport->height() = getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
+            mViewport->width() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureWidth();
+            mViewport->height() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
     
             // just notice that the viewport size is changed
             noticeChangeViewport();

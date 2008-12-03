@@ -24,10 +24,10 @@
 #include <osg/Texture>
 #include <osg/Geode>
 #include <osg/Geometry>
-#include <osgPPU/ColorAttribute.h>
+#include <osg/BufferObject>
 
 #include <osgPPU/Export.h>
-#include <osgPPU/Shader.h>
+#include <osgPPU/ColorAttribute.h>
 
 #define OSGPPU_VIEWPORT_WIDTH_UNIFORM "osgppu_ViewportWidth"
 #define OSGPPU_VIEWPORT_HEIGHT_UNIFORM "osgppu_ViewportHeight"
@@ -58,6 +58,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         typedef std::map<int, osg::ref_ptr<osg::Texture> > TextureMap;
         typedef std::vector<unsigned int> IgnoreInputList;
         typedef std::map<osg::ref_ptr<Unit>, std::pair<std::string, unsigned int> > InputToUniformMap;
+        typedef std::map<int, osg::ref_ptr<osg::PixelDataBufferObject> > PixelDataBufferObjectMap;
 
         /**
         * Empty constructor. The unit will be initialized with default values.
@@ -214,20 +215,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         void setRenderingFrustum(float left, float top, float right, float bottom);
 
         /**
-        * Assign a shader used when computing the output data of the ppu.
-        * Shaders are one of the main aspects of the ppu rendering.
-        * @param sh Shader used by this ppu to generate output from the input.
-        * DEPRECATED !!!!
-        **/
-        inline void setShader(Shader* sh) { mShader = sh; dirty(); }
-
-        /**
-        * Get currently assigned shader.
-        * DEPRECATED !!!!
-        **/
-        inline Shader* getShader() const { return mShader.get(); }
-
-        /**
         * Set index of an input texture which size is used as reference
         * for the viewport size. The viewport size will be changed according
         * to the texture size. If you change the input texture the size will
@@ -281,6 +268,29 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         ColorAttribute* getColorAttribute() { return mColorAttribute.get(); }
         const ColorAttribute* getColorAttribute() const { return mColorAttribute.get(); }
 
+        /**
+        * Return a PixelDataBufferObject associated with the input texture. 
+        * If using of pbos is deactivate, then undefined result might be given back. 
+        **/
+        inline const osg::PixelDataBufferObject* getInputPBO(int inputIndex) { return mInputPBO[inputIndex].get(); }
+        inline const osg::PixelDataBufferObject* getOutputPBO(int mrt) { return mOutputPBO[mrt].get(); }
+
+        const PixelDataBufferObjectMap& getInputPBOMap() const { return mInputPBO; }
+        const PixelDataBufferObjectMap& getOutputPBOMap() const { return mOutputPBO; }
+
+        /**
+        * Specify a flag whenever input textures have to be mapped to the input PixelDataBufferObjects.
+        * If enabled, data from the input texture will be written to the according input PBO on
+        * each apply. This gives you the possibility of using the data stored in the buffer externally.
+        * NOTE: A PixelDataBufferObject resides also on the GPU as the texture does. Hence reading/writing
+        *       of data in/to PBO isn't that costly, because data is copied in the video memory.
+        **/
+        void setUsePBOForInputTexture(int index);
+        inline bool getUsePBOForInputTexture(int index) { return mInputPBO[index].valid(); }
+
+        void setUsePBOForOutputTexture(int mrt);
+        inline bool getUsePBOForOutputTexture(int mrt) { return mOutputPBO[mrt].valid(); }
+
     protected:
 
         /**
@@ -318,8 +328,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         **/
         virtual void setupInputsFromParents();
 
-        //! Method to let the unit know that the rendering will now beginns
-        virtual void  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) {};
+        //! Method to let the unit know that the rendering will now beginns, if returned false, then drawable is not rendered
+        virtual bool  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) { return true; }
 
         //! Let the unit know that the drawing is done.
         virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* ) {};
@@ -330,23 +340,14 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! Notice derived classes, when inpu ttexture was changed.
         virtual void noticeChangeInput() {}
 
-        //! Notice derived classes, that new shader is assigned
-        virtual void noticeAssignShader() {}
-
-        //! Notice derived classes, that no shader is assigned now
-        virtual void noticeRemoveShader() {}
-
         //! Assign the input texture to the quad object
-        void assignInputTexture();
-
-        //! Assign a shader to the input texture to the quad object
-        void assignShader();
+        virtual void assignInputTexture();
 
         //! Assign currently choosen viewport to the stateset
-        void assignViewport();
+        virtual void assignViewport();
 
-        //! disable shader
-        void removeShader();
+        //! Assign input/output PBOs to according textures
+        virtual void assignInputPBO();
 
         //! Helper function to create screen sized quads
         osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0), float l=0.0, float b=0.0, float r=1.0, float t=1.0);
@@ -357,14 +358,17 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! Output textures
         TextureMap  mOutputTex;
 
+        //! Input pbos of the textures
+        PixelDataBufferObjectMap mInputPBO;
+
+        //! Output pbos of the textures
+        PixelDataBufferObjectMap mOutputPBO;
+
         //! List of ignored inputs
         IgnoreInputList mIgnoreList;
 
         //! Map of the uniform to parent links
         InputToUniformMap mInputToUniformMap;
-
-        //! Shader which will be used for rendering
-        osg::ref_ptr<Shader>   mShader;
 
         //! Here we store a screen sized quad, so it can be used for rendering
         osg::ref_ptr<osg::Drawable> mDrawable;

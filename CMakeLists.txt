@@ -5,6 +5,7 @@ PROJECT(osgPPU)
 SET(CMAKE_MODULE_PATH "${osgPPU_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
 SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
+SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
 
 
 #######################################
@@ -25,11 +26,24 @@ ENDIF(DYNAMIC_OSGPPU)
 FIND_PACKAGE( OpenGL REQUIRED )
 FIND_PACKAGE( OSG REQUIRED )
 
+#######################################
+# enable CUDA support
+#######################################
+INCLUDE(${CMAKE_SOURCE_DIR}/CMakeModules/cuda/FindCuda.cmake)
+
+
+# Make the headers visible to everything
+IF(NOT ${PROJECT_BINARY_DIR} EQUAL ${PROJECT_SOURCE_DIR})
+   INCLUDE_DIRECTORIES(BEFORE ${PROJECT_BINARY_DIR}/include)
+ENDIF(NOT ${PROJECT_BINARY_DIR} EQUAL ${PROJECT_SOURCE_DIR})
+
+
 INCLUDE_DIRECTORIES(BEFORE
     ${OPENGL_INCLUDE_DIR}
-    ${OSG_INCLUDE_DIRS}
+    ${OSG_INCLUDE_DIR}
     ${SOURCE_DIR}/include
 )
+
 
 SET(GL_LIBS
   ${OPENGL_gl_LIBRARY}
@@ -118,6 +132,15 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 # Compile subdirectory
 ################################################################################
 ADD_SUBDIRECTORY(src)
+
+
+################################################################################
+# Set Config file
+################################################################################
+SET(OSGPPU_CONFIG_HEADER "${PROJECT_BINARY_DIR}/include/osgPPU/Config.h")
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/osgPPU/Config.in"
+               "${OSGPPU_CONFIG_HEADER}")
+# INSTALL_FILES(/include/osg/ FILES "${OPENSCENEGRAPH_CONFIG_HEADER}")
 
 
 ################################################################################

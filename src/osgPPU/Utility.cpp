@@ -89,6 +89,24 @@ osg::Uniform::Type convertTextureToUniformType(osg::Texture* tex)
     
 }
 
+//--------------------------------------------------------------------------
+unsigned int computeTextureSizeInBytes(osg::Texture* tex)
+{
+    if (tex == NULL) return 0;
+
+    int w = tex->getTextureWidth();
+    int h = tex->getTextureHeight();
+    int d = tex->getTextureDepth();
+    if (d == 0) d = 1;
+    if (h == 0) h = 1;
+
+    GLint intFormat = tex->getInternalFormat();
+    GLenum type = osg::Image::computeFormatDataType(intFormat);
+    unsigned int rowWidth = osg::Image::computeRowWidthInBytes(w, intFormat, type, 1);
+
+    return rowWidth*h*d;
+}
+
 
 }; //end namespace
 

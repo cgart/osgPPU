@@ -186,7 +186,7 @@ namespace osgPPU
                 osg::ref_ptr<osg::Viewport> vp = new osg::Viewport();
                 int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)i)) ));
                 int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)i)) ));
-                vp->setViewport(0,0, w, h);
+                vp->setViewport(0,0, (osg::Viewport::value_type)w, (osg::Viewport::value_type)h);
                 mMipmapViewport.push_back(vp);
                 
                 // generate fbo and assign a mipmap level to it

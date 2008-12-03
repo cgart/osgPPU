@@ -244,6 +244,7 @@ namespace osgPPU
 
         // setup output textures and fbo
         assignOutputTexture();
+        assignOutputPBO();
         assignFBO();
     }
 
@@ -349,6 +350,7 @@ namespace osgPPU
         mTex->setBorderColor(osg::Vec4(0,0,0,0));
         mTex->setInternalFormat(getOutputInternalFormat());
         mTex->setSourceFormat(createSourceTextureFormat(getOutputInternalFormat()));
+        mTex->setSourceType(osg::Image::computeFormatDataType(getOutputInternalFormat()));
 
         // check if the input texture was in nearest mode
         if (getInputTexture(0) && getInputTexture(0)->getFilter(osg::Texture2D::MIN_FILTER) == osg::Texture2D::NEAREST)
@@ -423,6 +425,36 @@ namespace osgPPU
 
             // if we are here, then output texture type is not supported, hence give some warning
             osg::notify(osg::FATAL) << "osgPPU::UnitInOut::assignOutputTexture() - " << getName() << " cannot attach output texture to FBO because output texture type is not supported" << std::endl;
+        }
+    }
+
+    //------------------------------------------------------------------------------
+    void UnitInOut::assignOutputPBO()
+    {
+        // for each input texture do
+        PixelDataBufferObjectMap::iterator it = mOutputPBO.begin();
+        for (; it != mOutputPBO.end(); it++)
+        {
+            // get output texture
+            osg::Texture* texture = mOutputTex[it->first].get();
+            osg::PixelDataBufferObject* pbo = it->second.get();
+    
+            // if the output texture is NULL, hence ERROR
+            if (texture == NULL)
+            {
+                osg::notify(osg::FATAL) << "osgPPU::Unit::assignOutputPBOs() - " << getName() << " output texture " << it->first << " must be valid at this point of execution" << std::endl;
+                continue;
+            }
+    
+            // check the type of the output texture. It must be a supported type
+            if (dynamic_cast<osg::Texture2D*>(texture) == NULL)
+            {
+                osg::notify(osg::FATAL) << "osgPPU::Unit::assignOutputPBOs() - " << getName() << " output texture " << it->first << " has an unsupported format." << std::endl;
+                continue;
+            }
+
+            // compute size of the texture which has to be allocated for the pbo
+            pbo->setDataSize(computeTextureSizeInBytes(texture));
         }
     }
 

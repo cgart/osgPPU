@@ -473,100 +473,9 @@ bool readUnit(osg::Object& obj, osgDB::Input& fr)
         itAdvanced = true;
     }
 
-    // read shader input
-    //if (fr.matchSequence("Shader {") || fr.matchSequence("ShaderAttribute {")
-    //    || fr.matchSequence("osgPPU::Shader {") || fr.matchSequence("osgPPU::ShaderAttribute {"))
-    {
-
-#if 0
-        int entry = fr[0].getNoNestedBrackets();
-
-        fr += 2;
-
-        // create shader
-        osgPPU::ShaderAttribute* shader = new osgPPU::ShaderAttribute();
-
-            // read program
-            osg::Program* program = dynamic_cast<osg::Program*>(fr.readObjectOfType(osgDB::type_wrapper<osg::Program>()));
-            if (program)
-            {
-                shader->setProgram(program);
-                local_itrAdvanced = true;
-            }
-TODO
-
-        // read data associated with the shader
-        while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
-        {
-            bool local_itrAdvanced = false;
-
-            // read uniform
-            if (fr.matchSequence("RefUniformPair {"))
-            {
-                fr += 2;
-
-                // read uniform
-                osg::Uniform* uniform = fr.readUniform();
-
-                // read state attribute
-                std::string stateAttribute;
-                osg::StateAttribute::GLModeValue mode = osg::StateAttribute::ON;
-                if (fr.readSequence("StateAttribute", stateAttribute))
-                {
-                    StateSet_matchModeStr(stateAttribute.c_str(),mode);
-                }
-
-                ++fr;
-                local_itrAdvanced = true;
-
-                // create refuniformpair
-                osg::StateSet::RefUniformPair pair (uniform, mode);
-
-                // add uniform to the shader
-                shader->add(pair);
-            }
-
-            if (!local_itrAdvanced) ++fr;
-        }
-
-        // set new shader to the unit
-        unit.setShader(shader);
-
-        // skip trailing '}'
-        ++fr;
-
-        itAdvanced = true;
-#endif
-    }
-
-
-
     return itAdvanced;
 }
 
-//--------------------------------------------------------------------------
-/*void writeShader(const osgPPU::Shader* sh, osgDB::Output& fout)
-{
-    // write uniform list
-    osg::StateSet::UniformList::const_iterator jt = sh->getUniformList().begin();
-    for (; jt != sh->getUniformList().end(); jt++)
-    {
-        fout.writeBeginObject("RefUniformPair");
-        fout.moveIn();
-
-            osgDB::Registry::instance()->writeObject(static_cast<const osg::Uniform&>(*(jt->second.first)), fout);
-            fout.indent() << "StateAttribute " << StateSet_getModeStr(jt->second.second) << std::endl;
-
-        fout.moveOut();
-        fout.writeEndObject();
-    }
-
-    // force write shaders to files
-    //fout.setOutputShaderFiles(true);
-
-    // write out shader program
-    osgDB::Registry::instance()->writeObject(static_cast<const osg::Program&>(*(sh->getProgram())), fout);
-}*/
 
 //--------------------------------------------------------------------------
 bool writeShaderAttribute(const osg::Object& obj, osgDB::Output& fout)
@@ -723,17 +632,6 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
         osgDB::Registry::instance()->writeObject(static_cast<const osg::Viewport&>(*(unit.getViewport())), fout);
     }
 
-    // if the unit contains shader, then
-    /*if (unit.getShader())
-    {
-        fout << std::endl;
-        fout.writeBeginObject("Shader");
-        fout.moveIn();
-            writeShader(unit.getShader(), fout);
-        fout.moveOut();
-        fout.writeEndObject();
-    }*/
-
     // write shader attribute if shader attribute exists
     osg::ref_ptr<osgPPU::ShaderAttribute> shp = new osgPPU::ShaderAttribute;
     const osgPPU::ShaderAttribute* sh = dynamic_cast<const osgPPU::ShaderAttribute*>(unit.getStateSet()->getAttribute(shp->getType()));
@@ -741,11 +639,6 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     {
         fout << std::endl;
         osgDB::Registry::instance()->writeObject(static_cast<const osgPPU::ShaderAttribute&>(*sh), fout);
-    }
-
-    if (unit.getShader())
-    {
-        osg::notify(osg::WARN) << "ReaderWriterPPU Plugin - you are using deprecated feature (osgPPU::Shader). This won't be written to the file. Use ShaderAttribute instead." << std::endl;
     }
 
     // write the color attribute
@@ -884,17 +777,6 @@ osgDB::RegisterDotOsgWrapperProxy g_ShaderAttributeProxy
     &readShaderAttribute,
     &writeShaderAttribute
 );
-
-// register the read and write functions with the osgDB::Registry.
-/*osgDB::RegisterDotOsgWrapperProxy g_ShaderAttributeProxy2
-(
-    new osgPPU::ShaderAttribute,
-    "Shader",
-    "Object StateAttribute Program Shader",
-    &readShaderAttribute,
-    &writeShaderAttribute
-);
-*/
 
 // register the read and write functions with the osgDB::Registry.
 osgDB::RegisterDotOsgWrapperProxy g_ColorAttributeProxy

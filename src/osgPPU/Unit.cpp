@@ -79,9 +79,10 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     osg::Group(ppu, copyop),
     mInputTex(ppu.mInputTex),
     mOutputTex(ppu.mOutputTex),
+    mInputPBO(ppu.mInputPBO),
+    mOutputPBO(ppu.mOutputPBO),
     mIgnoreList(ppu.mIgnoreList),
     mInputToUniformMap(ppu.mInputToUniformMap),
-    mShader(ppu.mShader),
     mDrawable(ppu.mDrawable),
     sProjectionMatrix(ppu.sProjectionMatrix),
     sModelviewMatrix(ppu.sModelviewMatrix),
@@ -100,6 +101,20 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
 //------------------------------------------------------------------------------
 Unit::~Unit()
 {
+}
+
+//------------------------------------------------------------------------------
+void Unit::setUsePBOForInputTexture(int index)
+{
+    if (getUsePBOForInputTexture(index)) return;
+    mInputPBO[index] = new osg::PixelDataBufferObject;
+}
+
+//------------------------------------------------------------------------------
+void Unit::setUsePBOForOutputTexture(int mrt)
+{
+    if (getUsePBOForOutputTexture(mrt)) return;
+    mOutputPBO[mrt] = new osg::PixelDataBufferObject;
 }
 
 //------------------------------------------------------------------------------
@@ -242,33 +257,26 @@ void Unit::assignInputTexture()
     }
 }
 
-//--------------------------------------------------------------------------
-void Unit::assignShader()
+//------------------------------------------------------------------------------
+void Unit::assignInputPBO()
 {
-    osg::StateSet* ss = getOrCreateStateSet();
-
-    // set shader if it is valid
-    if (mShader.valid())
+    // for each input texture do
+    PixelDataBufferObjectMap::iterator it = mInputPBO.begin();
+    for (; it != mInputPBO.end(); it++)
     {
-        // enable shader
-        mShader->enable(ss);
-        ss->setAttributeAndModes(mShader->getProgram(), osg::StateAttribute::ON);
+        // get output texture
+        osg::Texture* texture = mInputTex[it->first].get();
+        osg::PixelDataBufferObject* pbo = it->second.get();
 
-        // notice about changes in the shader assignment
-        noticeAssignShader();
-    }
-}
+        // if the output texture is NULL, hence ERROR
+        if (texture == NULL)
+        {
+            osg::notify(osg::FATAL) << "osgPPU::Unit::assignInputPBOs() - " << getName() << " input texture " << it->first << " must be valid at this point of execution" << std::endl;
+            continue;
+        }
 
-//--------------------------------------------------------------------------
-void Unit::removeShader()
-{
-    osg::StateSet* ss = getOrCreateStateSet();
-
-    // set shader if it is valid
-    if (mShader.valid())
-    {
-        mShader->disable(ss);
-        noticeRemoveShader();
+        // compute size of the texture which has to be allocated for the pbo
+        pbo->setDataSize(computeTextureSizeInBytes(texture));
     }
 }
 
@@ -373,10 +381,6 @@ void Unit::update()
         updateUniforms();
         mbDirty = false;
     }
-
-    // if shader is attached, then update it
-    if (mShader.valid())
-        mShader->update();
 }
 
 //------------------------------------------------------------------------------
@@ -423,8 +427,8 @@ void Unit::init()
             mViewport = new osg::Viewport(0,0,0,0);
 
         // change viewport sizes
-        mViewport->width() = getInputTexture(getInputTextureIndexForViewportReference())->getTextureWidth();
-        mViewport->height() = getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
+        mViewport->width() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureWidth();
+        mViewport->height() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
 
         // just notice that the viewport size is changed
         noticeChangeViewport();
@@ -432,8 +436,8 @@ void Unit::init()
 
     // reassign input and shaders
     assignInputTexture();
-    assignShader();
     assignViewport();
+    assignInputPBO();
 }
 
 //--------------------------------------------------------------------------
@@ -578,20 +582,66 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 {
     // only if parent is valid
     if (_parent->getActive())
-    {   //_parent->printDebugInfo(dr);
-        // unit should know that we are about to render it
-        _parent->noticeBeginRendering(ri, dr);
+    {   
+        _parent->printDebugInfo(dr);
 
-        // set matricies used for the unit
-        ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
-        ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
+        // precompile input and output pbos, so that they are valid for hte next execution
+        for (PixelDataBufferObjectMap::iterator it = _parent->mInputPBO.begin(); it != _parent->mInputPBO.end(); it++)
+            if (it->second && it->second->isDirty(ri.getContextID())) it->second->compileBuffer(*ri.getState());
+        for (PixelDataBufferObjectMap::iterator it = _parent->mOutputPBO.begin(); it != _parent->mOutputPBO.end(); it++)
+            if (it->second && it->second->isDirty(ri.getContextID())) it->second->compileBuffer(*ri.getState());
 
-        // now render the drawable geometry
-        dr->drawImplementation(ri);
+        // copy content of the input textures into pbo, if such are specified
+        for (PixelDataBufferObjectMap::iterator it = _parent->mInputPBO.begin(); it != _parent->mInputPBO.end(); it++)
+        {
+            if (!it->second) continue;
+            osg::Texture* texture = _parent->mInputTex[it->first].get();
 
-        // ok rendering is done, unit can do other stuff
+            // bind buffer in write mode and copy texture content into the buffer
+            it->second->bindBufferInWriteMode(*ri.getState());
+            ri.getState()->applyTextureAttribute(it->first, texture);
+            glGetTexImage(texture->getTextureTarget(), 0, 
+                osg::Image::computePixelFormat(texture->getInternalFormat()), 
+                osg::Image::computeFormatDataType(texture->getInternalFormat()), NULL);
+            it->second->unbindBuffer(ri.getContextID());
+        }
+
+        // unit should know that we are about to render it and let us know if we should render 
+        if (_parent->noticeBeginRendering(ri, dr))
+        {
+            // set matricies used for the unit
+            ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
+            ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
+    
+            // now render the drawable geometry
+            dr->drawImplementation(ri);
+        }
+
+        // ok rendering is done, unit can do other stuff.
         _parent->noticeFinishRendering(ri, dr);
-        //printf("RENDER UNIT %s (%d) \n", _parent->getName().c_str(), _parent->getOrCreateStateSet()->getBinNumber());
+
+        // copy content of the output textures into output pbos
+        for (PixelDataBufferObjectMap::iterator it = _parent->mOutputPBO.begin(); it != _parent->mOutputPBO.end(); it++)
+        {
+            if (!it->second) continue;
+
+            // bind buffer in read mode and copy texture content into the buffer
+            it->second->bindBufferInReadMode(*ri.getState());
+
+            // upload buffer content into the texture
+            osg::Texture2D* tex = dynamic_cast<osg::Texture2D*>(_parent->mOutputTex[it->first].get());
+            if (tex)
+            {
+                ri.getState()->applyTextureAttribute(it->first, tex);
+                glTexSubImage2D(tex->getTextureTarget(), 0, 0, 0, 
+                    tex->getTextureWidth(), tex->getTextureHeight(), 
+                    osg::Image::computePixelFormat(tex->getInternalFormat()), 
+                    osg::Image::computeFormatDataType(tex->getInternalFormat()), NULL);
+            }
+
+            it->second->unbindBuffer(ri.getContextID());
+        }
+
     }
 }
 
@@ -608,27 +658,10 @@ void Unit::printDebugInfo(const osg::Drawable* dr)
     {
         const osg::Viewport* viewport = dynamic_cast<const osg::Viewport*>(getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT));
         if (viewport == NULL) viewport = dynamic_cast<const osg::Viewport*>(dr->getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT));
-        osg::notify(level) << std::dec << "\t vp (ref " << (int)getInputTextureIndexForViewportReference() << "): " << (int)(viewport->x()) << " " << (int)(viewport->y()) << " " << (int)(viewport->width()) << " " << (int)(viewport->height()) << std::endl;
+        osg::notify(level) << std::dec << "\t vp " << std::hex << viewport << std::dec << " (ref " << (int)getInputTextureIndexForViewportReference() << "): " << (int)(viewport->x()) << " " << (int)(viewport->y()) << " " << (int)(viewport->width()) << " " << (int)(viewport->height()) << std::endl;
     }
 
-    if (getShader() != NULL)
-    {
-        osg::notify(level) << "\t shader DEPRECATED: " << std::hex << getShader() << std::dec << std::endl;
-        osg::StateSet::UniformList::const_iterator jt = getShader()->getUniformList().begin();
-        for (; jt != getShader()->getUniformList().end(); jt++)
-        {
-            float fval = -1.0;
-            int ival = -1;
-            if (jt->second.first->getType() == osg::Uniform::INT || jt->second.first->getType() == osg::Uniform::SAMPLER_2D)
-            {
-                jt->second.first->get(ival);
-                osg::notify(level) << "\t\t" << jt->first << " : " << ival << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
-            }else if (jt->second.first->getType() == osg::Uniform::FLOAT){
-                jt->second.first->get(fval);
-                osg::notify(level) << "\t\t" << jt->first << " : " << fval << std::endl;//, (jt->second.second & osg::StateAttribute::ON) != 0);
-            }
-        }
-    }else if (getStateSet()->getAttribute(osg::StateAttribute::PROGRAM) || (dr && dr->getStateSet()->getAttribute(osg::StateAttribute::PROGRAM)))
+    if (getStateSet()->getAttribute(osg::StateAttribute::PROGRAM) || (dr && dr->getStateSet()->getAttribute(osg::StateAttribute::PROGRAM)))
     {
         const osg::Program* prog = dynamic_cast<const osg::Program*>(getStateSet()->getAttribute(osg::StateAttribute::PROGRAM));
         if (prog == NULL) prog = dynamic_cast<const osg::Program*>(dr->getStateSet()->getAttribute(osg::StateAttribute::PROGRAM));

@@ -66,9 +66,11 @@ namespace osgPPU
         // if we have to reset the resampling factor
         if (mDirtyFactor)
         {
-            // setup new viewport size
-            mViewport->width() *= mWidthFactor;
-            mViewport->height() *= mHeightFactor;
+            float width = (float)mViewport->width();
+            float height = (float)mViewport->height();
+
+            mViewport->width() = (osg::Viewport::value_type)(width * mWidthFactor);
+            mViewport->height() = (osg::Viewport::value_type)(height * mHeightFactor);
             mDirtyFactor = false;
 
             // notice that we changed the viewport

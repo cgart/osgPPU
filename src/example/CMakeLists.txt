@@ -6,6 +6,11 @@ ADD_SUBDIRECTORY(texture3D)
 ADD_SUBDIRECTORY(video)
 #ADD_SUBDIRECTORY(ssao)
 
+#if CUDA found, then build cuda example
+IF(CUDA_NVCC)
+    ADD_SUBDIRECTORY(cuda)
+ENDIF(CUDA_NVCC)
+
 
 ################################################################################
 # Copy data files out from src/examples into the build bin directory

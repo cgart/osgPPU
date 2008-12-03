@@ -47,6 +47,7 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitOutCapture::noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable)
     {
+    printf("CAPTURE \n");
         if (getActive() && renderInfo.getState())
         {
             // for each input texture do
@@ -64,11 +65,12 @@ namespace osgPPU
                 osg::Texture* input = getInputTexture(i);
     
                 // bind input texture, so that we can get image from it
-                if (input != NULL) input->apply(*renderInfo.getState());
+                if (input != NULL) 
+                    renderInfo.getState()->applyTextureAttribute(0, input);
                 
                 // retrieve texture content
                 osg::ref_ptr<osg::Image> img = new osg::Image();
-                img->readImageFromCurrentTexture(renderInfo.getContextID(), false);
+                img->readImageFromCurrentTexture(renderInfo.getContextID(), false, osg::Image::computeFormatDataType(input->getInternalFormat()));
                 osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
                 if (res.success())
                     osg::notify(osg::WARN) << " OK" << std::endl;
@@ -76,8 +78,8 @@ namespace osgPPU
                     osg::notify(osg::WARN) << " failed! (" << res.message() << ")" << std::endl;
                             
                 // unbind the texture back 
-                if (input != NULL)
-                    renderInfo.getState()->applyTextureMode(0, input->getTextureTarget(), false);
+                //if (input != NULL)
+                //    renderInfo.getState()->applyTextureMode(0, input->getTextureTarget(), false);
 
                 // release character memory
                 free(filename);

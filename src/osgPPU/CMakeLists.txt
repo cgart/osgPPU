@@ -29,7 +29,9 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/ColorAttribute.h
     ${HEADER_PATH}/ShaderAttribute.h
     ${HEADER_PATH}/UnitCamera.h
+    ${OSGPPU_CONFIG_HEADER}
 )
+
 
 ADD_LIBRARY(${LIB_NAME}
     ${OSGPPU_USER_DEFINED_DYNAMIC_OR_STATIC}
@@ -53,7 +55,9 @@ ADD_LIBRARY(${LIB_NAME}
     ColorAttribute.cpp
     ShaderAttribute.cpp
     UnitCamera.cpp
+    UnitInOutModule.cpp
 )
+
 
 LINK_WITH_VARIABLES(${LIB_NAME}     
     OSG_LIBRARY
