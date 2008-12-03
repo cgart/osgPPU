@@ -38,12 +38,10 @@ namespace osgPPU
             UnitBypass(const UnitBypass& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
             virtual ~UnitBypass();
-            
-            virtual void init();
     
         protected:
             virtual void setupInputsFromParents();
-            
+            virtual bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) { return false; }            
     };
 };
 

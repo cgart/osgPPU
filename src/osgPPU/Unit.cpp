@@ -392,7 +392,6 @@ void Unit::traverse(osg::NodeVisitor& nv)
         if (mbUpdateTraversed == false)
         {
             mbUpdateTraversed = true;
-        //printf("UNIT %s UPDATE traverse\n", getName().c_str());
 
             update();
             getStateSet()->runUpdateCallbacks(&nv);
@@ -404,7 +403,6 @@ void Unit::traverse(osg::NodeVisitor& nv)
     {
         if (mbCullTraversed == false)
         {
-        //printf("UNIT %s (%d) CULL traverse\n", getName().c_str(), getOrCreateStateSet()->getBinNumber());
             mbCullTraversed = true;
             osg::Group::traverse(nv);
         }

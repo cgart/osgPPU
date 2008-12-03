@@ -394,6 +394,9 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
 
+        //! Traverse the unit
+        virtual void traverse(osg::NodeVisitor& nv);
+
     private:
         bool mbActive;
 
@@ -402,7 +405,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         bool mbCullTraversed; // requires to check whenever unit was already traversed by cull visitor
 
         void printDebugInfo(const osg::Drawable* dr);
-        void traverse(osg::NodeVisitor& nv);
 
         // it is good to have friends
         friend class Processor;
