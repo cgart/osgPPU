@@ -367,6 +367,10 @@ void ShaderAttribute::apply(osg::State& state) const
     if (lastAppliedProgram == NULL) return;
     //assert(lastAppliedProgram == getPCP(state.getContextID()));
 
+    // if texture boundings are dirty, then reset them
+    if (mDirtyTextureBindings)
+        const_cast<ShaderAttribute*>(this)->resetTextureUniforms();
+
     // now apply all uniforms which are in the database
     for (osg::StateSet::UniformList::const_iterator it = mUniforms.begin(); it != mUniforms.end(); it++)
     {
@@ -374,9 +378,6 @@ void ShaderAttribute::apply(osg::State& state) const
             lastAppliedProgram->apply(*(it->second.first));
     }
 
-    // if texture boundings are dirty, then reset them
-    if (mDirtyTextureBindings)
-        const_cast<ShaderAttribute*>(this)->resetTextureUniforms();
 }
 
 //--------------------------------------------------------------------------
@@ -438,7 +439,9 @@ void ShaderAttribute::resetTextureUniforms()
             {
                 // for each parent stateset we set apply the textures accordingly
                 for (unsigned j=0; j < getNumParents(); j++)
+                {
                     getParent(j)->setTextureAttribute(i, units[i]->t.get());
+                }
 
                 // setup default texture properties
                 if (get("g_TextureWidth")) set(i, "g_TextureWidth", units[i]->t->getTextureWidth());

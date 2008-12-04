@@ -1,3 +1,55 @@
+2008-12-03 22:39  art
+
+	* [r177]
+	  - merge sandbox with trunk
+	  - now support for CUDA implemented
+	  - using PixelDataBufferObjects to map OpenGL textures into the
+	  buffer
+	  - buffer can be then used in an external modules loaded by
+	  UnitInOutModule
+	  - CUDA 2.0 example showing how to create and load an osgPPU
+	  Module to run a simple blur-cuda kernel on the input
+
+2008-11-19 16:05  art
+
+	* [r165]
+	  - UnitCamera - new unit to bring an external camera into the
+	  pipeline
+
+2008-11-19 15:44  art
+
+	* [r164]
+	  - camera attachment bypass added
+	  - now one can specify any camera to bring it into the osgppu
+	  pipeline
+
+2008-11-11 15:44  art
+
+	* [r163]
+	  - SSAO example deactivated
+
+2008-11-11 15:42  art
+
+	* [r162]
+	  From Jean-Sebastien Guay:
+	  On Windows, we need to have the 'd' suffix on the plugin DLL too,
+	  and the code in CMakeModules/OsgPPUMacroUtils.cmake
+	  (SETUP_PLUGIN) just removed the suffix in the NOT MSVC case, but
+	  never added it in the else... so I added that.
+
+2008-10-27 15:34  art
+
+	* [r161]
+	  - make child units of the texture unit dirty after the texture
+	  was applied. This will force the child units to reload the input
+	  texture and to resetup its properties
+
+2008-10-20 11:59  art
+
+	* [r159]
+	  - critical bug in visitor corrected which hasn't incremented
+	  render bin numbers
+
 2008-10-13 10:14  art
 
 	* [r158]
