@@ -152,7 +152,6 @@ Unit* Processor::findUnit(const std::string& name)
         FindUnitVisitor uv(name);
         uv.run(this);
         return uv.getResult();
-        //return mVisitor->findUnit(name, this);
     }
     return NULL;
 }
@@ -179,33 +178,34 @@ void Processor::traverse(osg::NodeVisitor& nv)
     // if not initialized before, then do it
     if (mbDirty) init();
 
-    // if processor is propagated by the osg's visitor, then
+    // if subgraph is dirty, then we have to resetup it
+    // we do this on the first visitor which runs over the pipeline because this also removes cycles
+    if (mbDirtyUnitGraph)
+    {
+        mbDirtyUnitGraph = false;
+
+        // first resolve all cycles in the set
+        ResolveUnitsCyclesVisitor rv;
+        rv.run(this);
+
+        // debug information
+        osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
+        osg::notify(osg::INFO) << "BEGIN " << getName() << std::endl;
+
+        SetupUnitRenderingVisitor sv(this);
+        sv.run(this);
+
+        osg::notify(osg::INFO) << "END " << getName() << std::endl;
+        osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
+
+        // optimize subgraph
+        OptimizeUnitsVisitor ov;
+        ov.run(this);
+    }
+
+    // first we need to clear traversion bit of every unit
     if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        if (mbDirtyUnitGraph)
-        {
-            mbDirtyUnitGraph = false;
-
-            // first resolve all cycles in the set
-            ResolveUnitsCyclesVisitor rv;
-            rv.run(this);
-
-            // debug information
-            osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
-            osg::notify(osg::INFO) << "BEGIN " << getName() << std::endl;
-
-            SetupUnitRenderingVisitor sv(this);
-            sv.run(this);
-
-            osg::notify(osg::INFO) << "END " << getName() << std::endl;
-            osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
-
-            // optimize subgraph
-            OptimizeUnitsVisitor ov;
-            ov.run(this);
-        }
-
-        // first we need to clear traversion bit of every unit
         sCleanUpdateTraverseMaskVisitor->run(this);
     }
 

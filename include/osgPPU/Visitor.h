@@ -37,6 +37,7 @@ class OSGPPU_EXPORT UnitVisitor : public osg::NodeVisitor
         virtual void run(osg::Group* root) { root->traverse(*this); }
         inline  void run(osg::Group& root) { run(&root); }
 
+        virtual const char* getVisitorName() { return ""; }
 };
 
 //------------------------------------------------------------------------------
@@ -58,6 +59,8 @@ public:
     }
 
     void run (osg::Group* root);
+
+    const char* getVisitorName() { return "CleanUpdateTraversedVisitor"; }
 
 private:
     OpenThreads::Mutex _mutex;
@@ -83,6 +86,8 @@ public:
 
     void run (osg::Group* root);
 
+    const char* getVisitorName() { return "CleanCullTraversedVisitor"; }
+
 private:
     OpenThreads::Mutex _mutex;
 };
@@ -102,6 +107,8 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
+
+    const char* getVisitorName() { return "SetMaximumInputsVisitor"; }
 
 private:
     unsigned int mMaxUnitInputIndex;
@@ -131,6 +138,7 @@ public:
 
     Unit* getResult() { return _result; }
 
+    const char* getVisitorName() { return "FindUnitVisitor"; }
 private:
     std::string _name;
     Unit* _result;
@@ -149,6 +157,8 @@ public:
     }
 
     void run (osg::Group* root);
+
+    const char* getVisitorName() { return "RemoveUnitVisitor"; }
 };
 
 
@@ -167,6 +177,7 @@ public:
     void apply (osg::Group &node);
     void run (osg::Group* root);
 
+    const char* getVisitorName() { return "OptimizeUnitsVisitor"; }
 private:
     unsigned _maxUnitInputIndex;
 };
@@ -185,6 +196,8 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
+
+    const char* getVisitorName() { return "ResolveUnitsCyclesVisitor"; }
 };
 
 //------------------------------------------------------------------------------
@@ -201,6 +214,8 @@ public:
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
+
+    const char* getVisitorName() { return "SetupUnitRenderingVisitor"; }
 private:
     typedef std::list<Unit*> UnitSet;
     Processor* _proc;
@@ -226,6 +241,8 @@ public:
     }
 
     osgPPU::Processor* _processor;
+
+    const char* getVisitorName() { return "FindProcessorVisitor"; }
 };
 
 

@@ -69,7 +69,7 @@ namespace osgPPU
                 
                 // retrieve texture content
                 osg::ref_ptr<osg::Image> img = new osg::Image();
-                img->readImageFromCurrentTexture(renderInfo.getContextID(), false);
+                img->readImageFromCurrentTexture(renderInfo.getContextID(), false, osg::Image::computeFormatDataType(input->getInternalFormat()));
                 osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
                 if (res.success())
                     osg::notify(osg::WARN) << " OK" << std::endl;
