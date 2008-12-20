@@ -100,8 +100,8 @@ int main(int argc, char** argv)
     // set up the usage document, in case we need to print out how to use this program.
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName() + " exampel of demonstraing Screen-Space Ambient Occlusion within osgPPU");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName());
-    arguments.getApplicationUsage()->addCommandLineOption("--width","Set the width of the render to texture (default 1024)");
-    arguments.getApplicationUsage()->addCommandLineOption("--height","Set the height of the render to texture (default 1024)");
+    arguments.getApplicationUsage()->addCommandLineOption("--width","Set the width of the render to texture (default windowWidth)");
+    arguments.getApplicationUsage()->addCommandLineOption("--height","Set the height of the render to texture (default windowHeight)");
     arguments.getApplicationUsage()->addCommandLineOption("--simple","Use very simple algorithm to create SSAO effect (is used per default)");
     arguments.getApplicationUsage()->addCommandLineOption("--aomap","Show only the Ambient Occlusion Map");
     arguments.getApplicationUsage()->write(std::cout);
@@ -129,8 +129,8 @@ int main(int argc, char** argv)
         showAOMap = true;
     
     // get parameters
-    unsigned tex_width = 1024;
-    unsigned tex_height = 1024;
+    unsigned tex_width = windowWidth;
+    unsigned tex_height = windowHeight;
     while (arguments.read("--width", tex_width)) {}
     while (arguments.read("--height", tex_height)) {}
     arguments.reportRemainingOptionsAsUnrecognized();
