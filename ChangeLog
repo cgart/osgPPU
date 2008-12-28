@@ -1,3 +1,31 @@
+2008-12-20 10:07  art
+
+	* [r183]
+	  - just changed the resolution slightly to increase the
+	  performance
+
+2008-12-19 15:06  art
+
+	* [r182]
+	  - SSAO added simple example
+
+2008-12-17 10:21  art
+
+	* [r181]
+	  - Each visitor do now returns its name as a string
+	  - Solve the problem of unit cycles which come from some undefined
+	  visitor running over the pipeline
+
+2008-12-04 22:42  art
+
+	* [r180]
+	  - Small change in the UnitCaputre, the results were broken
+
+2008-12-03 22:42  art
+
+	* [r179]
+	  - UnitBypass small changes
+
 2008-12-03 22:39  art
 
 	* [r177]

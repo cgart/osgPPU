@@ -14,6 +14,7 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 #include "Base.h"
+#include <cstring>
 
 //--------------------------------------------------------------------------
 bool StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mode)
