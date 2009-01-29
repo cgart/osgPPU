@@ -9,6 +9,20 @@ SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the
 
 
 #######################################
+# Versions
+#######################################
+SET(OSGPPU_MAJOR_VERSION 0)
+SET(OSGPPU_MINOR_VERSION 3)
+SET(OSGPPU_PATCH_VERSION 7)
+SET(OSGPPU_SOVERSION 3)
+
+SET(OSGPPU_RELEASE_CANDIDATE 0)
+
+SET(OSGPPU_VERSION ${OSGPPU_MAJOR_VERSION}.${OSGPPU_MINOR_VERSION}.${OSGPPU_PATCH_VERSION})
+SET(OSGPPU_SONAMES TRUE)
+
+
+#######################################
 # Dynamic vs Static Linking
 #######################################
 OPTION(DYNAMIC_OSGPPU "Set to ON to build osgPPU for dynamic linking.  Use OFF for static." ON)
@@ -118,6 +132,65 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 ################################################################################
+
+OPTION(OSGPPU_MAINTAINER "Enable osgPPU maintainer build methods, such as making svn branches, tags, updating ChangeLog." OFF)
+IF (OSGPPU_MAINTAINER)
+
+    SET(OSGPPU_SVN "trunk")
+    #SET(OPENSCENEGRAPH_SVN "branches")
+    SET(OSGPPU_BRANCH OpenSceneGraph-${OSGPPU_MAJOR_VERSION}.${OSGPPU_MINOR_VERSION})
+
+    #
+    # Provide target for tagging a release
+    #
+    SET(SVNCOMMAND svn)
+    SET(SVNTRUNKDIR     http://svn.tevs.eu/osgPPU/trunk)
+    SET(SVNTAGDIR       http://svn.tevs.eu/osgPPU/tags)
+    SET(SVNBRANCHDIR    http://svn.tevs.eu/osgPPU/branch)
+
+    IF   (OSGPPU_SVN STREQUAL "trunk")
+        SET(SVNSOURCEDIR ${SVNTRUNKDIR})
+    ELSE (OOSGPPU_SVN STREQUAL "trunk")
+        SET(SVNSOURCEDIR ${SVNBRANCH_DIR}/${OSGPPU_BRANCH})
+    ENDIF(OSGPPU_SVN STREQUAL "trunk")
+
+
+    IF   (OSGPPU_RELEASE_CANDIDATE EQUAL 0)
+        SET(RELEASE_NAME osgPPU-${OSGPPU_VERSION})
+    ELSE (OSGPPU_RELEASE_CANDIDATE EQUAL 0)
+        SET(RELEASE_NAME osgPPU-${OSGPPU_VERSION}-rc${OSGPPU_RELEASE_CANDIDATE})
+    ENDIF(OSGPPU_RELEASE_CANDIDATE EQUAL 0)
+
+
+    ADD_CUSTOM_TARGET(tag-test
+        COMMAND echo ${SVNCOMMAND} copy ${SVNSOURCEDIR} ${SVNTAGDIR}/${RELEASE_NAME} -m "Release ${RELEASE_NAME}"
+    )
+
+    ADD_CUSTOM_TARGET(tag-run
+        COMMAND ${SVNCOMMAND} copy ${SVNSOURCEDIR} ${SVNTAGDIR}/${RELEASE_NAME} -m "Release ${RELEASE_NAME}"
+    )
+
+    ADD_CUSTOM_TARGET(branch-test
+        COMMAND echo ${SVNCOMMAND} copy ${SVNSOURCEDIR} ${SVNBRANCHDIR}/${OSGPPU_BRANCH} -m "Branch ${OSGPPU_BRANCH}"
+    )
+
+    ADD_CUSTOM_TARGET(branch-run
+        COMMAND ${SVNCOMMAND} copy ${SVNSOURCEDIR} ${SVNBRANCHDIR}/${OSGPPU_BRANCH} -m "Branch ${OSGPPU_BRANCH}"
+    )
+
+    #
+    # Provide target for generating ChangeLog
+    #
+    SET(GENERATELOGS svn2cl)
+
+    ADD_CUSTOM_TARGET(ChangeLog
+        COMMAND ${SVNCOMMAND} update
+        #COMMAND ${SVNCOMMAND} up
+        #COMMAND ${GENERATELOGS}
+        COMMAND ${SVNCOMMAND} log --xml --verbose | xsltproc doc/scripts/svn2cl.xsl - > ChangeLog
+    )
+    
+ENDIF(OSGPPU_MAINTAINER)
 
 
 ################################################################################

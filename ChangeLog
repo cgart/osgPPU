@@ -1,3 +1,22 @@
+2009-01-14 11:06  art
+
+	* [r186]
+	  From Valery Bickov:
+	  - modified OsgPPUMacroUtils.cmake for correct variable names
+	  
+
+2009-01-02 17:43  art
+
+	* [r185]
+	  From Bob Kuehne:
+	  "this brings it in-sync with the out-of-source stuff that i
+	  helped osg do a while ago"
+
+2008-12-28 16:58  art
+
+	* [r184]
+	  - include cstring in Base.cpp of osgPlugins osgPPU
+
 2008-12-20 10:07  art
 
 	* [r183]
