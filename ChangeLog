@@ -1,3 +1,9 @@
+2009-01-29 13:34  art
+
+	* [r187]
+	  - move authors.txt to contributors.txt
+	  - added soversion to the libosgppu shared library
+
 2009-01-14 11:06  art
 
 	* [r186]
