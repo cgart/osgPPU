@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    ssao
+    ${EXAMPLE_PREFIX}ssao
 )
 
 SET(TARGET_SRC 

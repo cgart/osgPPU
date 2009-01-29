@@ -113,7 +113,7 @@ osg::StateSet* createState(osgPPU::Processor* processor)
 
     if (!image[0] || !image[1] || !image[2] || !image[3])
     {
-        std::cout << "Warning: could not open files."<<std::endl;
+        std::cout << "Warning: could not open files: Data/Images/..."<<std::endl;
         return new osg::StateSet;
     }
 

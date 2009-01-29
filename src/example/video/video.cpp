@@ -130,20 +130,26 @@ int main(int , char **)
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
     viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
-    // setup scene
-    osg::Group* node = new osg::Group();
-    gQuad = new osg::Geode();
-    gQuad->addDrawable(createSquare());
-    node->addChild(gQuad);
 
     // load video file
     osg::ref_ptr<osg::Image> image = osgDB::readImageFile("Data/Images/video.avi");
+    if (image == NULL)
+    {
+        printf("File not found: Data/Images/video.avi !\n");
+        return 1;
+    }
     osg::ImageStream* videoStream = dynamic_cast<osg::ImageStream*>(image.get());
     if (videoStream)
     {
         videoStream->setLoopingMode(osg::ImageStream::LOOPING);
         videoStream->play();
     }
+
+    // setup scene
+    osg::Group* node = new osg::Group();
+    gQuad = new osg::Geode();
+    gQuad->addDrawable(createSquare());
+    node->addChild(gQuad);
 
     // setup texture which will hold the video file
     gVideoTexture = new osg::Texture2D();

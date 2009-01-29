@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    video
+    ${EXAMPLE_PREFIX}video
 )
 
 SET(TARGET_SRC 

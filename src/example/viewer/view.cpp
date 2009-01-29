@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     osg::ArgumentParser arguments(&argc,argv);
 
     // give some info in the console
-    printf("view ppufile [osgfile]\n");
+    printf("Usage: viewer ppufile [osgfile]\n");
 
     if (argc <= 1) return 0;
 
@@ -90,8 +90,12 @@ int main(int argc, char **argv)
     osg::Group* node = new osg::Group();
     osg::Node* loadedModel = NULL;
     if (argc > 2) loadedModel = osgDB::readNodeFile(arguments[2]);
+    if (argc > 2 && !loadedModel)
+    {
+        printf("File not found %s !\n", arguments[2]);
+        return 1;
+    }
     if (!loadedModel) loadedModel = createTeapot();
-    if (!loadedModel) return 1;
     node->addChild(loadedModel);
 
     // disable color clamping, because we want to work on real hdr values

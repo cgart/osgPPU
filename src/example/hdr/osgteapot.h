@@ -326,7 +326,10 @@ osg::Geode* createTeapot()
         
     // add a reflection map to the teapot.     
     osg::Image* image = osgDB::readImageFile("Data/Images/reflect.rgb");
-    if (image)
+    if (image==NULL)
+    {
+        printf("File not found: Data/Images/reflect.rgb !\n");
+    }else
     {
         osg::Texture2D* texture = new osg::Texture2D;
         texture->setImage(image);
@@ -350,6 +353,7 @@ osg::Geode* createTeapot()
         
         stateset->setAttribute(mat, osg::StateAttribute::ON);
     }
+
 
     // add some more objects
     

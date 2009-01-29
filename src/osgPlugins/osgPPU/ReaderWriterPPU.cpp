@@ -210,12 +210,6 @@ public:
 
         }
 
-        // now we have to resolve cycles before returing the object
-        //osg::ref_ptr<osgPPU::Visitor> visitor = new osgPPU::Visitor(pp.get());
-        //visitor->perform(osgPPU::Visitor::RESOLVE_CYCLES, pp.get());
-        osgPPU::ResolveUnitsCyclesVisitor rv;
-        rv.run(pp.get());
-
         return pp.get();
     }
 

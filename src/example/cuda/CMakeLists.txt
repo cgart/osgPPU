@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    cuda
+    ${EXAMPLE_PREFIX}cuda
 )
 
 SET(TARGET_SRC 

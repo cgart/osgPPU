@@ -149,7 +149,12 @@ class Viewer : public osgViewer::Viewer
 
                 // input texture is output of the camera bypass, so that we see original scene view
                 osg::Texture2D* img = new osg::Texture2D();
-                img->setImage(osgDB::readImageFile("Data/Images/reflect.rgb"));
+                osg::ref_ptr<osg::Image> imgfile = osgDB::readImageFile("Data/Images/reflect.rgb");
+                if (imgfile == NULL)
+                {
+                    printf("File not found: Data/Images/reflect.rgb !\n");
+                }
+                img->setImage(imgfile);
                 unittex->setTexture(img);
 
                 // create picture in picture ppu

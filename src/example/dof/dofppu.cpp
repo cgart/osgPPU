@@ -231,8 +231,13 @@ int main(int argc, char **argv)
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
 
     // setup scene
-    osg::Group* node = new osg::Group();
     osg::Node* scene = osgDB::readNodeFile("Data/cow.osg");
+    if (scene == NULL)
+    {
+        printf("File not found: Data/cow.osg !\n");
+        return 0;
+    }
+    osg::Group* node = new osg::Group();
     osg::MatrixTransform* rotation = new osg::MatrixTransform;
     rotation->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(15.0),0.0,1.0,0.0)
                         * osg::Matrix::rotate(osg::DegreesToRadians(65.0),0.0,0.0,-1.0));

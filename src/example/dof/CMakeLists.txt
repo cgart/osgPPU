@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    dof
+    ${EXAMPLE_PREFIX}dof
 )
 
 SET(TARGET_SRC 

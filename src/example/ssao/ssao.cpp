@@ -144,7 +144,11 @@ int main(int argc, char** argv)
     osg::Group* root= new osg::Group;
     osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
     if (!loadedModel) loadedModel = osgDB::readNodeFile("Data/temple.ive");
-    if (!loadedModel) return 1;
+    if (!loadedModel)
+    {
+        printf("File not found: Data/temple.ive !\n");
+        return 1;
+    }
 
     // rotate camera to look onto the model
     osg::MatrixTransform* rotation = new osg::MatrixTransform;

@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    cubemap
+    ${EXAMPLE_PREFIX}cubemap
 )
 
 SET(TARGET_SRC 

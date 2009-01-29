@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    viewer
+    ${EXAMPLE_PREFIX}viewer
 )
 
 SET(TARGET_SRC 

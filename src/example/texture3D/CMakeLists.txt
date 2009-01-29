@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    texture3D
+    ${EXAMPLE_PREFIX}texture3D
 )
 
 SET(TARGET_SRC 

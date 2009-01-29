@@ -12,6 +12,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_3
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -31,6 +33,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_6
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -56,6 +60,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "LuminanceShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 1
       Shader {
         type FRAGMENT
@@ -99,6 +106,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_8
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -124,6 +133,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "LuminanceShaderMipmap"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 1
       Shader {
         type FRAGMENT
@@ -240,6 +252,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_10
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -271,6 +285,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "BrightpassShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 1
       Shader {
         type FRAGMENT
@@ -366,6 +383,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_12
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -389,6 +408,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "BlurHorizontalShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 2
       Shader {
         UniqueID Shader_14
@@ -520,6 +542,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_15
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -543,6 +567,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "BlurVerticalShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 2
       Use Shader_14
       Shader {
@@ -635,6 +662,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_16
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -661,11 +690,16 @@ osgPPU::Processor {
 
     PPUOutput {
       PPU UnitText_17
-      PPU UnitOut_18
+      PPU UnitText_18
+      PPU UnitInOut_19
+      PPU UnitOut_20
     }
 
     osgPPU::ShaderAttribute {
       name "HDRResultShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 1
       Shader {
         type FRAGMENT
@@ -737,7 +771,7 @@ osgPPU::Processor {
           "	vec4 color = hdrColor * fScaledLum;"
           ""
           "	// gamma correction"
-          "	gl_FragColor.rgb = blurColor * fBlurFactor + color;"
+          "	gl_FragColor.rgb = blurColor.rgb * fBlurFactor + color.rgb;"
           "    gl_FragColor.a = 1.0;   "
           "}"
         }
@@ -766,7 +800,9 @@ osgPPU::Processor {
     }
 
     osgPPU::ColorAttribute {
-      UniqueID ColorAttribute_19
+      UniqueID ColorAttribute_21
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -788,7 +824,9 @@ osgPPU::Processor {
     }
 
     osgPPU::ColorAttribute {
-      UniqueID ColorAttribute_20
+      UniqueID ColorAttribute_22
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -802,7 +840,7 @@ osgPPU::Processor {
     size 44
     osgText::Text {
       StateSet {
-        UniqueID StateSet_21
+        UniqueID StateSet_23
         rendering_hint TRANSPARENT_BIN
         renderBinMode INHERIT
       }
@@ -831,8 +869,95 @@ osgPPU::Processor {
       colorGradientTopRight 1 1 1 1
     }
   }
+  osgPPU::UnitText {
+    UniqueID UnitText_18
+    name "TextPPU"
+    isActive 1
+    inputTextureIndexForViewportReference 0
+
+    PPUOutput {
+    }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_24
+      UpdateCallback {
+      }
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
+    inputBypass -1
+    outputInternalFormat GL_RGBA16F_ARB
+    outputTextureType TEXTURE_2D
+    outputFace 0
+    outputDepth 1
+    size 46
+    osgText::Text {
+      Use StateSet_23
+      supportsDisplayList FALSE
+      useDisplayList FALSE
+      useVertexBufferObjects FALSE
+      fontResolution 32 32
+      characterSize 32 1
+      characterSizeMode SCREEN_COORDS
+      alignment LEFT_BASE_LINE
+      autoRotateToScreen TRUE
+      layout LEFT_TO_RIGHT
+      position 0.025 0.425 0
+      drawMode 1
+      text "osgPPU rocks!"
+      color 1 1 1 1
+      backdropType NONE
+      backdropHorizontalOffset 0.07
+      backdropVerticalOffset 0.07
+      backdropColor 0 0 0 1
+      backdropImplementation DEPTH_RANGE
+      colorGradientMode SOLID
+      colorGradientTopLeft 1 0 0 1
+      colorGradientBottomLeft 0 1 0 1
+      colorGradientBottomRight 0 0 1 1
+      colorGradientTopRight 1 1 1 1
+    }
+  }
+  osgPPU::UnitInOut {
+    UniqueID UnitInOut_19
+    name "PictureInPicturePPU"
+    isActive 1
+    inputTextureIndexForViewportReference -1
+
+    IgnoreInput {
+      1
+    }
+
+    PPUOutput {
+    }
+
+    Viewport {
+      UniqueID Viewport_25
+      x 10
+      y 10
+      width 256
+      height 144
+    }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_26
+      UpdateCallback {
+      }
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
+    inputBypass 1
+    outputInternalFormat GL_RGBA16F_ARB
+    outputTextureType TEXTURE_2D
+    outputFace 0
+    outputDepth 1
+  }
   osgPPU::UnitOut {
-    UniqueID UnitOut_18
+    UniqueID UnitOut_20
     name "PipelineResult"
     isActive 1
     inputTextureIndexForViewportReference -1
@@ -841,7 +966,9 @@ osgPPU::Processor {
     }
 
     osgPPU::ColorAttribute {
-      UniqueID ColorAttribute_22
+      UniqueID ColorAttribute_27
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -855,13 +982,13 @@ osgPPU::Processor {
     inputTextureIndexForViewportReference -1
 
     PPUOutput {
-      PPU UnitInOut_23
+      PPU UnitInOut_28
       PPU UnitInOut_5
       PPU UnitInOut_2
     }
 
     Viewport {
-      UniqueID Viewport_24
+      UniqueID Viewport_29
       x 0
       y 0
       width 1
@@ -870,6 +997,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "AdaptLuminanceShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 1
       Shader {
         type FRAGMENT
@@ -997,7 +1127,9 @@ osgPPU::Processor {
     }
 
     osgPPU::ColorAttribute {
-      UniqueID ColorAttribute_25
+      UniqueID ColorAttribute_30
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -1010,7 +1142,7 @@ osgPPU::Processor {
     outputDepth 1
   }
   osgPPU::UnitInOut {
-    UniqueID UnitInOut_23
+    UniqueID UnitInOut_28
     name "AdaptedLuminanceCopy"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -1020,7 +1152,9 @@ osgPPU::Processor {
     }
 
     osgPPU::ColorAttribute {
-      UniqueID ColorAttribute_26
+      UniqueID ColorAttribute_31
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -1032,8 +1166,45 @@ osgPPU::Processor {
     outputFace 0
     outputDepth 1
   }
+  osgPPU::UnitTexture {
+    UniqueID UnitTexture_32
+    name "TextureUnit"
+    isActive 1
+    inputTextureIndexForViewportReference 0
+
+    PPUOutput {
+      PPU UnitInOut_19
+    }
+
+    osgPPU::ColorAttribute {
+      UniqueID ColorAttribute_33
+      UpdateCallback {
+      }
+      startTime 0
+      endTime 0
+      startColor 1 1 1 1
+      endColor 1 1 1 1
+    }
+    Texture2D {
+      UniqueID Texture2D_34
+      file "Data/Images/reflect.rgb"
+      wrap_s CLAMP
+      wrap_t CLAMP
+      wrap_r CLAMP
+      min_filter LINEAR_MIPMAP_LINEAR
+      mag_filter LINEAR
+      maxAnisotropy 1
+      borderColor 0 0 0 0
+      borderWidth 0
+      useHardwareMipMapGeneration TRUE
+      unRefImageDataAfterApply FALSE
+      internalFormatMode USE_IMAGE_DATA_FORMAT
+      resizeNonPowerOfTwo TRUE
+    }
+  }
   name Processor
   PPUOutput {
     PPU UnitBypass_0
+    PPU UnitTexture_32
   }
 }

@@ -13,6 +13,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_4
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -31,6 +33,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_6
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -57,6 +61,9 @@ osgPPU::Processor {
     osgPPU::ShaderAttribute {
       UniqueID ShaderAttribute_8
       name "BlurHorizontalShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 2
       Shader {
         UniqueID Shader_9
@@ -188,6 +195,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_10
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -212,6 +221,9 @@ osgPPU::Processor {
     osgPPU::ShaderAttribute {
       UniqueID ShaderAttribute_11
       name "BlurVerticalShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 2
       Use Shader_9
       Shader {
@@ -304,6 +316,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_12
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -322,10 +336,10 @@ osgPPU::Processor {
     inputTextureIndexForViewportReference 0
 
     InputToUniformMap {
+      UnitInOut_13 texStrongBlurredColorMap
       UnitBypass_0 texColorMap
-      UnitDepthbufferBypass_13 texDepthMap
+      UnitDepthbufferBypass_14 texDepthMap
       UnitInOut_7 texBlurredColorMap
-      UnitInOut_14 texStrongBlurredColorMap
     }
 
     PPUOutput {
@@ -335,6 +349,9 @@ osgPPU::Processor {
 
     osgPPU::ShaderAttribute {
       name "DoFResultShader"
+      GeometryVerticesOut 1
+      GeometryInputType TRIANGLES
+      GeometryOutputType TRIANGLE_STRIP
       num_shaders 1
       Shader {
         type FRAGMENT
@@ -378,7 +395,7 @@ osgPPU::Processor {
           " **/"
           "void main(void)"
           "{"
-          "    vec2 inTex = gl_TexCoord[0];"
+          "    vec2 inTex = gl_TexCoord[0].st;"
           "    "
           "    // compute distance to the viewer"
           "    float a = zFar / ( zFar - zNear );"
@@ -456,6 +473,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_17
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -478,6 +497,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_18
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -531,6 +552,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_20
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -549,6 +572,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_22
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -569,13 +594,15 @@ osgPPU::Processor {
     inputTextureIndexForViewportReference 0
 
     PPUOutput {
-      PPU UnitInOut_14
+      PPU UnitInOut_13
     }
 
     Use ShaderAttribute_8
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_23
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -588,7 +615,7 @@ osgPPU::Processor {
     outputDepth 1
   }
   osgPPU::UnitInOut {
-    UniqueID UnitInOut_14
+    UniqueID UnitInOut_13
     name "BlurVerticalStrong"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -601,6 +628,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_24
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -613,7 +642,7 @@ osgPPU::Processor {
     outputDepth 1
   }
   osgPPU::UnitDepthbufferBypass {
-    UniqueID UnitDepthbufferBypass_13
+    UniqueID UnitDepthbufferBypass_14
     name "DepthBypass"
     isActive 1
     inputTextureIndexForViewportReference 0
@@ -624,6 +653,8 @@ osgPPU::Processor {
 
     osgPPU::ColorAttribute {
       UniqueID ColorAttribute_25
+      UpdateCallback {
+      }
       startTime 0
       endTime 0
       startColor 1 1 1 1
@@ -633,6 +664,6 @@ osgPPU::Processor {
   name Processor
   PPUOutput {
     PPU UnitBypass_0
-    PPU UnitDepthbufferBypass_13
+    PPU UnitDepthbufferBypass_14
   }
 }

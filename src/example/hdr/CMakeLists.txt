@@ -1,5 +1,5 @@
 SET(TARGET_TARGETNAME
-    hdr
+    ${EXAMPLE_PREFIX}hdr
 )
 
 SET(TARGET_SRC 

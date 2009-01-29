@@ -7,7 +7,6 @@ SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
 SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
 SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
 
-
 #######################################
 # Versions
 #######################################
@@ -90,6 +89,7 @@ ENDIF(WIN32)
 #Solution
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+SET(EXAMPLE_PREFIX osgppu_)
 LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 
 
