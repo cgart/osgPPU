@@ -507,9 +507,7 @@ void Unit::setupInputsFromParents()
     if (changedInput) noticeChangeInput();
 
     // if viewport is not defined and we need viewport from processor, then
-    if (getViewport() == NULL &&
-        (getInputTextureIndexForViewportReference() < 0
-        || getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound))
+    if (getViewport() == NULL && (getInputTextureIndexForViewportReference() < 0 || (getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound)))
     {
         // find the processor
         FindProcessorVisitor fp;
