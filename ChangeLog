@@ -1,3 +1,23 @@
+2009-01-30 21:44  art
+
+	* [r191]
+	  - warning about possible wrong parentheses corrected
+
+2009-01-29 15:44  art
+
+	* [r189]
+	  - renamed execution files of exampels with osgppu_ prefix
+	  - error caused to hang when loading .ppu files is fixed
+	  - error messages added to the examples to let the user know, that
+	  files where not loaded
+	  - .ppu pipeline files updates
+
+2009-01-29 14:56  art
+
+	* [r188]
+	  - enable Device mode for cuda compilation per default, only if
+	  cuda compiler was found
+
 2009-01-29 13:34  art
 
 	* [r187]
