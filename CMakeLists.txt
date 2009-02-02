@@ -66,22 +66,60 @@ SET(GL_LIBS
 # MESSAGE( "project path: ${PROJECT_BINARY_DIR}" )
 # MESSAGE( "source  path: ${osgPPU_SOURCE_DIR}" )
 
+
 #######################################
 # Solution definition
 #######################################
 IF(WIN32)
-    ADD_DEFINITIONS(-D_USE_MATH_DEFINES)
-    ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
-    ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
 
     IF(MSVC)
-        OPTION(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK "Set to OFF to build without incremental linking in debug (release is off by default)" OFF)
-        IF(NOT OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK)
-            SET(CMAKE_MODULE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
-            SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
-            SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
-        ENDIF(NOT OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK)
+        ADD_DEFINITIONS(-D_USE_MATH_DEFINES)
+        ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+        ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
+
+        # This option is to enable the /MP switch for Visual Studio 2005 and above compilers
+        OPTION(WIN32_USE_MP "Set to ON to build osgPPU with the /MP option (Visual Studio 2005 and above)." OFF)
+        MARK_AS_ADVANCED(WIN32_USE_MP)
+        IF(WIN32_USE_MP)
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+        ENDIF(WIN32_USE_MP)
+
     ENDIF(MSVC)
+
+    # Both Cygwin and Msys need -DNOMINMAX ???
+    IF(UNIX)
+        ADD_DEFINITIONS(-DNOMINMAX)
+    ENDIF(UNIX)
+
+########################################################################################################
+# the following options are MSVC specific,
+# the first OSG_MSVC_VERSIONED_DLL activate a custom build-time layout that should allow to run examples and application
+# fron bin folder without requiring installation step.
+# it also prepend "osg${OPENSCENEGRAPH_SOVERSION}-" to only .dll files, leaving .lib files untouched in lib
+# it also use a hack to get rid of Debug and Release folder in MSVC projects
+# all the .dll and .pdb are in bin and all the .lib and .exp are in lib
+#
+# the second option disable incremental linking in debug build , that is enabled by default by CMake
+##########################################################################################################
+
+    IF(MSVC)
+        IF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
+            MESSAGE("Warning:  disabling versioned options 2.4.6 exibits inconsintencies in .pdb naming, at least under MSVC, suggested upgrading at least to 2.4.7")
+            SET(OSGPPU_MSVC_VERSIONED_DLL OFF)
+            SET(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK ON)
+        ELSE(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
+            OPTION(OSGPPU_MSVC_VERSIONED_DLL "Set to ON to build OpenSceneGraph with versioned dll names" ON)
+            MARK_AS_ADVANCED(OSGPPU_MSVC_VERSIONED_DLL)
+            OPTION(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK "Set to OFF to build without incremental linking in debug (release is off by default)" OFF)
+            MARK_AS_ADVANCED(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK)
+            IF(NOT OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK)
+                SET(CMAKE_MODULE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+                SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+                SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+            ENDIF(NOT OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK)
+        ENDIF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
+    ENDIF(MSVC)
+
 ENDIF(WIN32)
 
 
@@ -131,8 +169,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-################################################################################
 
+
+################################################################################
+# maintainer options
+################################################################################
 OPTION(OSGPPU_MAINTAINER "Enable osgPPU maintainer build methods, such as making svn branches, tags, updating ChangeLog." OFF)
 IF (OSGPPU_MAINTAINER)
 
@@ -193,6 +234,18 @@ IF (OSGPPU_MAINTAINER)
 ENDIF(OSGPPU_MAINTAINER)
 
 
+
+################################################################################
+# present the packaging option only if we have the cpack command defined (effectively >= 2.6.0)
+################################################################################
+IF(CMAKE_CPACK_COMMAND)
+    OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
+    IF(BUILD_OSGPPU_PACKAGES)
+      INCLUDE(OsgPPUCPack)
+    ENDIF(BUILD_OSGPPU_PACKAGES)
+ENDIF(CMAKE_CPACK_COMMAND)
+
+
 ################################################################################
 # Create bin and lib directories if required
 ################################################################################
@@ -207,7 +260,6 @@ ENDIF(OSGPPU_MAINTAINER)
 IF(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
-
 ADD_SUBDIRECTORY(src)
 
 
@@ -229,5 +281,3 @@ CONFIGURE_FILE(
   IMMEDIATE @ONLY)
 ADD_CUSTOM_TARGET(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
-
-

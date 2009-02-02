@@ -77,20 +77,24 @@ MACRO(LINK_WITH_VARIABLES TRGTNAME)
 ENDMACRO(LINK_WITH_VARIABLES TRGTNAME)
 
 MACRO(LINK_INTERNAL TRGTNAME)
-    FOREACH(LINKLIB ${ARGN})
-    	IF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
-    		#when using versioned names, the .dll name differ from .lib name, there is a problem with that:
-    		#CMake 2.4.7, at least seem to use PREFIX instead of IMPORT_PREFIX  for computing linkage info to use into projects,
-    		# so we full path name to specify linkage, this prevent automatic inferencing of dependencies, so we add explicit depemdencies
-    		#to library targets used
-
-        TARGET_LINK_LIBRARIES(${TRGTNAME} optimized "${OUTPUT_LIBDIR}/${LINKLIB}" debug "${OUTPUT_LIBDIR}/${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
-        ADD_DEPENDENCIES(${TRGTNAME} ${LINKLIB})
-      ELSE(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
-        TARGET_LINK_LIBRARIES(${TRGTNAME} optimized "${LINKLIB}" debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
-    	ENDIF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
-    ENDFOREACH(LINKLIB)
+    IF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4)
+        TARGET_LINK_LIBRARIES(${TRGTNAME} ${ARGN})
+    ELSE(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4)
+        FOREACH(LINKLIB ${ARGN})
+            IF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
+                #when using versioned names, the .dll name differ from .lib name, there is a problem with that:
+                #CMake 2.4.7, at least seem to use PREFIX instead of IMPORT_PREFIX  for computing linkage info to use into projects,
+                # so we full path name to specify linkage, this prevent automatic inferencing of dependencies, so we add explicit depemdencies
+                #to library targets used
+                TARGET_LINK_LIBRARIES(${TRGTNAME} optimized "${OUTPUT_LIBDIR}/${LINKLIB}.lib" debug "${OUTPUT_LIBDIR}/${LINKLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+                ADD_DEPENDENCIES(${TRGTNAME} ${LINKLIB})
+            ELSE(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
+                TARGET_LINK_LIBRARIES(${TRGTNAME} optimized "${LINKLIB}" debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
+            ENDIF(MSVC AND OSGPPU_MSVC_VERSIONED_DLL)
+        ENDFOREACH(LINKLIB)
+    ENDIF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4)
 ENDMACRO(LINK_INTERNAL TRGTNAME)
+
 
 MACRO(LINK_EXTERNAL TRGTNAME)
     FOREACH(LINKLIB ${ARGN})
