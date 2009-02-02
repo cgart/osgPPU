@@ -204,6 +204,10 @@ ENDIF(OSGPPU_MAINTAINER)
 ################################################################################
 # Compile subdirectory
 ################################################################################
+IF(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 NEW)
+ENDIF(COMMAND cmake_policy)
+
 ADD_SUBDIRECTORY(src)
 
 
