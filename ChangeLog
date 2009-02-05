@@ -1,3 +1,27 @@
+2009-02-05 00:10  art
+
+	* [r195]
+	  - new example showing glow effect in action
+	  - an object is rendered by a slave camera and blurred by gauss
+	  blur function
+	  - example is still not complete and has to be completed soon
+
+2009-02-02 15:29  art
+
+	* [r194]
+	  - append so versioned dll names as in the main osg cmake file
+
+2009-02-02 15:13  art
+
+	* [r193]
+	  - prevent warnings in windows cmake 2.6
+	  - project is now compilable and usable under windows
+
+2009-01-30 21:46  art
+
+	* [r192]
+	  
+
 2009-01-30 21:44  art
 
 	* [r191]

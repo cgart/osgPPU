@@ -270,7 +270,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         /**
         * Return a PixelDataBufferObject associated with the input texture. 
-        * If using of pbos is deactivate, then undefined result might be given back. 
+        * If using of pbos is deactivated, then undefined result might be given back. 
         **/
         inline const osg::PixelDataBufferObject* getInputPBO(int inputIndex) { return mInputPBO[inputIndex].get(); }
         inline const osg::PixelDataBufferObject* getOutputPBO(int mrt) { return mOutputPBO[mrt].get(); }

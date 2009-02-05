@@ -46,20 +46,26 @@
 #include <osgPPU/UnitOut.h>
 #include <osgPPU/UnitCameraAttachmentBypass.h>
 #include <osgPPU/UnitCamera.h>
+#include <osgPPU/ShaderAttribute.h>
 
+#include <osgDB/ReadFile>
 #include <osg/Program>
 #include <osg/Shader>
 
 #include <iostream>
 
-using namespace osg;
+
+float gBlurSigma = 3.0;
+float gBlurRadius = 7.0;
 
 //------------------------------------------------------------------------------
 // Create scene with some geometry and apply proper shader for needed objects
 // return group node containing the scene, also return by reference geode, which should glow
 //------------------------------------------------------------------------------
-ref_ptr<Group> createScene(osg::Node*& glowedScene)
+osg::ref_ptr<osg::Group> createScene(osg::Node*& glowedScene)
 {
+  using namespace osg;
+
     ref_ptr<Group> scene = new Group;
     ref_ptr<Geode> geode_1 = new Geode;
     scene->addChild(geode_1.get());
@@ -131,11 +137,13 @@ ref_ptr<Group> createScene(osg::Node*& glowedScene)
 //------------------------------------------------------------------------------
 const char* shaderSrc =
     "\n"
+    "uniform sampler2D view;\n"
+    "uniform sampler2D glow;\n"
     "void main () {\n"
     "\n"
-    "\n"
-    "   gl_FragData[0] = gl_Color; \n"
-    "   gl_FragData[1] = gl_Color; \n"
+    "   vec4 viewColor = texture2D(view, gl_TexCoord[0].st);\n"
+    "   vec4 glowColor = texture2D(glow, gl_TexCoord[0].st);\n"
+    "   gl_FragColor = viewColor + glowColor * 2.0; \n"
     "}\n";
 
 
@@ -162,17 +170,19 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height)
 //------------------------------------------------------------------------------
 // Setup main camera and setup osgPPU
 // Also setup a slave camera, which will render only the glowed scene
+// Slave camera has a smaller viewport, because we do not need high resolution
+// for objects which are just get blurred ;)
 //------------------------------------------------------------------------------
 osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_width, unsigned tex_height, unsigned windowWidth, unsigned windowHeight, osg::Camera::RenderTargetImplementation renderImplementation)
 {
     osg::Group* group = new osg::Group;
 
     // create two textures which will hold the usual view and glowing mask
-    osg::Texture* textureView = createRenderTexture(tex_width, tex_height);
+    osg::Texture* textureView = createRenderTexture(windowWidth, windowHeight);
     osg::Texture* textureGlow = createRenderTexture(tex_width, tex_height);
 
     // setup the main camera, which will render the usual scene
-    camera->setViewport(new osg::Viewport(0,0,tex_width,tex_height));
+    camera->setViewport(new osg::Viewport(0,0,windowWidth,windowHeight));
     camera->attach(osg::Camera::COLOR_BUFFER0, textureView);
     camera->setRenderTargetImplementation(renderImplementation);
 
@@ -181,7 +191,7 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
     {
         slaveCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         slaveCamera->setClearColor(osg::Vec4(0,0,0,0));
-        slaveCamera->setViewport(camera->getViewport());
+        slaveCamera->setViewport(new osg::Viewport(0,0,tex_width,tex_height));
         slaveCamera->setReferenceFrame(osg::Transform::RELATIVE_RF);
         slaveCamera->setRenderOrder(osg::Camera::PRE_RENDER);
         slaveCamera->attach(osg::Camera::COLOR_BUFFER0, textureGlow);
@@ -211,13 +221,91 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
 
     processor->addChild(unitSlaveCamera);
 
+
+    //---------------------------------------------------------------------------------
+    // Create units which will apply gaussian blur on the input textures
+    //---------------------------------------------------------------------------------
+    osgPPU::UnitInOut* blurx = new osgPPU::UnitInOut();
+    osgPPU::UnitInOut* blury = new osgPPU::UnitInOut();
+    {
+        // set name and indicies
+        blurx->setName("BlurHorizontal");
+        blury->setName("BlurVertical");
+
+        // read shaders from file
+        osg::ref_ptr<osgDB::ReaderWriter::Options> fragmentOptions = new osgDB::ReaderWriter::Options("fragment");
+        osg::ref_ptr<osgDB::ReaderWriter::Options> vertexOptions = new osgDB::ReaderWriter::Options("vertex");
+        osg::Shader* vshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_vp.glsl", vertexOptions.get());
+        osg::Shader* fhshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dx_fp.glsl", fragmentOptions.get());
+        osg::Shader* fvshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dy_fp.glsl", fragmentOptions.get());
+
+	if (!vshader || !fhshader || !fvshader)
+	{
+	  printf("One of the shader files gauss_convolution_*.glsl wasn't found!\n");
+	}
+
+        // setup horizontal blur shaders
+        osgPPU::ShaderAttribute* gaussx = new osgPPU::ShaderAttribute();
+        gaussx->addShader(vshader);
+        gaussx->addShader(fhshader);
+        gaussx->setName("BlurHorizontalShader");
+
+        gaussx->add("sigma", osg::Uniform::FLOAT);
+        gaussx->add("radius", osg::Uniform::FLOAT);
+        gaussx->add("texUnit0", osg::Uniform::SAMPLER_2D);
+
+        gaussx->set("sigma", gBlurSigma);
+        gaussx->set("radius", gBlurRadius);
+        gaussx->set("texUnit0", 0);
+
+        blurx->getOrCreateStateSet()->setAttributeAndModes(gaussx);
+
+        // setup vertical blur shaders
+        osgPPU::ShaderAttribute* gaussy = new osgPPU::ShaderAttribute();
+        gaussy->addShader(vshader);
+        gaussy->addShader(fvshader);
+        gaussy->setName("BlurVerticalShader");
+
+        gaussy->add("sigma", osg::Uniform::FLOAT);
+        gaussy->add("radius", osg::Uniform::FLOAT);
+        gaussy->add("texUnit0", osg::Uniform::SAMPLER_2D);
+
+        gaussy->set("sigma", gBlurSigma);
+        gaussy->set("radius", gBlurRadius);
+        gaussy->set("texUnit0", 0);
+
+        blury->getOrCreateStateSet()->setAttributeAndModes(gaussy);
+
+        // connect the gaussian blur to the slave camera
+        unitCam2->addChild(blurx);
+        blurx->addChild(blury);
+    }
+
+    // create shader which will just combine both input textures
+    osgPPU::ShaderAttribute* resultShader = new osgPPU::ShaderAttribute();
+    {
+      osg::Shader* fpShader = new osg::Shader(osg::Shader::FRAGMENT);
+      fpShader->setShaderSource(shaderSrc);
+
+      resultShader->addShader(fpShader);
+
+      resultShader->add("view", osg::Uniform::SAMPLER_2D);
+      resultShader->add("glow", osg::Uniform::SAMPLER_2D);
+      resultShader->set("view", 0);
+      resultShader->set("glow", 1);
+    }
+
     // setup a unit, which will render the output
     osgPPU::UnitOut* unitOut = new osgPPU::UnitOut;
     unitOut->setName("Output");
     unitOut->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera
     unitOut->setViewport(new osg::Viewport(0,0, windowWidth, windowHeight) );
-    unitCam2->addChild(unitOut);
-    
+    unitOut->getOrCreateStateSet()->setAttributeAndModes(resultShader);
+
+    // add both camera outputs to the main unit
+    unitCam1->addChild(unitOut);
+    blury->addChild(unitOut);
+
     // add scnee and processor to the resulting group and return it back
     group->addChild(slaveCamera);
     group->addChild(processor);
@@ -231,6 +319,8 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
 //------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
+    using namespace osg;
+
     // use an ArgumentParser object to manage the program arguments.
     ArgumentParser arguments(&argc, argv);
 
