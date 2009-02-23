@@ -28,6 +28,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/ColorAttribute.h
     ${HEADER_PATH}/ShaderAttribute.h
     ${HEADER_PATH}/UnitCamera.h
+    ${HEADER_PATH}/UnitInOutModule.h
     ${OSGPPU_CONFIG_HEADER}
 )
 

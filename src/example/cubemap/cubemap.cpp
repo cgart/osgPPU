@@ -42,7 +42,6 @@
 
 #include <osgPPU/Processor.h>
 #include <osgPPU/UnitInOut.h>
-#include <osgPPU/Shader.h>
 
 
 #include <osg/Program>
