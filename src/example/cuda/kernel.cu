@@ -8,6 +8,8 @@
 
 #define _DEBUG
 
+// here workaround for broken CUDA compiler (should be solved with CUDA 2.2)
+using namespace std;
 
 #include <osgPPU/UnitInOutModule.h>
 #include <cuda_gl_interop.h>
@@ -209,7 +211,7 @@ class ProcessingModule : public UnitInOutModule::Module
             // radius of how much sampling points around the current one        
             int radius = 4;
 
-            // specifies teh number of threads per block (here 16*16*1=256 threads)
+            // specifies the number of threads per block (here 16*16*1=256 threads)
             dim3 block(16, 16, 1);
 
             // specifies the number of blocks used

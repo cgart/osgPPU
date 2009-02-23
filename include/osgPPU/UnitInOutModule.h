@@ -96,6 +96,13 @@ namespace osgPPU
             //! Remove currently used module.
             virtual void removeModule();
 
+            //! Get last loaded module file name
+            const std::string& getModuleFile() const { return _moduleFile; }
+
+            //! Get currently loaded module
+            Module* getModule() { return _module.get(); }
+            const Module* getModule() const { return _module.get(); }
+
         protected:
 
             //! Start cuda kernel running over the input textures
@@ -107,6 +114,7 @@ namespace osgPPU
             bool  _moduleDirty;
             osg::ref_ptr<Module> _module;
             osg::ref_ptr<osgDB::DynamicLibrary> _moduleLib;
+            std::string _moduleFile;
     };
 
 };
