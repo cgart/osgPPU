@@ -17,7 +17,6 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/UnitOut.h
     ${HEADER_PATH}/UnitOutCapture.h
     ${HEADER_PATH}/Processor.h
-    ${HEADER_PATH}/Shader.h
     ${HEADER_PATH}/Unit.h
     ${HEADER_PATH}/UnitBypass.h
     ${HEADER_PATH}/UnitDepthbufferBypass.h
@@ -48,7 +47,6 @@ ADD_LIBRARY(${LIB_NAME}
     UnitInResampleOut.cpp
     UnitInMipmapOut.cpp
     UnitMipmapInMipmapOut.cpp
-    Shader.cpp
     Processor.cpp
     Visitor.cpp
     Utility.cpp
