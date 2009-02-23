@@ -25,6 +25,7 @@
 #include <osgPPU/UnitBypass.h>
 #include <osgPPU/UnitDepthbufferBypass.h>
 #include <osgPPU/UnitTexture.h>
+#include <osgPPU/UnitInOutModule.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/ColorAttribute.h>
 #include <osgPPU/ShaderAttribute.h>
@@ -270,6 +271,23 @@ bool readUnitInMipmapOut(osg::Object& obj, osgDB::Input& fr)
     if (fr.readSequence("useShader", useShader))
     {
         unit.setUseShader(useShader?true:false);
+        itAdvanced = true;
+    }
+
+    return itAdvanced;
+}
+
+//--------------------------------------------------------------------------
+bool readUnitInOutModule(osg::Object& obj, osgDB::Input& fr)
+{
+    // convert given object to unit
+    osgPPU::UnitInOutModule& unit = static_cast<osgPPU::UnitInOutModule&>(obj);
+
+    bool itAdvanced = false;
+    std::string module;
+    if (fr.readSequence("module", module))
+    {
+        unit.loadModule(module);
         itAdvanced = true;
     }
 
@@ -753,6 +771,16 @@ bool writeUnitInResampleOut(const osg::Object& obj, osgDB::Output& fout)
     return true;
 }
 
+//--------------------------------------------------------------------------
+bool writeUnitInOutModule(const osg::Object& obj, osgDB::Output& fout)
+{
+    // convert given object to unit
+    const osgPPU::UnitInOutModule& unit = static_cast<const osgPPU::UnitInOutModule&>(obj);
+
+    fout.indent() << "module " <<  fout.wrapString(unit.getModuleFile()) << std::endl;
+
+    return true;
+}
 
 //--------------------------------------------------------------------------
 bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
@@ -896,5 +924,15 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitTextProxy
     "Unit UnitInOut UnitText",
     &readUnitText,
     &writeUnitText
+);
+
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_UnitInOutModuleProxy
+(
+    new osgPPU::UnitInOutModule,
+    "UnitInOutModule",
+    "Unit UnitInOut UnitInOutModule",
+    &readUnitInOutModule,
+    &writeUnitInOutModule
 );
 

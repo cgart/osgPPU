@@ -64,6 +64,7 @@ namespace osgPPU
             osg::notify(osg::FATAL) << "osgPPU::UnitInOutModule - no entry point " << OSGPPU_MODULE_ENTRY_STR << " in the module " << moduleFile << " was found" << std::endl;
             return false;
         }
+        _moduleFile = moduleFile;
 
         // call the entry point, so that the module register himself by this unit
         return entry(this);

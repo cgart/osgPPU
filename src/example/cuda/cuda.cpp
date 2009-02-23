@@ -108,7 +108,13 @@ int main(int argc, char **argv)
 
     // setup default processor
     osg::ref_ptr<osgPPU::Processor> processor = new osgPPU::Processor;
-    
+    processor->setName("Processor"); // need this for proper .ppu files ??? 
+
+    // the first unit will bypass the color output of the camera
+    osgPPU::UnitBypass* bypass = new osgPPU::UnitBypass();
+    bypass->setName("ColorBypass");
+    processor->addChild(bypass);
+
     // setup cuda unit
     osg::ref_ptr<osgPPU::UnitInOutModule> unitCuda = new osgPPU::UnitInOutModule;
     unitCuda->setName("CUDA-PPU");
@@ -119,7 +125,7 @@ int main(int argc, char **argv)
     unitOut->setName("Output");
 
     // setup pipeline
-    processor->addChild(unitCuda.get());
+    bypass->addChild(unitCuda.get());
     unitCuda->addChild(unitOut.get());
 
     // setup viewers camera
@@ -131,6 +137,9 @@ int main(int argc, char **argv)
 
     // add model to viewer.
     viewer->setSceneData( node );
+
+    // write pipeline to a file
+    //osgDB::writeObjectFile(*processor, "../../Data/cuda.ppu");
 
     // run viewer
     return viewer->run();
