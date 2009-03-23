@@ -69,7 +69,7 @@ class Viewer : public osgViewer::Viewer
             camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 
             // attach the texture and use it as the color buffer.
-            camera->attach(osg::Camera::COLOR_BUFFER, texture);
+            camera->attach(osg::Camera::COLOR_BUFFER, texture);//, 0, 0, false, 4, 4);
         }
 
         //! Just setup some stuff

@@ -59,7 +59,7 @@ void setupCamera(osg::Camera* camera)
     camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 
     // attach the texture and use it as the color buffer.
-    camera->attach(osg::Camera::COLOR_BUFFER, texture);
+    camera->attach(osg::Camera::COLOR_BUFFER, texture);//, 0, 0, false, 8, 8);
     camera->attach(osg::Camera::DEPTH_BUFFER, depthTexture);
 }
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
     // just make it singlethreaded since I get some problems if not in this mode
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
