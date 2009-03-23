@@ -1,3 +1,53 @@
+2009-03-23 14:46  art
+
+	* [r207]
+	  - small bugfixes in the examples
+
+2009-03-23 14:45  art
+
+	* [r206]
+	  From Oleg Dedkow:
+	  The recent NVCC version (V2.1 beta for 64-Bit Windows Vista)
+	  cannot be used from VS 2008 environment to compile "cu" files
+	  containing both CUDA functions and C++ classes.
+	  The file "kernel.cu" has been splitted in two parts: CUDA and C++
+	  respectively. This should solve the problem of compiling the cuda
+	  example on 64Bit Windows systems.
+
+2009-02-23 19:26  art
+
+	* [r205]
+	  - full support for osg 2.8
+	  - New Modules:
+	  -- UnitInOutModule processing units can now be loaded from
+	  .so/.dll modules
+	  -- UnitCamera - bring additional cameras into the osgppu pipeline
+	  (usefull for multiple cameras being processed by osgPPU)
+	  
+	  - deprecated class "Shader" removed (use ShaderAttribute instead)
+	  - small build fixes (changed Cmake files)
+	  - examples do build now with osgppu_ prefix
+	  - support for .so version build extensions (i.e.
+	  libosgPPU.so.0.4.0)
+	  - new examples:
+	  -- ssao - simple screen space ambient occlusion
+	  -- glow - simple example shows how to use osgPPU to let certain
+	  objects glow)
+	  -- cuda - shows how to compile and use CUDA kernels together in
+	  ppu pipeline
+	  -- CUDA support - bring cuda kernels into osgPPU pipeline, by
+	  loading CUDA-kernel through UnitInOutModule unit (CUDA kernels
+	  has to be compiled externally into an .so/.dll file)
+	  
+	  - full support for "NodeKit" definition ;)
+
+2009-02-23 19:14  art
+
+	* [r201]
+	  - cuda workaround for broken compilers added
+	  - IO support for UnitInOutModule added
+	  - new .ppu file which does just load a CUDA kernel module
+
 2009-02-23 18:17  art
 
 	* [r199]
