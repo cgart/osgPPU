@@ -21,6 +21,7 @@ SET(CMAKE_SHARED_MODULE_PREFIX "osgppu_")
 # Link cuda code in a library to something else.
 CUDA_ADD_LIBRARY(cudakernel
   kernel.cu
+  ProcessingModule.cpp
   )
 
 # Link cuda with cutil library
