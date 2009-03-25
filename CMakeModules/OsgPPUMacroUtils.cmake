@@ -108,7 +108,7 @@ ENDMACRO(LINK_EXTERNAL TRGTNAME)
 #######################################################################################################
 
 MACRO(LINK_CORELIB_DEFAULT CORELIB_NAME)
-    #LINK_EXTERNAL(${CORELIB_NAME} ${OPENGL_LIBRARIES}) 
+    LINK_EXTERNAL(${CORELIB_NAME} ${OPENGL_LIBRARIES}) 
     #LINK_WITH_VARIABLES(${CORELIB_NAME} OPENTHREADS_LIBRARY)
     IF(OSGPPU_SONAMES)
       SET_TARGET_PROPERTIES(${CORELIB_NAME} PROPERTIES VERSION ${OSGPPU_VERSION} SOVERSION ${OSGPPU_SOVERSION})
@@ -131,7 +131,7 @@ ENDMACRO(LINK_CORELIB_DEFAULT CORELIB_NAME)
 MACRO(SETUP_LINK_LIBRARIES)
     ######################################################################
     #
-    # This set up the libraries to link to, it assumes there are two variable: one common for a group of examples or plagins
+    # This set up the libraries to link to, it assumes there are two variable: one common for a group of examples or plugins
     # kept in the variable TARGET_COMMON_LIBRARIES and an example or plugin specific kept in TARGET_ADDED_LIBRARIES
     # they are combined in a single list checked for unicity
     # the suffix ${CMAKE_DEBUG_POSTFIX} is used for differentiating optimized and debug
@@ -152,16 +152,20 @@ MACRO(SETUP_LINK_LIBRARIES)
       ENDIF(TO_INSERT)
     ENDFOREACH(LINKLIB)
 
-#    FOREACH(LINKLIB ${TARGET_LIBRARIES})
-#            TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} optimized ${LINKLIB} debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
-#    ENDFOREACH(LINKLIB)
-		LINK_INTERNAL(${TARGET_TARGETNAME} ${TARGET_LIBRARIES})
-    FOREACH(LINKLIB ${TARGET_EXTERNAL_LIBRARIES})
-            TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} ${LINKLIB})
+    FOREACH(LINKLIB ${TARGET_LIBRARIES})
+        TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} optimized ${LINKLIB} debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
     ENDFOREACH(LINKLIB)
-        IF(TARGET_LIBRARIES_VARS)
-            LINK_WITH_VARIABLES(${TARGET_TARGETNAME} ${TARGET_LIBRARIES_VARS})
-        ENDIF(TARGET_LIBRARIES_VARS)
+
+    LINK_INTERNAL(${TARGET_TARGETNAME} ${TARGET_LIBRARIES})
+    
+    FOREACH(LINKLIB ${TARGET_EXTERNAL_LIBRARIES})
+        TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} ${LINKLIB})
+    ENDFOREACH(LINKLIB)
+    
+    IF(TARGET_LIBRARIES_VARS)
+        LINK_WITH_VARIABLES(${TARGET_TARGETNAME} ${TARGET_LIBRARIES_VARS})
+    ENDIF(TARGET_LIBRARIES_VARS)
+    
     IF(MSVC  AND OSGPPU_MSVC_VERSIONED_DLL)
     	#when using full path name to specify linkage, it seems that already linked libs must be specified
 			LINK_EXTERNAL(${TARGET_TARGETNAME} ${OPENGL_LIBRARIES})
@@ -180,7 +184,6 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
     #MESSAGE("in -->SETUP_PLUGIN<-- ${TARGET_NAME}-->${TARGET_SRC} <--> ${TARGET_H}<--")
 
     ## we have set up the target label and targetname by taking into account global prfix (osgdb_)
-
     IF(NOT TARGET_TARGETNAME)
             SET(TARGET_TARGETNAME "${TARGET_DEFAULT_PREFIX}${TARGET_NAME}")
     ENDIF(NOT TARGET_TARGETNAME)
@@ -188,8 +191,7 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
             SET(TARGET_LABEL "${TARGET_DEFAULT_LABEL_PREFIX} ${TARGET_NAME}")
     ENDIF(NOT TARGET_LABEL)
 
-# here we use the command to generate the library
-
+    # here we use the command to generate the library
     IF   (DYNAMIC_OSGPPU)
         ADD_LIBRARY(${TARGET_TARGETNAME} MODULE ${TARGET_SRC} ${TARGET_H})
     ELSE (DYNAMIC_OSGPPU)
@@ -225,12 +227,13 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
 
     SETUP_LINK_LIBRARIES()
 
-#the installation path are differentiated for win32 that install in bib versus other architecture that install in lib${LIB_POSTFIX}/${OSG_PLUGINS}
+    #the installation path are differentiated for win32 that install in bib versus other architecture that install in lib${LIB_POSTFIX}/${OSG_PLUGINS}
     IF(WIN32)
         INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION bin ARCHIVE DESTINATION lib/${OSG_PLUGINS} LIBRARY DESTINATION bin/${OSG_PLUGINS} )
     ELSE(WIN32)
         INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION bin ARCHIVE DESTINATION lib${LIB_POSTFIX}/${OSG_PLUGINS} LIBRARY DESTINATION lib${LIB_POSTFIX}/${OSG_PLUGINS} )
     ENDIF(WIN32)
+
 ENDMACRO(SETUP_PLUGIN)
 
 

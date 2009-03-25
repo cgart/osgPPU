@@ -1,3 +1,46 @@
+#---------------------------------------
+# CUDA Module build for the exmaple
+#---------------------------------------
+# Add current directory to the nvcc include line.
+CUDA_INCLUDE_DIRECTORIES(
+    ${OPENGL_INCLUDE_DIR}
+    ${OSG_INCLUDE_DIRS}
+    ${SOURCE_DIR}/include
+)
+
+# Setup the prefix of the generated cuda file
+SET(CMAKE_SHARED_MODULE_PREFIX "osgppu_")
+
+# Setup header files for the cuda library
+SET(CUDA_MODULE_HEADERS
+	 Export.h
+)
+
+# Link cuda code in a library to something else.
+CUDA_ADD_LIBRARY(cudakernel
+  kernel.cu
+  ProcessingModule.cpp
+  Export.h
+  BlurKernelWrapper.h
+  osgteapot.h
+)
+
+# Link with osgPPU
+LINK_INTERNAL(cudakernel osgPPU)
+
+# Link with other libraries
+LINK_WITH_VARIABLES(cudakernel   
+    OSG_LIBRARY
+    OPENTHREADS_LIBRARY
+)
+
+# Link with OpenGL
+LINK_EXTERNAL(cudakernel ${OPENGL_LIBRARIES}) 
+
+
+#---------------------------------------
+# Example build
+#---------------------------------------
 SET(TARGET_TARGETNAME
     ${EXAMPLE_PREFIX}cuda
 )
@@ -9,33 +52,6 @@ SET(TARGET_H
     osgteapot.h
 )
 
-# Add current directory to the nvcc include line.
-CUDA_INCLUDE_DIRECTORIES(
-    ${OPENGL_INCLUDE_DIR}
-    ${OSG_INCLUDE_DIRS}
-    ${SOURCE_DIR}/include
-)
-
-SET(CMAKE_SHARED_MODULE_PREFIX "osgppu_")
-
-# Link cuda code in a library to something else.
-CUDA_ADD_LIBRARY(cudakernel
-  kernel.cu
-  ProcessingModule.cpp
-  )
-
-# Link cuda with cutil library
-TARGET_LINK_LIBRARIES(cudakernel
-    ${CUDA_CUT_TARGET_LINK}
-    ${OSG_LIBRARY}
-    ${OPENTHREADS_LIBRARY}
-    ${OSGDB_LIBRARY}
-    ${OSGTEXT_LIBRARY}
-    ${OSGUTIL_LIBRARY}
-    ${osgPPU}
-    )
-
-#### end var setup  ###
 
 ADD_EXECUTABLE(${TARGET_TARGETNAME} ${TARGET_SRC} ${TARGET_H})
 LINK_INTERNAL(${TARGET_TARGETNAME} osgPPU)
@@ -46,10 +62,10 @@ LINK_WITH_VARIABLES(${TARGET_TARGETNAME}
     OSGTEXT_LIBRARY
     OSGUTIL_LIBRARY
     OSG_LIBRARY
-#    /HPS/home-2/tevs/
+    OPENTHREADS_LIBRARY
 )
+
 LINK_EXTERNAL(${TARGET_TARGETNAME} ${OPENGL_LIBRARIES}) 
-LINK_WITH_VARIABLES(${TARGET_TARGETNAME} OPENTHREADS_LIBRARY)
 
 IF (NOT DYNAMIC_OSGPPU)
     LINK_EXTERNAL(${TARGET_TARGETNAME} pthread) 

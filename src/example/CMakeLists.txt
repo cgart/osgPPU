@@ -8,9 +8,9 @@ ADD_SUBDIRECTORY(ssao)
 ADD_SUBDIRECTORY(glow)
 
 #if CUDA found, then build cuda example
-IF(CUDA_NVCC)
+IF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
     ADD_SUBDIRECTORY(cuda)
-ENDIF(CUDA_NVCC)
+ENDIF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
 
 
 ################################################################################
