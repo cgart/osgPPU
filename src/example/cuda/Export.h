@@ -32,7 +32,7 @@
 #if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__)  || defined( __MWERKS__)
     #  if defined( OSGPPU_CUDAKERNEL_LIBRARY_STATIC )
     #    define OSGPPU_EXPORT
-    #  elif defined( OSGPPU_CUDAKERNEL_LIBRARY )
+    #  elif defined( cudakernel_EXPORTS )
     #    define OSGPPU_CUDAK_EXPORT   __declspec(dllexport)
     #  else
     #    define OSGPPU_CUDAK_EXPORT   __declspec(dllimport)

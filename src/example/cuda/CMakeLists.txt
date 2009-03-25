@@ -27,6 +27,12 @@ CUDA_ADD_LIBRARY(cudakernel
 # Link cuda with cutil library
 TARGET_LINK_LIBRARIES(cudakernel
     ${CUDA_CUT_TARGET_LINK}
+    ${OSG_LIBRARY}
+    ${OPENTHREADS_LIBRARY}
+    ${OSGDB_LIBRARY}
+    ${OSGTEXT_LIBRARY}
+    ${OSGUTIL_LIBRARY}
+    ${osgPPU}
     )
 
 #### end var setup  ###

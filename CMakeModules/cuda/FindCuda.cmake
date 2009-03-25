@@ -119,6 +119,15 @@ ENDIF(CUDA_BUILD_TYPE MATCHES "Emulation")
 SET(CUDA_BUILD_CUBIN TRUE CACHE BOOL "Generate and parse .cubin files in Device mode.")
 SET(CUDA_NVCC_FLAGS "" CACHE STRING "Semi-colon delimit multiple arguments.")
 
+# Setup windows specific cuda variables
+IF(WIN32)
+
+    IF(MSVC)
+        SET(CUDA_NVCC_FLAGS -ccbin "$(VCInstallDir)bin" -DWIN32)
+    ENDIF(MSVC)
+
+ENDIF(WIN32)
+
 # Search for the cuda distribution.
 IF(NOT CUDA_INSTALL_PREFIX)
   FIND_PATH(CUDA_INSTALL_PREFIX
