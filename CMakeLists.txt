@@ -1,8 +1,15 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5 FATAL_ERROR)
 
+# Setup compatibility modes
+IF(COMMAND cmake_policy)
+	cmake_policy(SET CMP0011 OLD)
+	cmake_policy(SET CMP0003 NEW)
+ENDIF(COMMAND cmake_policy)
+
+
 PROJECT(osgPPU)
 
-SET(CMAKE_MODULE_PATH "${osgPPU_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules;${osgPPU_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
 SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
 SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
@@ -106,7 +113,7 @@ IF(WIN32)
             SET(OSGPPU_MSVC_VERSIONED_DLL OFF)
             SET(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK ON)
         ELSE(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
-            OPTION(OSGPPU_MSVC_VERSIONED_DLL "Set to ON to build OpenSceneGraph with versioned dll names" ON)
+            OPTION(OSGPPU_MSVC_VERSIONED_DLL "Set to ON to build osgPPU with versioned dll names" ON)
             MARK_AS_ADVANCED(OSGPPU_MSVC_VERSIONED_DLL)
             OPTION(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK "Set to OFF to build without incremental linking in debug (release is off by default)" OFF)
             MARK_AS_ADVANCED(OSGPPU_MSVC_DEBUG_INCREMENTAL_LINK)
@@ -152,8 +159,7 @@ OPTION(OSGPPU_MAINTAINER "Enable osgPPU maintainer build methods, such as making
 IF (OSGPPU_MAINTAINER)
 
     SET(OSGPPU_SVN "trunk")
-    #SET(OPENSCENEGRAPH_SVN "branches")
-    SET(OSGPPU_BRANCH OpenSceneGraph-${OSGPPU_MAJOR_VERSION}.${OSGPPU_MINOR_VERSION})
+    SET(OSGPPU_BRANCH osgPPU-${OSGPPU_MAJOR_VERSION}.${OSGPPU_MINOR_VERSION})
 
     #
     # Provide target for tagging a release
@@ -215,6 +221,9 @@ ENDIF(OSGPPU_MAINTAINER)
 IF(CMAKE_CPACK_COMMAND)
     OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
     IF(BUILD_OSGPPU_PACKAGES)
+
+#      INCLUDE(CPack)
+
       INCLUDE(OsgPPUCPack)
     ENDIF(BUILD_OSGPPU_PACKAGES)
 ENDIF(CMAKE_CPACK_COMMAND)
@@ -226,15 +235,6 @@ ENDIF(CMAKE_CPACK_COMMAND)
 #IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 #   FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/lib/${OSG_PLUGINS})
 #ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-
-
-################################################################################
-# Compile subdirectory
-################################################################################
-IF(COMMAND cmake_policy)
-	cmake_policy(SET CMP0003 NEW)
-ENDIF(COMMAND cmake_policy)
-ADD_SUBDIRECTORY(src)
 
 
 ################################################################################
@@ -254,3 +254,9 @@ CONFIGURE_FILE(
   IMMEDIATE @ONLY)
 ADD_CUSTOM_TARGET(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+
+
+################################################################################
+# Compile subdirectory
+################################################################################
+ADD_SUBDIRECTORY(src)

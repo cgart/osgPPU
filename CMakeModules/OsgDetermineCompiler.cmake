@@ -13,6 +13,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
         OUTPUT_VARIABLE gcc_compiler_version
     )
     #MESSAGE("GCC Version: ${gcc_compiler_version}")
+    SET(OSG_COMPILER "gcc-${gcc_compiler_version}")
 
 ELSE(CMAKE_COMPILER_IS_GNUCXX)
     IF(MSVC)

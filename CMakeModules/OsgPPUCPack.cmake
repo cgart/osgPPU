@@ -30,10 +30,11 @@ IF(MSVC)
         SET(SYSTEM_NAME "win32")
     ENDIF(CMAKE_CL_64)
 ENDIF(MSVC)
+
 # Guess the compiler (is this desired for other platforms than windows?)
-IF(NOT DEFINED OSGPPU_CPACK_COMPILER)
+IF(NOT  OSGPPU_CPACK_COMPILER)
     INCLUDE(OsgDetermineCompiler)
-ENDIF(NOT DEFINED OSGPPU_CPACK_COMPILER)
+ENDIF(NOT OSGPPU_CPACK_COMPILER)
 
 # expose the compiler setting to the user
 SET(OSGPPU_CPACK_COMPILER "${OSG_COMPILER}" CACHE STRING "This ia short string (vc90, vc80sp1, gcc-4.3, ...) describing your compiler. The string is used for creating package filenames")
@@ -47,6 +48,7 @@ ENDIF(OSGPPU_CPACK_COMPILER)
 
 ## variables that apply to all packages
 SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${OSGPPU_VERSION}")
+
 
 # these goes for all platforms. Setting these stops the CPack.cmake script from generating options about other package compression formats (.z .tz, etc.)
 SET(CPACK_GENERATOR "TGZ")
@@ -67,19 +69,21 @@ ELSE(MSVC_IDE)
     SET(PACKAGE_TARGET_PREFIX "package_")
 ENDIF(MSVC_IDE)
 
+
 # Get all defined components
 GET_CMAKE_PROPERTY(CPACK_COMPONENTS_ALL COMPONENTS)
 IF(NOT CPACK_COMPONENTS_ALL)
   # cmake 2.6.0 don't supply the COMPONENTS property.
   # I set it manually to be the packages that can always be packaged
-  MESSAGE("When building packages please consider using cmake version 2.6.1 or above")
-  SET(CPACK_COMPONENTS_ALL libosgppu osgppu libosgppu-dev)
+#  MESSAGE("When building packages please consider using cmake version 2.6.1 or above")
+  SET(CPACK_COMPONENTS_ALL libosgPPU libosgPPU-dev libosgPPU-doc)
 ENDIF(NOT CPACK_COMPONENTS_ALL)
 
 # Create a target that will be used to generate all packages defined below
-SET(PACKAGE_ALL_TARGETNAME "${PACKAGE_TARGET_PREFIX}ALL")
-ADD_CUSTOM_TARGET(${PACKAGE_ALL_TARGETNAME})
+#SET(PACKAGE_ALL_TARGETNAME "${PACKAGE_TARGET_PREFIX}ALL")
+#ADD_CUSTOM_TARGET(${PACKAGE_ALL_TARGETNAME})
 
+# Macro to generate packages
 MACRO(GENERATE_PACKAGING_TARGET package_name)
     SET(CPACK_PACKAGE_NAME ${package_name})
 
@@ -87,14 +91,16 @@ MACRO(GENERATE_PACKAGING_TARGET package_name)
     IF(${package} MATCHES -doc)
         SET(OSGPPU_PACKAGE_FILE_NAME ${package_name}-${OSGPPU_VERSION})
     ELSE(${package} MATCHES -doc)
-        SET(OSGPPU_PACKAGE_FILE_NAME ${package_name}-${OSGPPU_VERSION}-${OSG_CPACK_SYSTEM_SPEC_STRING}-${OSG_CPACK_CONFIGURATION})
+        SET(OSGPPU_PACKAGE_FILE_NAME "${package_name}-${OSGPPU_VERSION}-${OSGPPU_CPACK_SYSTEM_SPEC_STRING}-${OSGPPU_CPACK_CONFIGURATION}")
         IF(NOT DYNAMIC_OSGPPU)
-            SET(OSGPPU_PACKAGE_FILE_NAME ${OSGPPU_PACKAGE_FILE_NAME}-static)
+            SET(OSGPPU_PACKAGE_FILE_NAME "${OSGPPU_PACKAGE_FILE_NAME}-static")
         ENDIF(NOT DYNAMIC_OSGPPU)
     ENDIF(${package} MATCHES -doc)
 
+    # read configuration files
     CONFIGURE_FILE("${osgPPU_SOURCE_DIR}/CMakeModules/OsgPPUCPackConfig.cmake.in" "${osgPPU_BINARY_DIR}/CPackConfig-${package_name}.cmake" IMMEDIATE)
 
+    # setup package name
     SET(PACKAGE_TARGETNAME "${PACKAGE_TARGET_PREFIX}${package_name}")
 
     # This is naive and will probably need fixing eventually
@@ -110,21 +116,21 @@ MACRO(GENERATE_PACKAGING_TARGET package_name)
     ADD_CUSTOM_COMMAND(TARGET ${PACKAGE_TARGETNAME}
         COMMAND ${CMAKE_CPACK_COMMAND} -C ${OSGPPU_CPACK_CONFIGURATION} --config ${osgPPU_BINARY_DIR}/CPackConfig-${package_name}.cmake
         COMMAND "${MOVE_COMMAND}" "${CPACK_PACKAGE_FILE_NAME}.tar.gz" "${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
-        COMMAND ${CMAKE_COMMAND} -E echo "renamed ${CPACK_PACKAGE_FILE_NAME}.tar.gz -> ${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
+        #COMMAND ${CMAKE_COMMAND} -E echo "renamed ${CPACK_PACKAGE_FILE_NAME}.tar.gz -> ${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
         COMMENT "Run CPack packaging for ${package_name}..."
     )
     # Add the exact same custom command to the all package generating target. 
     # I can't use add_dependencies to do this because it would allow parallell building of packages so am going brute here
-    ADD_CUSTOM_COMMAND(TARGET ${PACKAGE_ALL_TARGETNAME}
-        COMMAND ${CMAKE_CPACK_COMMAND} -C ${OSGPPU_CPACK_CONFIGURATION} --config ${osgPPU_BINARY_DIR}/CPackConfig-${package_name}.cmake
-        COMMAND "${MOVE_COMMAND}" "${CPACK_PACKAGE_FILE_NAME}.tar.gz" "${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
-        COMMAND ${CMAKE_COMMAND} -E echo "renamed ${CPACK_PACKAGE_FILE_NAME}.tar.gz -> ${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
-    )
+#     ADD_CUSTOM_COMMAND(TARGET ${PACKAGE_ALL_TARGETNAME}
+#         COMMAND ${CMAKE_CPACK_COMMAND} -C ${OSGPPU_CPACK_CONFIGURATION} --config ${osgPPU_BINARY_DIR}/CPackConfig-${package_name}.cmake
+#         COMMAND "${MOVE_COMMAND}" "${CPACK_PACKAGE_FILE_NAME}.tar.gz" "${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
+#         COMMAND ${CMAKE_COMMAND} -E echo "renamed ${CPACK_PACKAGE_FILE_NAME}.tar.gz -> ${OSGPPU_PACKAGE_FILE_NAME}.tar.gz"
+#     )
 ENDMACRO(GENERATE_PACKAGING_TARGET)
 
 # Create configs and targets for a package including all components
 SET(OSGPPU_CPACK_COMPONENT ALL)
-GENERATE_PACKAGING_TARGET(osgppu-all)
+#GENERATE_PACKAGING_TARGET(osgppu-all)
 
 # Create configs and targets for each component
 FOREACH(package ${CPACK_COMPONENTS_ALL})
