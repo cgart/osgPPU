@@ -63,8 +63,6 @@ SET(GL_LIBS
   ${OPENGL_glu_LIBRARY}
 )
 
-# MESSAGE( "project path: ${PROJECT_BINARY_DIR}" )
-# MESSAGE( "source  path: ${osgPPU_SOURCE_DIR}" )
 
 
 #######################################
@@ -127,7 +125,7 @@ ENDIF(WIN32)
 #Solution
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-SET(EXAMPLE_PREFIX osgppu_)
+SET(EXAMPLE_PREFIX osgppu_ CACHE STRING "Prefix used to build examples")
 LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 
 
@@ -245,7 +243,6 @@ ADD_SUBDIRECTORY(src)
 SET(OSGPPU_CONFIG_HEADER "${PROJECT_BINARY_DIR}/include/osgPPU/Config.h")
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/osgPPU/Config.in"
                "${OSGPPU_CONFIG_HEADER}")
-# INSTALL_FILES(/include/osg/ FILES "${OPENSCENEGRAPH_CONFIG_HEADER}")
 
 
 ################################################################################
