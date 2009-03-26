@@ -47,7 +47,7 @@ ENDIF(OSGPPU_CPACK_COMPILER)
 
 
 ## variables that apply to all packages
-SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${OSGPPU_VERSION}")
+SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${OSGPPU_VERSION}" CACHE STRING "Package filename used to build the package")
 
 
 # these goes for all platforms. Setting these stops the CPack.cmake script from generating options about other package compression formats (.z .tz, etc.)
