@@ -149,6 +149,9 @@ IF(NOT CUDA_SDK_DIR)
     NAMES nvcc
     PATHS /usr/local/cuda
           ${CUDA_DIR}
+          ${CMAKE_INSTALL_PREFIX}
+          ${CUDA_DIR}/cude
+          ${CMAKE_INSTALL_PREFIX}/cuda
     PATH_SUFFIXES bin
     ENV CUDA_BIN_PATH
     DOC "Toolkit location."
@@ -160,42 +163,6 @@ IF(NOT CUDA_SDK_DIR)
     #MESSAGE(FATAL_ERROR "Specify CUDA_SDK_DIR")
   ENDIF (NOT EXISTS ${CUDA_SDK_DIR})
 ENDIF (NOT CUDA_SDK_DIR)
-
-
-# --------------------------------------
-# CUDA_NVCC_INCLUDE_ARGS
-# --------------------------------------
-IF (NOT FOUND_CUDA_NVCC_INCLUDE)
-  FIND_PATH(FOUND_CUDA_NVCC_INCLUDE
-    device_functions.h # Header included in toolkit
-    PATHS ${CUDA_SDK_DIR}/include
-          $ENV{CUDA_INC_PATH}
-          ${CUDA_DIR}/include
-          ${CUDA_DIR}
-    )
-ENDIF(NOT FOUND_CUDA_NVCC_INCLUDE)
-
-IF(CUDA_INCLUDE)
-	  SET (CUDA_NVCC_INCLUDE_ARGS "-I${CUDA_INCLUDE}")
-ELSE(CUDA_INCLUDE)
-
-	 IF(NOT FOUND_CUDA_NVCC_INCLUDE)
-		 MESSAGE(FATAL_ERROR "Could not find Cuda headers")
-	 ELSE(NOT FOUND_CUDA_NVCC_INCLUDE)
-		 # Set the initial include dir.
-		 SET (CUDA_NVCC_INCLUDE_ARGS "-I${FOUND_CUDA_NVCC_INCLUDE}")
-		 SET (CUDA_INCLUDE ${FOUND_CUDA_NVCC_INCLUDE} CACHE STRING "Path where to find CUDA includes.")
-
-		 MARK_AS_ADVANCED(
-					 FOUND_CUDA_NVCC_INCLUDE
-					 CUDA_NVCC_INCLUDE_ARGS
-		 )
-	 ENDIF(NOT FOUND_CUDA_NVCC_INCLUDE)
-
-ENDIF(CUDA_INCLUDE)
-
-# Setup include directories to the cuda includes, maybe need for the examples
-INCLUDE_DIRECTORIES( ${CUDA_INCLUDE} )
 
 # --------------------------------------
 # CUDA_NVCC
@@ -220,6 +187,44 @@ IF (NOT CUDA_NVCC)
 ENDIF(NOT CUDA_NVCC)
 
 
+# --------------------------------------
+# CUDA_NVCC_INCLUDE_ARGS
+# --------------------------------------
+IF (NOT FOUND_CUDA_NVCC_INCLUDE)
+  FIND_PATH(FOUND_CUDA_NVCC_INCLUDE
+    device_functions.h # Header included in toolkit
+    PATHS ${CUDA_SDK_DIR}/include
+          $ENV{CUDA_INC_PATH}
+          ${CUDA_DIR}/include
+          ${CUDA_DIR}
+          ${CMAKE_INSTALL_PREFIX}/include
+          ${CMAKE_INSTALL_PREFIX}
+    )
+ENDIF(NOT FOUND_CUDA_NVCC_INCLUDE)
+
+IF(CUDA_INCLUDE)
+	  SET (CUDA_NVCC_INCLUDE_ARGS "-I${CUDA_INCLUDE}")
+ELSE(CUDA_INCLUDE)
+
+	 IF(NOT FOUND_CUDA_NVCC_INCLUDE AND CUDA_NVCC)
+		 MESSAGE(FATAL_ERROR "Could not find CUDA headers although CUDA compiler was found. Please check your installation!")
+	 ELSE(NOT FOUND_CUDA_NVCC_INCLUDE AND CUDA_NVCC)
+		 # Set the initial include dir.
+		 SET (CUDA_NVCC_INCLUDE_ARGS "-I${FOUND_CUDA_NVCC_INCLUDE}")
+		 SET (CUDA_INCLUDE ${FOUND_CUDA_NVCC_INCLUDE} CACHE STRING "Path where to find CUDA includes.")
+
+		 MARK_AS_ADVANCED(
+					 FOUND_CUDA_NVCC_INCLUDE
+					 CUDA_NVCC_INCLUDE_ARGS
+		 )
+	 ENDIF(NOT FOUND_CUDA_NVCC_INCLUDE AND CUDA_NVCC)
+
+ENDIF(CUDA_INCLUDE)
+
+# Setup include directories to the cuda includes, maybe need for the examples
+IF(CUDA_INCLUDE)
+	INCLUDE_DIRECTORIES( ${CUDA_INCLUDE} )
+ENDIF(CUDA_INCLUDE)
 
 
 # --------------------------------------
