@@ -13,6 +13,7 @@
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
 #include "cutil.h"
+#include <cstdlib>
 
 using namespace osgPPU;
 

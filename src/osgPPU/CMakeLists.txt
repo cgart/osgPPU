@@ -28,6 +28,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/ColorAttribute.h
     ${HEADER_PATH}/ShaderAttribute.h
     ${HEADER_PATH}/UnitCamera.h
+    ${HEADER_PATH}/UnitInHistoryOut.h
     ${HEADER_PATH}/UnitInOutModule.h
     ${OSGPPU_CONFIG_HEADER}
 )
@@ -54,6 +55,7 @@ ADD_LIBRARY(${LIB_NAME}
     ShaderAttribute.cpp
     UnitCamera.cpp
     UnitInOutModule.cpp
+    UnitInHistoryOut.cpp
 )
 
 

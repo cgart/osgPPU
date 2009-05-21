@@ -26,10 +26,52 @@
 #include <osg/TextureCubeMap>
 #include <osg/Texture2D>
 #include <osg/Texture3D>
+#include <osg/Texture2DArray>
 #include <osg/GL2Extensions>
 
 namespace osgPPU
 {
+    //------------------------------------------------------------------------------
+    // Helper class for filling the generated texture with default pixel values
+    //------------------------------------------------------------------------------
+    class Subload2DArrayCallback : public osg::Texture2DArray::SubloadCallback
+    {
+        public:
+            // fill texture with default pixel values
+            void load (const osg::Texture2DArray &texture, osg::State &state) const
+            {
+                // do only anything if such textures are supported
+                osg::Texture2DArray::Extensions* ext = osg::Texture2DArray::getExtensions(state.getContextID(), true);
+                if (ext && ext->isTexture2DArraySupported())
+                {
+                    // create temporary image which is initialized with 0 values
+                    osg::ref_ptr<osg::Image> img = new osg::Image();
+                    img->allocateImage(
+                        texture.getTextureWidth() ? texture.getTextureWidth() : 1,
+                        texture.getTextureHeight() ? texture.getTextureHeight() : 1,
+                        texture.getTextureDepth() ? texture.getTextureDepth() : 1,
+                        texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
+
+                    // fill the image with 0 values
+                    memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
+
+                    // create the texture in usual OpenGL way
+                    ext->glTexImage3D( GL_TEXTURE_2D_ARRAY_EXT, 0, texture.getInternalFormat(),
+                        texture.getTextureWidth(), texture.getTextureHeight(), texture.getTextureDepth(),
+                        texture.getBorderWidth(), texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                        texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
+                        img->data());
+                }
+            }
+
+            // no subload, because while we want to subload the texture should be already valid
+            void subload (const osg::Texture2DArray &texture, osg::State &state) const
+            {
+
+            }
+    };
+
     //------------------------------------------------------------------------------
     // Helper class for filling the generated texture with default pixel values
     //------------------------------------------------------------------------------
@@ -213,7 +255,7 @@ namespace osgPPU
         {
             osg::Uniform* faceUniform = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_CUBEMAP_FACE_UNIFORM, osg::Uniform::INT);
             faceUniform->set((int)mOutputCubemapFace);
-        }else if (mOutputType == TEXTURE_3D)
+        }else if (mOutputType == TEXTURE_3D || mOutputType == TEXTURE_2D_ARRAY)
         {
             osg::Uniform* sliceCount = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_3D_SLICE_NUMBER, osg::Uniform::INT);
             sliceCount->set((int)mOutputDepth);
@@ -336,6 +378,12 @@ namespace osgPPU
             dynamic_cast<osg::Texture3D*>(mTex)->setSubloadCallback(new Subload3DCallback());
             if (mViewport.valid())
                 dynamic_cast<osg::Texture3D*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth);
+        }else if (mOutputType == TEXTURE_2D_ARRAY)
+        {
+            mTex = new osg::Texture2DArray();
+            dynamic_cast<osg::Texture2DArray*>(mTex)->setSubloadCallback(new Subload2DArrayCallback());
+            if (mViewport.valid())
+                dynamic_cast<osg::Texture2DArray*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth);
         }else
         {
             osg::notify(osg::FATAL) << "osgPPU::UnitInOut::getOrCreateOutputTexture() - " << getName() << " non-supported texture type specified!" << std::endl;
@@ -420,7 +468,18 @@ namespace osgPPU
                     mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + jt->first), osg::FrameBufferAttachment(tex3D, jt->second));
                 }
                 continue;
+            }
 
+            // check whenever the output texture is a 2D array texture
+            osg::Texture2DArray* tex2DArray = dynamic_cast<osg::Texture2DArray*>(texture);
+            if (tex2DArray != NULL)
+            {
+                // for each mrt to slice mapping do
+                for (OutputSliceMap::const_iterator jt = getOutputZSliceMap().begin(); jt != getOutputZSliceMap().end(); jt++)
+                {
+                    mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + jt->first), osg::FrameBufferAttachment(tex2DArray, jt->second));
+                }
+                continue;
             }
 
             // if we are here, then output texture type is not supported, hence give some warning

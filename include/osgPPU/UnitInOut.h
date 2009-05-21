@@ -135,7 +135,10 @@ namespace osgPPU
                 TEXTURE_CUBEMAP,
 
                 //! 3D texture is used of the output
-                TEXTURE_3D
+                TEXTURE_3D,
+
+                //! Use 2d texture array
+                TEXTURE_2D_ARRAY
             };
 
             /**
