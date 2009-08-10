@@ -55,6 +55,7 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     osg::Texture* UnitInHistoryOut::getOrCreateOutputTexture(int mrt)
     {
+        return NULL;
     }
     
     //------------------------------------------------------------------------------
