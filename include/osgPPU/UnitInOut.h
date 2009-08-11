@@ -190,6 +190,19 @@ namespace osgPPU
             inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map; dirty();}
     
         protected:
+
+            /**
+            * Here the FBO will be applied, so that Unit can render its output to 
+            * attached textures. If you overwrite this method in derived class,
+            * so you have to take care about FBO handling.
+            **/
+            virtual bool  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) ;
+
+            /**
+            * Drawing is complete. So in our case, we will unbind used FBO and reset it to previous state
+            * Derived methods has to take care about correct handling of FBOs!
+            **/
+            virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* );
         
             //! Viewport changed
             virtual void noticeChangeViewport();

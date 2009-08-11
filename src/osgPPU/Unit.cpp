@@ -58,7 +58,9 @@ Unit::Unit() : osg::Group(),
     // setup default empty fbo and empty program, so that in default mode
     // we do not use any fbo or program
     getOrCreateStateSet()->setAttribute(new osg::Program(), osg::StateAttribute::ON);
-    getOrCreateStateSet()->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
+    //getOrCreateStateSet()->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
+    mDefaultFBO = new osg::FrameBufferObject();
+    //mPushedFBO = NULL;
 
     // we also setup empty textures so that this unit do not get any input texture
     // as long as one is not defined
@@ -93,7 +95,8 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
     mbUpdateTraversed(ppu.mbUpdateTraversed),
-    mbCullTraversed(ppu.mbCullTraversed)
+    mbCullTraversed(ppu.mbCullTraversed),
+    mPushedFBO(ppu.mPushedFBO)
 {
 
 }

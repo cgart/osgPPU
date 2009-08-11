@@ -236,7 +236,7 @@ namespace osgPPU
     void UnitInOut::assignFBO()
     {
         // TODO: currently disabled, because there are some unresolved bugs if using fbo here
-        getOrCreateStateSet()->setAttribute(mFBO.get(), osg::StateAttribute::ON);
+        //getOrCreateStateSet()->setAttribute(mFBO.get(), osg::StateAttribute::ON);
     }
 
     //------------------------------------------------------------------------------
@@ -542,6 +542,23 @@ namespace osgPPU
                 }
             }
         }
+    }
+
+    //------------------------------------------------------------------------------
+    bool UnitInOut::noticeBeginRendering (osg::RenderInfo& info, const osg::Drawable* )
+    {
+        pushFrameBufferObject(*info.getState());
+
+        mFBO->apply(*info.getState());
+
+        return true;
+    }
+
+    //------------------------------------------------------------------------------
+    void UnitInOut::noticeFinishRendering(osg::RenderInfo& info, const osg::Drawable* )
+    {
+        // restore the FBO to its previous state
+        popFrameBufferObject(*info.getState());
     }
 
 }; // end namespace

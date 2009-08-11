@@ -46,8 +46,16 @@ namespace osgPPU
             virtual void init();
             
         protected:
-            //! Notice about end of rendering
-            virtual void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*) {}
+            /**
+            * Since UnitOut forces to use no FBO, here we will disable the used FBO.
+            * Derived classes has to take care abou that step
+            **/
+            virtual bool  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) ;
+
+            /** 
+            * Disabled FBO will be restored back.
+            **/
+            virtual void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*);
         
             //! Viewport changed
             virtual void noticeChangeViewport(osg::RenderInfo &renderInfo) {}

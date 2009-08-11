@@ -17,6 +17,8 @@
 #include <osgPPU/UnitOut.h>
 #include <osgPPU/Processor.h>
 
+#include <osg/FrameBufferObject>
+
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
@@ -42,6 +44,22 @@ namespace osgPPU
         mDrawable = createTexturedQuadDrawable();
         mGeode->removeDrawables(0, mGeode->getNumDrawables());
         mGeode->addDrawable(mDrawable.get());
+    }
+
+    //------------------------------------------------------------------------------
+    bool UnitOut::noticeBeginRendering (osg::RenderInfo& info, const osg::Drawable* )
+    {
+        pushFrameBufferObject(*info.getState());
+
+        mDefaultFBO->apply(*info.getState());
+
+        return true;
+    }
+
+    //------------------------------------------------------------------------------
+    void UnitOut::noticeFinishRendering(osg::RenderInfo& info, const osg::Drawable* )
+    {
+        popFrameBufferObject(*info.getState());
     }
 
 }; // end namespace

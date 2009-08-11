@@ -22,6 +22,31 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
+    // Class in order to correctly handle FBOs of the mipmap
+    //------------------------------------------------------------------------------
+    class MipmapDrawCallback : public osg::Drawable::DrawCallback
+    {
+    private:
+        UnitMipmapInMipmapOut* _parent;
+        osg::FrameBufferObject* _fbo;
+
+        mutable osg::buffered_value<GLuint> _fboID;
+
+    public:
+        MipmapDrawCallback(UnitMipmapInMipmapOut* parent, osg::FrameBufferObject* fbo) : _parent(parent), _fbo(fbo) {}
+
+        void drawImplementation (osg::RenderInfo& info, const osg::Drawable* drawable) const
+        {
+            _parent->pushFrameBufferObject(*info.getState());
+
+            drawable->drawImplementation(info);
+
+            _parent->popFrameBufferObject(*info.getState());
+        }
+    };
+
+
+    //------------------------------------------------------------------------------
     UnitMipmapInMipmapOut::UnitMipmapInMipmapOut(const UnitMipmapInMipmapOut& unit, const osg::CopyOp& copyop) :
         UnitInOut(unit, copyop),
         mIOMipmapViewport(unit.mIOMipmapViewport),
@@ -58,7 +83,8 @@ namespace osgPPU
             osg::Drawable* draw = createTexturedQuadDrawable();
             osg::StateSet* ss = draw->getOrCreateStateSet();
             ss->setAttribute(mIOMipmapViewport[i].get(), osg::StateAttribute::ON);
-            ss->setAttribute(mIOMipmapFBO[i].get(), osg::StateAttribute::ON);
+            //ss->setAttribute(mIOMipmapFBO[i].get(), osg::StateAttribute::ON);
+            draw->setDrawCallback(new MipmapDrawCallback(this, mIOMipmapFBO[i].get()));
             mGeode->addDrawable(draw);
 
             // setup drawable uniforms

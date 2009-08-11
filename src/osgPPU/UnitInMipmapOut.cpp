@@ -22,6 +22,31 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
+    // Class in order to correctly handle FBOs of the mipmap
+    //------------------------------------------------------------------------------
+    class MipmapDrawCallback : public osg::Drawable::DrawCallback
+    {
+    private:
+        UnitInMipmapOut* _parent;
+        osg::FrameBufferObject* _fbo;
+
+        mutable osg::buffered_value<GLuint> _fboID;
+
+    public:
+        MipmapDrawCallback(UnitInMipmapOut* parent, osg::FrameBufferObject* fbo) : _parent(parent), _fbo(fbo) {}
+
+        void drawImplementation (osg::RenderInfo& info, const osg::Drawable* drawable) const
+        {
+            _parent->pushFrameBufferObject(*info.getState());
+
+            drawable->drawImplementation(info);
+
+            _parent->popFrameBufferObject(*info.getState());
+        }
+    };
+
+
+    //------------------------------------------------------------------------------
     UnitInMipmapOut::UnitInMipmapOut(const UnitInMipmapOut& unit, const osg::CopyOp& copyop) :
         UnitInOut(unit, copyop),
         mMipmapFBO(unit.mMipmapFBO),
@@ -49,7 +74,7 @@ namespace osgPPU
     {
     
     }
-        
+
     //------------------------------------------------------------------------------
     void UnitInMipmapOut::init()
     {
@@ -70,7 +95,7 @@ namespace osgPPU
         if (mUseShader)
         {
             // disable standard fbo
-            getOrCreateStateSet()->removeAttribute(mFBO.get());
+            //getOrCreateStateSet()->removeAttribute(mFBO.get());
             getOrCreateStateSet()->removeAttribute(mViewport.get());
 
             // this is the base level of mipmap generation
@@ -91,7 +116,8 @@ namespace osgPPU
                 osg::Drawable* draw = createTexturedQuadDrawable();
                 osg::StateSet* ss = draw->getOrCreateStateSet();
                 ss->setAttribute(mMipmapViewport[i].get(), osg::StateAttribute::ON);
-                ss->setAttribute(mMipmapFBO[i].get(), osg::StateAttribute::ON);
+                //ss->setAttribute(mMipmapFBO[i].get(), osg::StateAttribute::ON);
+                draw->setDrawCallback(new MipmapDrawCallback(this, mMipmapFBO[i].get()));
                 mGeode->addDrawable(draw);
 
                 // setup drawable uniforms

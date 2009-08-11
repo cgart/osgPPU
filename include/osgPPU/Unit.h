@@ -25,6 +25,7 @@
 #include <osg/Geode>
 #include <osg/Geometry>
 #include <osg/BufferObject>
+#include <osg/FrameBufferObject>
 
 #include <osgPPU/Export.h>
 #include <osgPPU/ColorAttribute.h>
@@ -126,7 +127,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         /**
         * Return complete index to texture mapping
         **/
-        const TextureMap& getInputTextureMap() const {return mInputTex;}
+        inline const TextureMap& getInputTextureMap() const {return mInputTex;}
 
         /**
         * Get output texture of certain MRT index.
@@ -160,7 +161,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         /**
         * Get input ignorance map which list all indices of input data which are ignored
         **/
-        const IgnoreInputList& getIgnoreInputList() const { return mIgnoreList; }
+        inline const IgnoreInputList& getIgnoreInputList() const { return mIgnoreList; }
 
         /**
         * Check whenever the input of the given index is ignored or not
@@ -246,7 +247,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * are used to render the unit.
         **/
         osg::Geode* getGeode() { return mGeode.get(); }
-        const osg::Geode* getGeode() const { return mGeode.get(); }
+        inline const osg::Geode* getGeode() const { return mGeode.get(); }
 
         /**
         * Setup children nodes if they are connected by a barrier node.
@@ -266,7 +267,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * Get current color attribute of the unit.
         **/
         ColorAttribute* getColorAttribute() { return mColorAttribute.get(); }
-        const ColorAttribute* getColorAttribute() const { return mColorAttribute.get(); }
+        inline const ColorAttribute* getColorAttribute() const { return mColorAttribute.get(); }
 
         /**
         * Return a PixelDataBufferObject associated with the input texture. 
@@ -275,8 +276,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         inline const osg::PixelDataBufferObject* getInputPBO(int inputIndex) { return mInputPBO[inputIndex].get(); }
         inline const osg::PixelDataBufferObject* getOutputPBO(int mrt) { return mOutputPBO[mrt].get(); }
 
-        const PixelDataBufferObjectMap& getInputPBOMap() const { return mInputPBO; }
-        const PixelDataBufferObjectMap& getOutputPBOMap() const { return mOutputPBO; }
+        inline const PixelDataBufferObjectMap& getInputPBOMap() const { return mInputPBO; }
+        inline const PixelDataBufferObjectMap& getOutputPBOMap() const { return mOutputPBO; }
 
         /**
         * Specify a flag whenever input textures have to be mapped to the input PixelDataBufferObjects.
@@ -290,6 +291,33 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         void setUsePBOForOutputTexture(int mrt);
         inline bool getUsePBOForOutputTexture(int mrt) { return mOutputPBO[mrt].valid(); }
+
+        /** 
+        * Push current FBO, so that it can safely be overwritten.
+        * Derived classes and its subclasses get use of this method.
+        **/
+        inline void pushFrameBufferObject(osg::State& state)
+        {
+            GLint fbo = 0;
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &fbo);
+            mPushedFBO[state.getContextID()] = fbo;
+
+            //mPushedFBO = const_cast<osg::FrameBufferObject*>(dynamic_cast<const osg::FrameBufferObject*>(state.getLastAppliedAttribute(mDefaultFBO->getType())));
+        }
+
+        /** 
+        * Restore last used FrameBufferObject back. This will restore
+        * the FBO pushed before with pushFrameBufferObject method.
+        **/
+        inline void popFrameBufferObject(osg::State& state)
+        {
+            osg::FBOExtensions* ext = osg::FBOExtensions::instance(state.getContextID(), true);
+            ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mPushedFBO[state.getContextID()]);
+            //if (mPushedFBO)
+            //{
+            //    state.applyAttribute(mPushedFBO);
+            //}
+        }
 
     protected:
 
@@ -396,6 +424,13 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
         //! Traverse the unit
         virtual void traverse(osg::NodeVisitor& nv);
+
+        //! Pushed FBOs
+        mutable osg::buffered_value<GLuint> mPushedFBO;
+        //mutable osg::FrameBufferObject* mPushedFBO;
+
+        // Default FBO instance, so when apply this it FBO with id 0 will be applied
+        osg::ref_ptr<osg::FrameBufferObject> mDefaultFBO;
 
     private:
         bool mbActive;

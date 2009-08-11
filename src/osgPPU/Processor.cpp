@@ -20,7 +20,7 @@
 #include <osg/Depth>
 #include <osg/Notify>
 #include <osg/ClampColor>
-#include <osg/FrameBufferObject>
+//#include <osg/FrameBufferObject>
 #include <osg/BlendColor>
 #include <osg/BlendEquation>
 #include <osg/Material>
@@ -115,7 +115,7 @@ void Processor::init()
 
     // the processor is of fixed function pipeline, however the childs (units) might not
     mStateSet->setAttribute(new osg::Program(), osg::StateAttribute::ON);
-    mStateSet->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
+    //mStateSet->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
     mStateSet->setAttribute(new osg::Material(), osg::StateAttribute::ON);
 
     // disable color clamping, because we want to work on real hdr values
