@@ -210,7 +210,7 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth = fa
         texture2D->setSourceFormat(GL_RGBA);
         texture2D->setSourceType(GL_FLOAT);
     }else{
-        texture2D->setInternalFormat(GL_DEPTH_COMPONENT24);
+        texture2D->setInternalFormat(GL_DEPTH_COMPONENT);
         texture2D->setSourceFormat(GL_DEPTH_COMPONENT);
     }
 
@@ -427,7 +427,7 @@ int main(int argc, char** argv)
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer.setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
-    viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // if user request help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))

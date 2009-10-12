@@ -586,9 +586,9 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 
         // precompile input and output pbos, so that they are valid for hte next execution
         for (PixelDataBufferObjectMap::iterator it = _parent->mInputPBO.begin(); it != _parent->mInputPBO.end(); it++)
-            if (it->second && it->second->isDirty(ri.getContextID())) it->second->compileBuffer(*ri.getState());
+            if (it->second && it->second->getOrCreateGLBufferObject(ri.getContextID())->isDirty()) it->second->compileBuffer(*ri.getState());
         for (PixelDataBufferObjectMap::iterator it = _parent->mOutputPBO.begin(); it != _parent->mOutputPBO.end(); it++)
-            if (it->second && it->second->isDirty(ri.getContextID())) it->second->compileBuffer(*ri.getState());
+            if (it->second && it->second->getOrCreateGLBufferObject(ri.getContextID())->isDirty()) it->second->compileBuffer(*ri.getState());
 
         // copy content of the input textures into pbo, if such are specified
         for (PixelDataBufferObjectMap::iterator it = _parent->mInputPBO.begin(); it != _parent->mInputPBO.end(); it++)

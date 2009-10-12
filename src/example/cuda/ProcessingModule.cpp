@@ -62,7 +62,7 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
             cudaDeviceProp deviceProp;                                               
             CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceProperties(&deviceProp, dev));       
             if (deviceProp.major < 1) {                                              
-                fprintf(stderr, "error: device does not support CUDA.\n");     
+                fprintf(stderr, "error: device does not support CUDA, deviceProp(%d): %d.%d\n", dev, deviceProp.major, deviceProp.minor);     
                 exit(EXIT_FAILURE);                                                  
             }                                                                        
             CUDA_SAFE_CALL(cudaSetDevice(dev));
@@ -98,13 +98,13 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
 
             // map input data
             float4* in_data = NULL;
-            CUDA_SAFE_CALL(cudaGLRegisterBufferObject(ipbo->buffer(0)));
-            CUDA_SAFE_CALL(cudaGLMapBufferObject( (void**)&in_data, ipbo->buffer(0)));
+            CUDA_SAFE_CALL(cudaGLRegisterBufferObject(ipbo->getOrCreateGLBufferObject(0)->getGLObjectID()));
+            CUDA_SAFE_CALL(cudaGLMapBufferObject( (void**)&in_data, ipbo->getGLBufferObject(0)->getGLObjectID()));
 
             // map output data
             float4* out_data = NULL;
-            CUDA_SAFE_CALL(cudaGLRegisterBufferObject(opbo->buffer(0)));
-            CUDA_SAFE_CALL(cudaGLMapBufferObject( (void**)&out_data, opbo->buffer(0)));
+            CUDA_SAFE_CALL(cudaGLRegisterBufferObject(opbo->getOrCreateGLBufferObject(0)->getGLObjectID()));
+            CUDA_SAFE_CALL(cudaGLMapBufferObject( (void**)&out_data, opbo->getGLBufferObject(0)->getGLObjectID()));
 
 
             //-----------------------------------------------------------------------------
@@ -133,12 +133,12 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
             if (ipbo == NULL || opbo == NULL) return;
 
             // unmap and unregister input data
-            CUDA_SAFE_CALL(cudaGLUnmapBufferObject(opbo->buffer(0)));
-            CUDA_SAFE_CALL(cudaGLUnregisterBufferObject(opbo->buffer(0)));
+            CUDA_SAFE_CALL(cudaGLUnmapBufferObject(opbo->getGLBufferObject(0)->getGLObjectID()));
+            CUDA_SAFE_CALL(cudaGLUnregisterBufferObject(opbo->getGLBufferObject(0)->getGLObjectID()));
 
             // map output data
-            CUDA_SAFE_CALL(cudaGLUnmapBufferObject(ipbo->buffer(0)));
-            CUDA_SAFE_CALL(cudaGLUnregisterBufferObject(ipbo->buffer(0)));
+            CUDA_SAFE_CALL(cudaGLUnmapBufferObject(ipbo->getGLBufferObject(0)->getGLObjectID()));
+            CUDA_SAFE_CALL(cudaGLUnregisterBufferObject(ipbo->getGLBufferObject(0)->getGLObjectID()));
         }
 
 };
