@@ -54,11 +54,14 @@ namespace osgPPU
             //! regenerate io mapmapped data structures
             void checkIOMipmappedData();
 
-            //! Viewports for each mipmap level 
+            bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* );
+
             std::vector<osg::ref_ptr<osg::Viewport> > mIOMipmapViewport;
-            
-            //! Fbos for each mipmap level 
             std::vector<osg::ref_ptr<osg::FrameBufferObject> > mIOMipmapFBO;
+            std::vector<osg::ref_ptr<osg::Drawable> > mIOMipmapDrawable;
+
+            osg::ref_ptr<osg::RefMatrix> mProjectionMatrix;
+            osg::ref_ptr<osg::RefMatrix> mModelviewMatrix;
     };
 
 };

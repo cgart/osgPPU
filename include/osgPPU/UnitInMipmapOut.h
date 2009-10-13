@@ -92,13 +92,17 @@ namespace osgPPU
         protected:
         
             void enableMipmapGeneration();
+            bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* );
             void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable);
             void createAndAttachFBOs(osg::Texture* output, int mrt);
-
         
             std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
             std::vector<osg::ref_ptr<osg::Viewport> > mMipmapViewport;
-            
+            std::vector<osg::ref_ptr<osg::Drawable> > mMipmapDrawable;
+
+            osg::ref_ptr<osg::RefMatrix> mProjectionMatrix;
+            osg::ref_ptr<osg::RefMatrix> mModelviewMatrix;
+
             int mNumLevels;
             int mGenerateMipmapInputIndex;
             bool mUseShader;
