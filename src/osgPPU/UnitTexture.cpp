@@ -16,46 +16,23 @@
 
 #include <osgPPU/UnitTexture.h>
 #include <osg/Geode>
+#include <osg/Texture1D>
+#include <osg/Texture2D>
+#include <osg/Texture2DArray>
+#include <osg/Texture3D>
+#include <osg/TextureCubeMap>
 
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
-    // Helper class to allow initialization of the input texture
-    //------------------------------------------------------------------------------
-    class UnitTexture::DrawCallback : public osg::Drawable::DrawCallback
-    {   
-        public:
-            DrawCallback(UnitTexture* parent) : osg::Drawable::DrawCallback(), _parent(parent) {}
-            ~DrawCallback() {}
-
-            inline void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
-            {
-                // apply the texture once, so that it get loaded
-                ri.getState()->applyTextureAttribute(0, _parent->getTexture());
-
-                // remove this callback and the drawable out of the unit
-                _parent->getGeode()->removeDrawable(const_cast<osg::Drawable*>(dr));
-
-                // mark each child unit as dirty, so that they get informed, that texture was loaded
-                for (unsigned int i=0; i < _parent->getNumChildren(); i++)
-                {
-                    Unit* unit = dynamic_cast<Unit*>(_parent->getChild(i));
-                    if (unit && unit->isDirty() == false) unit->dirty();
-                }
-            }
-
-            mutable UnitTexture* _parent;
-    };
-
-    //------------------------------------------------------------------------------
-    UnitTexture::UnitTexture() : Unit()
+    UnitTexture::UnitTexture() : UnitBypass()
     {
-        //setOfflineMode(true);
     }
 
     //------------------------------------------------------------------------------
     UnitTexture::UnitTexture(const UnitTexture& u, const osg::CopyOp& copyop) : 
-        Unit(u, copyop)
+        UnitBypass(u, copyop),
+        _externTexture(u._externTexture)
     {
     }
     
@@ -63,7 +40,6 @@ namespace osgPPU
     UnitTexture::UnitTexture(osg::Texture* tex)
     {
         setTexture(tex);
-        //setOfflineMode(true);
     }
     
     //------------------------------------------------------------------------------
@@ -72,48 +48,62 @@ namespace osgPPU
 
     }
 
-
     //------------------------------------------------------------------------------
-    void UnitTexture::init()
+    void UnitTexture::setupInputsFromParents()
     {
-        // add a drawable with our own callback
-        mDrawable = createTexturedQuadDrawable();
-        mDrawable->setDrawCallback(new UnitTexture::DrawCallback(this));
-        mGeode->removeDrawables(0, mGeode->getNumDrawables());
-        mGeode->addDrawable(mDrawable.get());
-        
-        // check if we have input reference size 
-        if (getInputTextureIndexForViewportReference() >= 0 && getInputTexture(getInputTextureIndexForViewportReference()))
-        {
-            // if no viewport, so create it
-            if (!mViewport.valid())
-                mViewport = new osg::Viewport(0,0,0,0);
-            
-            // change viewport sizes
-            mViewport->width() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureWidth();
-            mViewport->height() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
-    
-            // just notice that the viewport size is changed
-            noticeChangeViewport();
-        }
-    
-        // reassign input and shaders
-        assignInputTexture();
-        assignViewport();
+        mInputTex[0] = _externTexture;
+        mOutputTex = mInputTex;
     }
+
 
     //------------------------------------------------------------------------------
     void UnitTexture::setTexture(osg::Texture* tex)
     {
-        if (tex == getTexture()) return;
+        if (tex == getTexture() || tex == NULL) return;
 
-        mInputTex.clear();
-        mOutputTex.clear();
-
-        mInputTex[0] = tex;
-        mOutputTex[0] = tex;
-
+        _externTexture = tex;
         dirty();
+
+        // force texture size, helps if texture was not loaded before
+        if (!_externTexture->areAllTextureObjectsLoaded())
+        {
+            osg::Texture1D* tex1D = dynamic_cast<osg::Texture1D*>(_externTexture.get());
+            osg::Texture2D* tex2D = dynamic_cast<osg::Texture2D*>(_externTexture.get());
+            osg::Texture2DArray* tex2DArray = dynamic_cast<osg::Texture2DArray*>(_externTexture.get());
+            osg::Texture3D* tex3D = dynamic_cast<osg::Texture3D*>(_externTexture.get());
+            osg::TextureCubeMap* texCube = dynamic_cast<osg::TextureCubeMap*>(_externTexture.get());
+    
+            if (tex1D)
+            {
+                tex1D->setTextureWidth(_externTexture->getImage(0)->s());
+            }else if (tex2D)
+            {
+                tex2D->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t());
+            }else if (tex2DArray)
+            {
+                tex2DArray->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t(), _externTexture->getImage(0)->r());
+            }else if (tex3D)
+            {
+                tex3D->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t(), _externTexture->getImage(0)->r());
+            }else if (texCube)
+            {
+                texCube->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t());
+            }else
+            {
+                osg::notify(osg::FATAL) << "osgPPU::UnitTexture::setTexture() - " << getName() << " non-supported texture type specified!" << std::endl;
+            }
+        }
+
+        // if no viewport, so create it
+        if (mViewport == NULL)
+            mViewport = new osg::Viewport(0,0,0,0);
+        
+        // change viewport sizes
+        mViewport->width() = (osg::Viewport::value_type)_externTexture->getTextureWidth();
+        mViewport->height() = (osg::Viewport::value_type)_externTexture->getTextureHeight();
+        
+        // just notice that the viewport size has changed
+        noticeChangeViewport();
     }
 
 

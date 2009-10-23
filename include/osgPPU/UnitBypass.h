@@ -42,6 +42,7 @@ namespace osgPPU
         protected:
             virtual void setupInputsFromParents();
             virtual bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) { return false; }            
+            virtual void traverse(osg::NodeVisitor& nv) { return Unit::traverse(nv); }
     };
 };
 

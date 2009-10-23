@@ -40,20 +40,40 @@ class OutputVisitor : public osg::NodeVisitor
         }
         ~OutputVisitor() {}
 
+        void run (osg::Group &node)
+        {
+            _visited[&node] = true;
+            node.traverse(*this);
+        }
+
         void apply (osg::Group &node)
         {
+            //printf("CHECK VISIT %s\n", node.getName().c_str());
+            //if (_visited[&node]) return;
+
             osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(&node);
 
             // not an unit, then just traverse it
-            if (unit == NULL) traverse(node);
+            if (unit == NULL) node.traverse(*this);
+
+            /*const osg::Node::ParentList& parents = node.getParents();
+            for (osg::Node::ParentList::const_iterator it = parents.begin(); it != parents.end(); it++)
+            {
+                if (!_visited[*it]) return;
+            }*/
+
+            //if (unit) printf("WRITE %s\n", node.getName().c_str());
+
+            //_visited[&node] = true;
 
             // check if it wasn't visited before
-            bool visited = false;
-            for (unsigned int i=0; i < _visited.size(); i++)
-                if (_visited[i] == unit) {visited = true; break;}
+            //bool visited = false;
+            //for (unsigned int i=0; i < _visited.size(); i++)
+            //    if (_visited[i] == unit) {visited = true; break;}
 
             // it is a unit and not visited before
-            if (unit != NULL && !visited)
+            if (unit != NULL && !_visited[&node])
+            //if (0)
             {
                 // because a unit can be referenced more than one, this would
                 // produce wrong output to the .ppu file (see osgDB::Registry::writeObject),
@@ -68,15 +88,18 @@ class OutputVisitor : public osg::NodeVisitor
                 for (int i=0; i<counter; i++) unit->ref();
 
                 // place it
-                _visited.push_back(unit);
+                //_visited.push_back(unit);
+                _visited[&node] = true;
                 node.traverse(*this);
             }
+            //node.traverse(*this);
         }
 
 
     private:
         osgDB::Output* _output;
-        std::vector<osgPPU::Unit*> _visited;
+        //std::vector<osgPPU::Unit*> _visited;
+        std::map<osg::Node*, bool> _visited;
 };
 
 
@@ -254,7 +277,8 @@ public:
             fout.moveIn();
 
                 OutputVisitor ov(&fout);
-                ppu.traverse(ov);
+                ov.run(ppu);
+                //ppu.traverse(ov);
 
                 // write processor's name
                 fout.indent() << "name " << ppu.getName() << std::endl;

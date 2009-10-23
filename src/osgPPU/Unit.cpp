@@ -49,6 +49,11 @@ Unit::Unit() : osg::Group(),
     mGeode->setCullingActive(false);
     addChild(mGeode.get());
 
+    // setup default drawable
+    osg::Drawable* drawable = createTexturedQuadDrawable();
+    drawable->setDrawCallback(new EmptyDrawCallback(this));
+    mGeode->addDrawable(drawable);
+
     // initialze projection matrix
     sProjectionMatrix = new osg::RefMatrix(osg::Matrix::ortho(0,1,0,1,0,1));
 
@@ -59,7 +64,6 @@ Unit::Unit() : osg::Group(),
     // we do not use any fbo or program
     getOrCreateStateSet()->setAttribute(new osg::Program(), osg::StateAttribute::ON);
     //getOrCreateStateSet()->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
-    mDefaultFBO = new osg::FrameBufferObject();
     //mPushedFBO = NULL;
 
     // we also setup empty textures so that this unit do not get any input texture
@@ -107,17 +111,29 @@ Unit::~Unit()
 }
 
 //------------------------------------------------------------------------------
-void Unit::setUsePBOForInputTexture(int index)
+void Unit::setUsePBOForInputTexture(int index, bool use)
 {
-    if (getUsePBOForInputTexture(index)) return;
-    mInputPBO[index] = new osg::PixelDataBufferObject;
+    if (use)
+    {
+        if (getUsePBOForInputTexture(index)) return;
+        mInputPBO[index] = new osg::PixelDataBufferObject;
+    }else
+    {
+        mInputPBO[index] = NULL;
+    }
 }
 
 //------------------------------------------------------------------------------
-void Unit::setUsePBOForOutputTexture(int mrt)
+void Unit::setUsePBOForOutputTexture(int mrt, bool use)
 {
-    if (getUsePBOForOutputTexture(mrt)) return;
-    mOutputPBO[mrt] = new osg::PixelDataBufferObject;
+    if (use)
+    {
+        if (getUsePBOForOutputTexture(mrt)) return;
+        mOutputPBO[mrt] = new osg::PixelDataBufferObject;
+    }else
+    {
+        mOutputPBO[mrt] = NULL;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -392,31 +408,48 @@ void Unit::traverse(osg::NodeVisitor& nv)
     // check if we have to update it
     if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        if (mbUpdateTraversed == false)
+        if (mbUpdateTraversed) return;
+
+        const osg::Node::ParentList& parents = getParents();
+        for (osg::Node::ParentList::const_iterator it = parents.begin(); it != parents.end(); it++)
         {
-            mbUpdateTraversed = true;
-
-            update();
-            getStateSet()->runUpdateCallbacks(&nv);
-
-            osg::Group::traverse(nv);
+            Unit* unit = dynamic_cast<osgPPU::Unit*>(*it);
+            if (unit && !unit->mbUpdateTraversed) return;
         }
+
+        mbUpdateTraversed = true;
+
+        //printf("UPDATE VISIT %s\n", getName().c_str());
+
+        update();
+        getStateSet()->runUpdateCallbacks(&nv);
 
     }else if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
-        if (mbCullTraversed == false)
+        if (mbCullTraversed) return;
+
+        const osg::Node::ParentList& parents = getParents();
+        for (osg::Node::ParentList::const_iterator it = parents.begin(); it != parents.end(); it++)
         {
-            mbCullTraversed = true;
-            osg::Group::traverse(nv);
+            Unit* unit = dynamic_cast<osgPPU::Unit*>(*it);
+            if (unit && !unit->mbCullTraversed) return;
         }
 
-    }else
-        osg::Group::traverse(nv);
+        //printf("CULL VISIT %s\n", getName().c_str());
+
+        // mark this unit as has been traversed and traverse
+        mbCullTraversed = true;        
+    }
+
+    // default traversion
+    osg::Group::traverse(nv);
 }
 
 //------------------------------------------------------------------------------
 void Unit::init()
 {
+    //printf("INIT VISIT %s\n", getName().c_str());
+
     // collect all inputs from the units above
     setupInputsFromParents();
 
@@ -469,6 +502,14 @@ public:
             // get the output texture 0 as input
             _input.push_back(unit->getOrCreateOutputTexture(0));
 
+            // if parent unit is a UnitInOut, then collect all MRTs
+            UnitInOut* unitIO = dynamic_cast<UnitInOut*>(unit);
+            if (unitIO)
+            {
+                for (int i=1; i < unitIO->getOutputDepth(); i++)
+                    _input.push_back(unitIO->getOrCreateOutputTexture(i));
+            }
+
             _inputUnitsFound = true;
 
         // if it is a processor, then get the camera attachments as inputs
@@ -487,7 +528,6 @@ public:
     std::vector<osg::Texture*> _input;
     bool _inputUnitsFound;
 };
-
 
 //--------------------------------------------------------------------------
 void Unit::setupInputsFromParents()
@@ -510,7 +550,7 @@ void Unit::setupInputsFromParents()
     if (changedInput) noticeChangeInput();
 
     // if viewport is not defined and we need viewport from processor, then
-    if (getViewport() == NULL && (getInputTextureIndexForViewportReference() < 0 || (getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound)))
+    if (getViewport() == NULL && getInputTextureIndexForViewportReference() < 0 || (getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound))
     {
         // find the processor
         FindProcessorVisitor fp;
@@ -577,6 +617,23 @@ void Unit::dirty()
 }
 
 //--------------------------------------------------------------------------
+void Unit::EmptyDrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
+{
+    if (_parent->getActive())
+    {   
+        _parent->printDebugInfo(dr);
+
+        if (_parent->getBeginDrawCallback())
+            (*_parent->getBeginDrawCallback())(ri, _parent);
+
+
+        // notice that we will start rendering soon
+        if (_parent->getEndDrawCallback())
+            (*_parent->getEndDrawCallback())(ri, _parent);
+    }
+}
+
+//--------------------------------------------------------------------------
 void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
 {
     //printf("RENDER: %s\n", _parent->getName().c_str());
@@ -613,7 +670,15 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
             ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
             ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
 
+            // notice that we will start rendering soon
+            if (_parent->getBeginDrawCallback())
+                (*_parent->getBeginDrawCallback())(ri, _parent);
+
             dr->drawImplementation(ri);
+
+            // notice that we will start rendering soon
+            if (_parent->getEndDrawCallback())
+                (*_parent->getEndDrawCallback())(ri, _parent);
         }
 
         // ok rendering is done, unit can do other stuff.
@@ -651,7 +716,7 @@ void Unit::printDebugInfo(const osg::Drawable* dr)
     if (level > osg::getNotifyLevel()) return;
 
     // debug information
-    osg::notify(level) << getName() << " (" << getOrCreateStateSet()->getBinNumber() << ") run in thread " << OpenThreads::Thread::CurrentThread() << std::endl;
+    osg::notify(level) << getName() << " run in thread " << OpenThreads::Thread::CurrentThread() << std::endl;
 
     if (getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT) || (dr && dr->getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT)))
     {
@@ -716,18 +781,18 @@ void Unit::printDebugInfo(const osg::Drawable* dr)
         }
     }
 
-    UnitInOut* inout = dynamic_cast<UnitInOut*>(this);
-    if (inout)
+    //if (inout)
     {
         osg::notify(level) << std::endl << "\t output: ";
-        for (unsigned int i=0; i < inout->getOutputTextureMap().size(); i++)
+        for (unsigned int i=0; i < getOutputTextureMap().size(); i++)
         {
-            osg::Texture* tex = inout->getOutputTexture(i);
+            osg::Texture* tex = getOutputTexture(i);
             osg::notify(level) << " " << std::hex << tex << std::dec << " ";
             if (tex)
             {
                 osg::notify(level) << "(" << tex->getTextureWidth() << "x" << tex->getTextureHeight() << " ";
-                if (inout->getOutputZSliceMap().size() > 1)
+                UnitInOut* inout = dynamic_cast<UnitInOut*>(this);
+                if (inout && inout->getOutputZSliceMap().size() > 1)
                 {
                     UnitInOut::OutputSliceMap::const_iterator it = inout->getOutputZSliceMap().begin();
                     osg::notify(level) << "{";
@@ -739,9 +804,9 @@ void Unit::printDebugInfo(const osg::Drawable* dr)
             }
         }
 
-        const osg::FrameBufferObject* fbo = dynamic_cast<const osg::FrameBufferObject*>(getStateSet()->getAttribute((osg::StateAttribute::Type) 0x101010));
-        if (fbo == NULL && dr != NULL) fbo = dynamic_cast<const osg::FrameBufferObject*>(dr->getStateSet()->getAttribute((osg::StateAttribute::Type) 0x101010));
-        osg::notify(level) << std::endl << "\t fbo: " << std::hex << fbo << std::dec << std::endl;        
+        //const osg::FrameBufferObject* fbo = dynamic_cast<const osg::FrameBufferObject*>(getStateSet()->getAttribute((osg::StateAttribute::Type) 0x101010));
+        //if (fbo == NULL && dr != NULL) fbo = dynamic_cast<const osg::FrameBufferObject*>(dr->getStateSet()->getAttribute((osg::StateAttribute::Type) 0x101010));
+        //osg::notify(level) << std::endl << "\t fbo: " << std::hex << fbo << std::dec << std::endl;        
     }
 
     osg::notify(level) << std::endl;

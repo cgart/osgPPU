@@ -56,6 +56,13 @@ namespace osgPPU
         mHeightFactor = h;
         mDirtyFactor = true;
     }
+
+    //------------------------------------------------------------------------------
+    void UnitInResampleOut::dirty()
+    {
+        UnitInOut::dirty();
+        mDirtyFactor = true;
+    }
     
     //------------------------------------------------------------------------------
     void UnitInResampleOut::init()

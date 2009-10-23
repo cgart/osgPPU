@@ -44,7 +44,7 @@ namespace osgPPU
         public:
             META_Node(osgPPU,UnitInOut);
         
-            //! Mapping of MRt to ZSlice
+            //! Mapping of MRT to ZSlice
             typedef std::map<unsigned int, unsigned int> OutputSliceMap;
 
             //! Create default ppfx 
@@ -111,7 +111,10 @@ namespace osgPPU
 
             /**
             * Specify the depth of the output texture when using a 3D or layered texture 
-            * as output texture.
+            * as output texture. Is a 2D texture is used as output, then this value specifies
+            * the amount of MRT (multiple render targets) which has to be used by this unit.
+            * 
+            * NOTE: Currently there is no support to specify slices of different 3D or layered textures as MRTs
             **/
             void setOutputDepth(unsigned int depth);
 
@@ -209,8 +212,6 @@ namespace osgPPU
     
             //! Reassign fbo if output textures changes
             virtual void assignOutputTexture();
-
-            virtual void assignFBO();
 
             virtual void assignOutputPBO();
 

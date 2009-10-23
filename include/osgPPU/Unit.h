@@ -38,10 +38,6 @@
 namespace osgPPU
 {
 
-// Forward declaration to simplify the work
-class Processor;
-class Visitor;
-
 //! Abstract base class of any unit
 /**
  * Units represents renderable units of the osgPPU library.
@@ -235,7 +231,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * on next update. Also every child unit will be marked as dirty. This yields of
         * reinitialization of children units on next update method too.
         **/
-        void dirty();
+        virtual void dirty();
 
         /**
         * Checks whenever the unit is marked as dirty or not.
@@ -286,10 +282,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * NOTE: A PixelDataBufferObject resides also on the GPU as the texture does. Hence reading/writing
         *       of data in/to PBO isn't that costly, because data is copied in the video memory.
         **/
-        void setUsePBOForInputTexture(int index);
+        void setUsePBOForInputTexture(int index, bool use);
         inline bool getUsePBOForInputTexture(int index) { return mInputPBO[index].valid(); }
 
-        void setUsePBOForOutputTexture(int mrt);
+        void setUsePBOForOutputTexture(int mrt, bool use);
         inline bool getUsePBOForOutputTexture(int mrt) { return mOutputPBO[mrt].valid(); }
 
         /** 
@@ -301,8 +297,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
             GLint fbo = 0;
             glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &fbo);
             mPushedFBO[state.getContextID()] = fbo;
-
-            //mPushedFBO = const_cast<osg::FrameBufferObject*>(dynamic_cast<const osg::FrameBufferObject*>(state.getLastAppliedAttribute(mDefaultFBO->getType())));
         }
 
         /** 
@@ -313,11 +307,47 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         {
             osg::FBOExtensions* ext = osg::FBOExtensions::instance(state.getContextID(), true);
             ext->glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mPushedFBO[state.getContextID()]);
-            //if (mPushedFBO)
-            //{
-            //    state.applyAttribute(mPushedFBO);
-            //}
         }
+
+        /**
+        * Unit traverse function used by node visitors when updating or rendering the unit.
+        * Units are traversed in the DFS manner. However, a unit is get only first applied
+        * on the visitor, if all its parents has been already traversed. This force every
+        * parent to compute its output before a child can start its computation.
+        **/
+        virtual void traverse(osg::NodeVisitor& nv);
+
+        /**
+        * A notify callback can be used by anyone in order to be informed when a unit 
+        * is doing special operations, i.e. rendering.
+        * Mostly this is used to be able to react on actions of a unit.
+        **/
+        struct NotifyCallback : public virtual osg::Object
+        {
+                META_Object (osgPPU, NotifyCallback);
+
+                NotifyCallback(){}
+                
+                NotifyCallback(const NotifyCallback& cb, const osg::CopyOp& cp){}
+
+                virtual void operator()(osg::RenderInfo& ri, const Unit* unit) const{};
+        };
+
+        /**
+        * Set before rendering notify callback. Callback is executed before main 
+        * drawable of a unit is drawed.
+        **/
+        inline void setBeginDrawCallback(NotifyCallback* cb) { _notifyBeginDrawCallback = cb; }
+        inline NotifyCallback* getBeginDrawCallback() { return _notifyBeginDrawCallback; }
+        inline const NotifyCallback* getBeginDrawCallback() const { return _notifyBeginDrawCallback; }
+
+        /**
+        * Set after rendering notify callback. Callback is executed after main 
+        * drawable of a unit is drawed.
+        **/
+        inline void setEndDrawCallback(NotifyCallback* cb) { _notifyEndDrawCallback = cb; }
+        inline NotifyCallback* getEndDrawCallback() { return _notifyEndDrawCallback; }
+        inline const NotifyCallback* getEndDrawCallback() const { return _notifyEndDrawCallback; }
 
     protected:
 
@@ -326,19 +356,29 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         * of the unit's drawable. The callback is setted up automatically,
         * hence you don't need to do anything.
         **/
-        class DrawCallback : public osg::Drawable::DrawCallback
+        struct DrawCallback : public osg::Drawable::DrawCallback
         {
-            public:
-                DrawCallback(Unit* parent) : osg::Drawable::DrawCallback(), _parent(parent) {}
-                ~DrawCallback() {}
+            DrawCallback(Unit* parent) : osg::Drawable::DrawCallback(), _parent(parent) {}
+            ~DrawCallback() {}
 
-                inline void setParent(Unit* parent) { _parent = parent; }
-                inline Unit* getParent() { return _parent; }
-                inline const Unit* getParent() const { return _parent; }
-                void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const;
+            void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const;
 
-            private:
-                Unit* _parent;
+            Unit* _parent;
+        };
+
+        /**
+        * Simple draw callback, which just do nothing. It will be executed by every unit 
+        * even which just bypass the data. This is needed in order to be able to catch up
+        * the moment when a unit is to be computing the output. So virtually speaking
+        * every unit does compute the output, however only UnitInOut do really render something
+        * the rest just do nothing.
+        **/
+        struct EmptyDrawCallback : public osg::Drawable::DrawCallback
+        {
+            EmptyDrawCallback(Unit* parent) : osg::Drawable::DrawCallback(), _parent(parent) {}
+            void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const;
+
+            Unit* _parent;
         };
 
         /**
@@ -362,10 +402,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! Let the unit know that the drawing is done.
         virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* ) {};
 
-        //! Notice underlying classes, that viewport size is changed
+        //! Notice derived classes, that viewport size has changed.
         virtual void noticeChangeViewport() {}
 
-        //! Notice derived classes, when inpu ttexture was changed.
+        //! Notice derived classes, when input texture has changed.
         virtual void noticeChangeInput() {}
 
         //! Assign the input texture to the quad object
@@ -422,15 +462,10 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         //! Index of the input texture which size is used as viewport
         int mInputTexIndexForViewportReference;
 
-        //! Traverse the unit
-        virtual void traverse(osg::NodeVisitor& nv);
-
         //! Pushed FBOs
         mutable osg::buffered_value<GLuint> mPushedFBO;
-        //mutable osg::FrameBufferObject* mPushedFBO;
 
-        // Default FBO instance, so when apply this it FBO with id 0 will be applied
-        osg::ref_ptr<osg::FrameBufferObject> mDefaultFBO;
+        void printDebugInfo(const osg::Drawable* dr);
 
     private:
         bool mbActive;
@@ -439,7 +474,8 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         bool mbUpdateTraversed; // requires to check whenever unit was already traversed by update visitor
         bool mbCullTraversed; // requires to check whenever unit was already traversed by cull visitor
 
-        void printDebugInfo(const osg::Drawable* dr);
+        osg::ref_ptr<NotifyCallback> _notifyBeginDrawCallback;
+        osg::ref_ptr<NotifyCallback> _notifyEndDrawCallback;
 
         // it is good to have friends
         friend class Processor;
@@ -447,6 +483,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         friend class CleanUpdateTraversedVisitor;
         friend class CleanCullTraversedVisitor;
         friend class SetMaximumInputsVisitor;
+        friend class CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor;
 };
 
 };

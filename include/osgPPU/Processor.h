@@ -95,7 +95,7 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         * as you have changed the unit graph. Call this method to let processor
         * initilize  the underlying graph properly (setup all inputs and so on).
         **/
-        inline void dirtyUnitSubgraph() {mbDirtyUnitGraph = true;}
+        void dirtyUnitSubgraph();
 
         /**
         * Check whenever the subgraph is valid. A subgraph is valid if it can be
@@ -133,6 +133,18 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         **/
         bool removeUnit(Unit* unit);
 
+            
+        /**
+        * Usually a unit is placed according to the graph structure to the execution pipeline.
+        * However in some cases you maybe want to place a unit at the end of the pipeline.
+        * This is for example usefull when you want to force an UnitOut to be executed last.  
+        * So here you can enable forcing and the unit will be executed at the end of the pipeline regardless of
+        * any input or any graph structure. 
+        * NOTE: Enabling this feature the unit will not be executed on its right place, but only at the end.
+        *       If there are several units which are executed at the end, the order of them is undefined.
+        **/
+        void placeUnitAsLast(Unit* unit, bool enable = true);
+
         /**
         * Overridden method from osg::Node to allow computation of bounding box.
         * This is needed to prevent traversion of this computation down to all childs.
@@ -152,16 +164,23 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         **/
         void useColorClamp( bool useColorClamp = true ) {mUseColorClamp = useColorClamp; mbDirty = true;}
 
+        /**
+        * Call this method whenever your main viewport of any of the used cameras
+        * or a size of used external textures has changed. Processor will notify 
+        * every unit of the viewport change. 
+        *
+        * NOTE: You can also use dirtyUnitSubgraph(), however this will run the whole
+        *       initialization process again, which costs time. A call that just viewport
+        *       changed require usually less time to complete.
+        **/
+        virtual void onViewportChange();
+
     protected:
 
         /**
         * Init method which will be called automagically if processor became dirty.
         **/
         virtual void init();
-
-        osg::observer_ptr<osg::Camera> mCamera;
-
-        friend class SetupUnitRenderingVisitor;
 
         /**
         * Callback method which will be called as soon as a unit is get initialized.
@@ -182,6 +201,19 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         bool      mbDirty;
         bool      mbDirtyUnitGraph;
         bool      mUseColorClamp;
+        osg::observer_ptr<osg::Camera> mCamera;
+        std::list<Unit*> mLastUnits;
+        osg::ref_ptr<osg::NodeCallback> mCollectLastUnitsCallback;
+
+        friend class SetupUnitRenderingVisitor;
+        friend class CollectLastUnitsCallback;
+
+        /**
+        * Add a unit to the list of last units. This will place a unit at the end of the execution pipeline.
+        * Use placeUnitAsLast() to force unit to be executed at the end. Putting unit into the list of last
+        * units, does not enforce it not to be executed on its right place!
+        **/
+        inline void addLastUnit(Unit* unit) { if (unit) mLastUnits.push_back(unit); }
 
 };
 

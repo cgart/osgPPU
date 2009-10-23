@@ -233,13 +233,6 @@ namespace osgPPU
     }
 
     //------------------------------------------------------------------------------
-    void UnitInOut::assignFBO()
-    {
-        // TODO: currently disabled, because there are some unresolved bugs if using fbo here
-        //getOrCreateStateSet()->setAttribute(mFBO.get(), osg::StateAttribute::ON);
-    }
-
-    //------------------------------------------------------------------------------
     void UnitInOut::init()
     {
         // initialize all parts of the ppu
@@ -270,8 +263,21 @@ namespace osgPPU
                     osg::notify(osg::WARN) << "osgPPU::UnitInOut::init() - specified mrt index " << it->first << " is not valid. Results might be wrong!" << std::endl;
                 }
             }
+        }else if (mOutputType == TEXTURE_2D)
+        {
+            // reserve as much output textures, as we have MRT
+            if (mOutputTex.size() < mOutputDepth)
+            {
+                for (int i=mOutputTex.size(); i < mOutputDepth; i++)
+                    mOutputTex[i] = NULL;
+            }else if (mOutputTex.size() > mOutputDepth)
+            {
+                TextureMap::iterator it = mOutputTex.begin();
+                for (int i=mOutputDepth; i < mOutputTex.size(); i++) it++;
+                mOutputTex.erase(it, mOutputTex.end());
+            }
         }
-
+        
         // setup bypassed output if required
         if (mBypassedInput >= 0 && mBypassedInput < (int)getNumParents())
         {
@@ -287,7 +293,6 @@ namespace osgPPU
         // setup output textures and fbo
         assignOutputTexture();
         assignOutputPBO();
-        assignFBO();
     }
 
     //------------------------------------------------------------------------------
@@ -296,19 +301,6 @@ namespace osgPPU
         // nothing to do if not
         if (index == mBypassedInput) return;
         mBypassedInput = index;
-
-        // if we want to remove bypassed index
-        if (index < 0)
-        {
-            mOutputTex[0] = NULL;
-            getOrCreateOutputTexture(0);
-
-        // if we want to setup bypassed texture
-        }else
-        {
-            mOutputTex[0] = getInputTexture(index);
-        }
-
         dirty();
     }
 
@@ -345,10 +337,6 @@ namespace osgPPU
     {
         mOutputDepth = depth;
         dirty();
-
-        // TODO: maybe some differentiation between MRT outputs is here required
-        // However no idea if different slices of different 3D textures could be
-        // used as MRT output. Have to check that, art 08. July, 2008
     }
 
     //------------------------------------------------------------------------------
@@ -421,7 +409,7 @@ namespace osgPPU
     void UnitInOut::assignOutputTexture()
     {
         // now generate output texture's and assign them to fbo
-        std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
+        TextureMap::iterator it = mOutputTex.begin();
         for (int i = 0; it != mOutputTex.end(); it++, i++)
         {
             // get output texture
@@ -540,13 +528,35 @@ namespace osgPPU
                     osg::TextureCubeMap* mTex = dynamic_cast<osg::TextureCubeMap*>(it->second.get());
                     mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
                 }
+                // if texture type is a 3d texture
+                else if (dynamic_cast<osg::Texture3D*>(it->second.get()) != NULL)
+                {
+                    // change size
+                    osg::Texture3D* mTex = dynamic_cast<osg::Texture3D*>(it->second.get());
+                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth );
+                }
+                // if texture type is a 2d array
+                else if (dynamic_cast<osg::Texture2DArray*>(it->second.get()) != NULL)
+                {
+                    // change size
+                    osg::Texture2DArray* mTex = dynamic_cast<osg::Texture2DArray*>(it->second.get());
+                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth );
+                }
+                // unknown textue
+                else
+                {
+                    osg::notify(osg::WARN) << "osgPPU::UnitInOut::noticeChangeViewport() - " << getName() << " non-supported texture type specified!" << std::endl;
+                }
             }
         }
+
     }
 
     //------------------------------------------------------------------------------
     bool UnitInOut::noticeBeginRendering (osg::RenderInfo& info, const osg::Drawable* )
     {
+        //if (mBypassedInput >= 0 && mBypassedInput < (int)getNumParents()) return true;
+
         pushFrameBufferObject(*info.getState());
 
         mFBO->apply(*info.getState());
@@ -557,6 +567,8 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitInOut::noticeFinishRendering(osg::RenderInfo& info, const osg::Drawable* )
     {
+        //if (mBypassedInput >= 0 && mBypassedInput < (int)getNumParents()) return;
+
         // restore the FBO to its previous state
         popFrameBufferObject(*info.getState());
     }

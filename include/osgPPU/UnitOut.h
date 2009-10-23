@@ -36,7 +36,7 @@ namespace osgPPU
         public:
             META_Node(osgPPU,UnitOut);
         
-            UnitOut() : Unit() {}
+            UnitOut();
             UnitOut(const UnitOut&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
             //! Release it and used memory
@@ -44,7 +44,7 @@ namespace osgPPU
             
             //! Initialze the default Processoring unit
             virtual void init();
-            
+
         protected:
             /**
             * Since UnitOut forces to use no FBO, here we will disable the used FBO.
@@ -59,6 +59,9 @@ namespace osgPPU
         
             //! Viewport changed
             virtual void noticeChangeViewport(osg::RenderInfo &renderInfo) {}
+
+            //! Default FBO instance, so when apply this it FBO with id 0 will be applied
+            osg::ref_ptr<osg::FrameBufferObject> mDefaultFBO;
     };
 };
 

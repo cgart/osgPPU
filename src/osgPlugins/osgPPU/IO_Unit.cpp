@@ -29,6 +29,7 @@
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/ColorAttribute.h>
 #include <osgPPU/ShaderAttribute.h>
+#include <osgPPU/UnitBypassRepeat.h>
 
 #include <osg/Notify>
 #include <osg/io_utils>
@@ -288,6 +289,45 @@ bool readUnitInOutModule(osg::Object& obj, osgDB::Input& fr)
     if (fr.readSequence("module", module))
     {
         unit.loadModule(module);
+        itAdvanced = true;
+    }
+
+    return itAdvanced;
+}
+
+//--------------------------------------------------------------------------
+bool readUnitBypassRepeat(osg::Object& obj, osgDB::Input& fr)
+{
+    // convert given object to unit
+    osgPPU::UnitBypassRepeat& unit = static_cast<osgPPU::UnitBypassRepeat&>(obj);
+
+    bool itAdvanced = false;
+    unsigned iterations;
+    if (fr.readSequence("numIterations", iterations))
+    {
+        unit.setNumIterations(iterations);
+        itAdvanced = true;
+    }
+
+    std::string uid;
+    if (fr.readSequence("lastNode", uid))
+    {
+        osgPPU::Unit* node = dynamic_cast<osgPPU::Unit*>(fr.getObjectForUniqueID(uid));
+        if (!node)
+        {
+            osg::notify(osg::FATAL)<<"Unit " << unit.getName() << " cannot find lastNode " << uid << std::endl;
+            return false;
+        }
+        else
+            unit.setLastNode(node);
+
+        itAdvanced = true;
+    }
+
+    unsigned outindex;
+    if (fr.readSequence("lastNodeOutputIndex", outindex))
+    {
+        unit.setLastNodeOutputIndex(outindex);
         itAdvanced = true;
     }
 
@@ -783,6 +823,27 @@ bool writeUnitInOutModule(const osg::Object& obj, osgDB::Output& fout)
 }
 
 //--------------------------------------------------------------------------
+bool writeUnitBypassRepeat(const osg::Object& obj, osgDB::Output& fout)
+{
+    // convert given object to unit
+    const osgPPU::UnitBypassRepeat& unit = static_cast<const osgPPU::UnitBypassRepeat&>(obj);
+
+    fout.indent() << "numIterations " <<  unit.getNumIterations() << std::endl;
+
+    std::string uid;
+    if (!fout.getUniqueIDForObject(unit.getLastNode(), uid))
+    {
+        fout.createUniqueIDForObject(unit.getLastNode(), uid);
+        fout.registerUniqueIDForObject(unit.getLastNode(), uid);
+    }
+
+    fout.indent() << "lastNode " << uid << std::endl;
+    fout.indent() << "lastNodeOutputIndex " << unit.getLastNodeOutputIndex() << std::endl;
+
+    return true;
+}
+
+//--------------------------------------------------------------------------
 bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
 {
     // convert given object to unit
@@ -834,6 +895,16 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitBypassProxy
     "UnitBypass",
     &readUnit,
     &writeUnit
+);
+
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_UnitBypassRepeatProxy
+(
+    new osgPPU::UnitBypassRepeat,
+    "UnitBypassRepeat",
+    "UnitBypassRepeat",
+    &readUnitBypassRepeat,
+    &writeUnitBypassRepeat
 );
 
 // register the read and write functions with the osgDB::Registry.

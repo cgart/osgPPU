@@ -35,21 +35,36 @@ namespace osgPPU
 //------------------------------------------------------------------------------
 // Helper class used as render bin
 //------------------------------------------------------------------------------
+class CollectLastUnitsCallback : public osg::NodeCallback
+{
+    public:
+        Processor* _processor;
+
+        CollectLastUnitsCallback(Processor* proc) : _processor(proc){}
+
+        void operator() (osg::Node *node, osg::NodeVisitor *nv)
+        {
+            _processor->addLastUnit(dynamic_cast<Unit*>(node));
+            //node->traverse(*nv);
+        }
+};
+
+
+//------------------------------------------------------------------------------
+// Helper class used as render bin
+//------------------------------------------------------------------------------
 class PPUProcessingBin : public osgUtil::RenderBin
 {
     public:
         PPUProcessingBin(const std::string& name) : osgUtil::RenderBin()
         {
             setName(name);
+            setSortMode(osgUtil::RenderBin::TRAVERSAL_ORDER);
         }
 };
 
 // This is a default rendering bin which all units are usign
 static osg::ref_ptr<osgUtil::RenderBin> DefaultBin = new PPUProcessingBin("PPUProcessingBin");
-
-// just an instance for faster access
-static osg::ref_ptr<UnitVisitor> sCleanUpdateTraverseMaskVisitor = new CleanUpdateTraversedVisitor;
-static osg::ref_ptr<UnitVisitor> sCleanCullTraverseMaskVisitor = new CleanCullTraversedVisitor;
 
 //------------------------------------------------------------------------------
 Processor::Processor()
@@ -58,6 +73,7 @@ Processor::Processor()
     mbDirty = true;
     mbDirtyUnitGraph = true;
     mUseColorClamp = true;
+    mCollectLastUnitsCallback = new CollectLastUnitsCallback(this);
 
     // first we have to create a render bin which will hold the units
     // of the subgraph.
@@ -171,6 +187,29 @@ bool Processor::removeUnit(Unit* unit)
     return true;
 }
 
+//------------------------------------------------------------------------------
+void Processor::onViewportChange()
+{
+    MarkUnitsDirtyVisitor nv;
+    nv.run(this);
+}
+
+//------------------------------------------------------------------------------
+void Processor::dirtyUnitSubgraph()
+{
+    mbDirtyUnitGraph = true;
+}
+
+//------------------------------------------------------------------------------
+void Processor::placeUnitAsLast(Unit* unit, bool enable)
+{
+    if (!unit) return;
+
+    if (!enable)
+        unit->removeCullCallback(mCollectLastUnitsCallback);
+    else
+        unit->setCullCallback(mCollectLastUnitsCallback);    
+}
 
 //------------------------------------------------------------------------------
 void Processor::traverse(osg::NodeVisitor& nv)
@@ -187,6 +226,10 @@ void Processor::traverse(osg::NodeVisitor& nv)
         // first resolve all cycles in the set
         ResolveUnitsCyclesVisitor rv;
         rv.run(this);
+
+        // mark every unit as dirty, so that they get updated on the next call
+        MarkUnitsDirtyVisitor nv;
+        nv.run(this);
 
         // debug information
         osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
@@ -206,27 +249,35 @@ void Processor::traverse(osg::NodeVisitor& nv)
     // first we need to clear traversion bit of every unit
     if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        sCleanUpdateTraverseMaskVisitor->run(this);
+        CleanUpdateTraversedVisitor::sVisitor->run(this);
     }
 
     // if processor is propagated by a cull visitor, hence first clean the traverse bit
     if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
-        sCleanCullTraverseMaskVisitor->run(this);
+        osg::notify(osg::DEBUG_INFO) << "--------------------------------------------------------------------" << std::endl;
+        osg::notify(osg::DEBUG_INFO) << "BEGIN FRAME" << getName() << std::endl;
+
+        CleanCullTraversedVisitor::sVisitor->run(this);
     }
 
-    // just a normal traversion
     if (mbDirtyUnitGraph == false || nv.getVisitorType() == osg::NodeVisitor::NODE_VISITOR)
     {
         osg::Group::traverse(nv);
     }
 
-
+    // check if we have units that want to be executed last, then do so
+    if (mbDirtyUnitGraph == false && nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
+    {
+        for (std::list<Unit*>::iterator it = mLastUnits.begin(); it != mLastUnits.end(); it++)
+        {
+            placeUnitAsLast(*it, false);
+            (*it)->accept(nv);
+            placeUnitAsLast(*it, true);
+        }
+        mLastUnits.clear();
+    }
 }
 
 
 }; //end namespace
-
-
-
-

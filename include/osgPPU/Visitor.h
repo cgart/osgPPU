@@ -24,6 +24,9 @@
 #include <osgPPU/Unit.h>
 #include <osg/NodeVisitor>
 #include <osg/Group>
+#include <osgUtil/CullVisitor>
+#include <queue>
+#include <list>
 
 namespace osgPPU
 {
@@ -34,10 +37,12 @@ namespace osgPPU
 class OSGPPU_EXPORT UnitVisitor : public osg::NodeVisitor
 {
     public:
+        META_NodeVisitor("osgPPU" , "UnitVisitor");
+
         virtual void run(osg::Group* root) { root->traverse(*this); }
         inline  void run(osg::Group& root) { run(&root); }
 
-        virtual const char* getVisitorName() { return ""; }
+        static OpenThreads::Mutex s_mutex_changeUnitSubgraph;
 };
 
 //------------------------------------------------------------------------------
@@ -60,10 +65,39 @@ public:
 
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "CleanUpdateTraversedVisitor"; }
+    const char* className() { return "CleanUpdateTraversedVisitor"; }
+
+    static osg::ref_ptr<CleanUpdateTraversedVisitor> sVisitor;
 
 private:
     OpenThreads::Mutex _mutex;
+};
+
+
+//------------------------------------------------------------------------------
+// Special visitor to mark units dirty and reupdate them
+// run until we meet UnitInOut, so a unit which generates output texture
+// this allows us to change any input above that unit and propagate that change to the unit graph
+//------------------------------------------------------------------------------
+class  CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor : public UnitVisitor
+{
+public:
+
+    CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor() : UnitVisitor()
+    {
+    }
+
+    const char* className() { return "CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor"; }
+
+    static osg::ref_ptr<CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor> sVisitor;
+
+    void apply (osg::Group &node);
+
+    void run (osg::Group* root);
+
+private:
+    OpenThreads::Mutex _mutex;
+
 };
 
 //------------------------------------------------------------------------------
@@ -86,7 +120,9 @@ public:
 
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "CleanCullTraversedVisitor"; }
+    const char* className() { return "CleanCullTraversedVisitor"; }
+
+    static osg::ref_ptr<CleanCullTraversedVisitor> sVisitor;
 
 private:
     OpenThreads::Mutex _mutex;
@@ -108,7 +144,7 @@ public:
     void apply (osg::Group &node);
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "SetMaximumInputsVisitor"; }
+    const char* className() { return "SetMaximumInputsVisitor"; }
 
 private:
     unsigned int mMaxUnitInputIndex;
@@ -138,7 +174,7 @@ public:
 
     Unit* getResult() { return _result; }
 
-    const char* getVisitorName() { return "FindUnitVisitor"; }
+    const char* className() { return "FindUnitVisitor"; }
 private:
     std::string _name;
     Unit* _result;
@@ -158,7 +194,7 @@ public:
 
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "RemoveUnitVisitor"; }
+    const char* className() { return "RemoveUnitVisitor"; }
 };
 
 
@@ -177,7 +213,7 @@ public:
     void apply (osg::Group &node);
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "OptimizeUnitsVisitor"; }
+    const char* className() { return "OptimizeUnitsVisitor"; }
 private:
     unsigned _maxUnitInputIndex;
 };
@@ -197,12 +233,12 @@ public:
     void apply (osg::Group &node);
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "ResolveUnitsCyclesVisitor"; }
+    const char* className() { return "ResolveUnitsCyclesVisitor"; }
 };
 
 //------------------------------------------------------------------------------
 // Visitor used to setup all units in a correct order in an appropriate rendering bin
-// ev ery unit will also be initialized
+// every unit will also be initialized
 //------------------------------------------------------------------------------
 class OSGPPU_EXPORT SetupUnitRenderingVisitor : public UnitVisitor
 {
@@ -210,16 +246,26 @@ public:
 
     SetupUnitRenderingVisitor(Processor* proc) : UnitVisitor(), _proc(proc)
     {
+        _startIndex = proc ? proc->getOrCreateStateSet()->getBinNumber() : 0;
+        _binName = proc ? proc->getOrCreateStateSet()->getBinName() : "DefaultPPUBin";
+        _initUnits = true;
     }
 
     void apply (osg::Group &node);
     void run (osg::Group* root);
 
-    const char* getVisitorName() { return "SetupUnitRenderingVisitor"; }
+    void setStartIndex(unsigned ind) { _startIndex = ind; }
+    void setInitUnitsWhenFound(bool b) { _initUnits = b; }
+    void setBinName(const std::string& name) { _binName = name; }
+
+    const char* className() { return "SetupUnitRenderingVisitor"; }
 private:
     typedef std::list<Unit*> UnitSet;
     Processor* _proc;
     UnitSet mUnitSet;
+    bool _initUnits;
+    unsigned _startIndex;
+    std::string _binName;
 };
 
 
@@ -242,9 +288,27 @@ public:
 
     osgPPU::Processor* _processor;
 
-    const char* getVisitorName() { return "FindProcessorVisitor"; }
+    const char* className() { return "FindProcessorVisitor"; }
 };
 
+//------------------------------------------------------------------------------
+// Mark every unit in the graph as dirty
+//------------------------------------------------------------------------------
+class OSGPPU_EXPORT MarkUnitsDirtyVisitor : public UnitVisitor
+{
+public:
+
+    MarkUnitsDirtyVisitor() : UnitVisitor()
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+
+    const char* className() { return "MarkUnitsDirtyVisitor"; }
+private:
+    OpenThreads::Mutex _mutex;
+};
 
 }; // end namespace
 

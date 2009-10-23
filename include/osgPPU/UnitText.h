@@ -80,6 +80,10 @@ namespace osgPPU
 
             //! Size of the font
             float mSize;
+
+            virtual bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) ;
+
+
     };
 
 }; // end namespace

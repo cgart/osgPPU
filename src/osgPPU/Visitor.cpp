@@ -16,30 +16,55 @@
 
 #include <osgPPU/Visitor.h>
 #include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitInOut.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgUtil/CullVisitor>
 
 #include <OpenThreads/ScopedLock>
 #include <OpenThreads/Mutex>
 
-// Mutex used to let threads only change data values of Units in serialized manner
-static OpenThreads::Mutex    s_mutex_changeUnitSubgraph;
-
 namespace osgPPU
 {
+// Mutex used to let threads only change data values of Units in serialized manner
+OpenThreads::Mutex    UnitVisitor::s_mutex_changeUnitSubgraph;
+
+// just an instance for faster access
+osg::ref_ptr<CleanUpdateTraversedVisitor> CleanUpdateTraversedVisitor::sVisitor = new CleanUpdateTraversedVisitor;
+osg::ref_ptr<CleanCullTraversedVisitor> CleanCullTraversedVisitor::sVisitor = new CleanCullTraversedVisitor;
+osg::ref_ptr<CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor> CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor::sVisitor = new CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor;
 
 //------------------------------------------------------------------------------
 void CleanUpdateTraversedVisitor::run (osg::Group* root)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    root->traverse(*this);
+    apply(*root);
+}
+
+//------------------------------------------------------------------------------
+void CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor::run (osg::Group* root)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    apply(*root);
+}
+
+//------------------------------------------------------------------------------
+void CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    UnitInOut* unitIO = dynamic_cast<UnitInOut*>(&node);
+
+    if (unit)
+    {
+        unit->mbUpdateTraversed = false;
+        if (unitIO == NULL || unitIO->getInputBypass() >= 0) node.traverse(*this);
+    }
 }
 
 //------------------------------------------------------------------------------
 void CleanCullTraversedVisitor::run (osg::Group* root)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    root->traverse(*this);
+    apply(*root);
 }
 
 //------------------------------------------------------------------------------
@@ -207,20 +232,19 @@ void SetupUnitRenderingVisitor::run (osg::Group* root)
     root->traverse(*this);
 
     // setup the indices of the units, so that they got sorted correctly in the pipeline
-    unsigned int index = _proc->getOrCreateStateSet()->getBinNumber();
-    const std::string& binName = _proc->getOrCreateStateSet()->getBinName();
+    unsigned int index = _startIndex;
+    const std::string& binName = _binName;
 
     // the unit set do contain units in the traversed order
     for (UnitSet::iterator it = mUnitSet.begin(); it != mUnitSet.end(); it++)
     {
-        // sort the unit into the according pipeline
-        //(*it)->getOrCreateStateSet()->setRenderBinToInherit();
-        (*it)->getOrCreateStateSet()->setRenderBinDetails(++index, binName);
-        //printf("INIT %s %d\n", (*it)->getName().c_str(), index);
+        // use processors bin
+        //(*it)->getOrCreateStateSet()->setRenderBinDetails(index++, binName);
+        (*it)->getOrCreateStateSet()->setRenderBinToInherit();
 
         // initialize units by updating them (the initialization process is called automagically
-        _proc->onUnitInit(*it);
-        (*it)->update();
+        if (_initUnits && _proc) _proc->onUnitInit(*it);
+        if (_initUnits) (*it)->update();
     }
 
 }
@@ -258,6 +282,20 @@ void SetupUnitRenderingVisitor::apply (osg::Group &node)
     }
 }
 
+//------------------------------------------------------------------------------
+void MarkUnitsDirtyVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    if (unit) unit->dirty();
+    node.traverse(*this);
+}
+
+//------------------------------------------------------------------------------
+void MarkUnitsDirtyVisitor::run (osg::Group* root)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    root->accept(*this);
+}
 
 }; //end namespace
 

@@ -22,18 +22,17 @@
 // Includes
 //-------------------------------------------------------------------------
 #include <osgPPU/Export.h>
-#include <osgPPU/Unit.h>
+#include <osgPPU/UnitBypass.h>
 
 namespace osgPPU
 {
-    //! Texture unit is used to setup external textures in the unit graph
+    //! Texture unit is used to include external textures in the unit graph
     /**
     * If you like to have an external texture as input to any unit in the unit graph,
-    * then you have to setup this behaviour with the help of this unit. Place
-    * this unit as a parent of any other unit and its output, the texture,
-    * will became input to that unit.
+    * then you have to setup this behaviour with the help of this unit. The unit should be placed
+    * directly under processor. Unit works as a simple bypass, by passing specified texture to the output.
     **/
-    class OSGPPU_EXPORT UnitTexture : public Unit {
+    class OSGPPU_EXPORT UnitTexture : public UnitBypass {
         public:
             META_Node(osgPPU,UnitTexture);
         
@@ -41,23 +40,22 @@ namespace osgPPU
             UnitTexture(const UnitTexture& u, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             UnitTexture(osg::Texture* tex);
             
-            ~UnitTexture();
+            virtual ~UnitTexture();
             
-            void init();
-
             /**
             * Set a texture which is used as output of this unit.
             * The children will get this texture as input atomatically.
             **/
-            void setTexture(osg::Texture* tex);
+            virtual void setTexture(osg::Texture* tex);
 
             /**
             * Get texture which is used as output of this unit.
             **/
-            inline osg::Texture* getTexture() { return getOutputTexture(0); }
+            inline osg::Texture* getTexture() { return _externTexture; }
 
         private:
-            class DrawCallback;
+            virtual void setupInputsFromParents();
+            osg::ref_ptr<osg::Texture> _externTexture;
     };
 };
 

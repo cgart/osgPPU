@@ -57,6 +57,7 @@ namespace osgPPU
             float getFactorY() const { return mHeightFactor; }
     
             void init();
+            void dirty();
 
         protected:
             float mWidthFactor, mHeightFactor;

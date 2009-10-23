@@ -154,12 +154,12 @@ namespace osgPPU
         int numLevel = 1 + static_cast<int>(floor(logf(mwh)/logf(2.0f)));
 
         // check if sizes are valid 
-        if ((mOutputWidth != 0 && width != mOutputWidth)
+        /*if ((mOutputWidth != 0 && width != mOutputWidth)
           ||(mOutputHeight != 0 && height != mOutputHeight))
         {
-            osg::notify(osg::FATAL) << "osgPPU::UnitInMipmapOut::createAndAttachFBOs() - output textures are not of the same size!" << std::endl;
+            osg::notify(osg::FATAL) << "osgPPU::UnitInMipmapOut::createAndAttachFBOs() - output textures are not of the same size (" << width << "x" << height << ") != (" << mOutputWidth << "x" << mOutputHeight << ") !" << std::endl;
             return;
-        }
+        }*/
 
         // set new sizes
         mOutputWidth = width;

@@ -22,10 +22,16 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
-    UnitOut::UnitOut(const UnitOut& unit, const osg::CopyOp& copyop) :
-        Unit(unit, copyop)
+    UnitOut::UnitOut()
     {
-    
+        mDefaultFBO = new osg::FrameBufferObject();
+    }
+
+    //------------------------------------------------------------------------------
+    UnitOut::UnitOut(const UnitOut& unit, const osg::CopyOp& copyop) :
+        Unit(unit, copyop),
+        mDefaultFBO(unit.mDefaultFBO)
+    {
     }
     
     //------------------------------------------------------------------------------

@@ -30,6 +30,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/UnitCamera.h
     ${HEADER_PATH}/UnitInHistoryOut.h
     ${HEADER_PATH}/UnitInOutModule.h
+    ${HEADER_PATH}/UnitBypassRepeat.h
     ${OSGPPU_CONFIG_HEADER}
 )
 
@@ -56,6 +57,7 @@ ADD_LIBRARY(${LIB_NAME}
     UnitCamera.cpp
     UnitInOutModule.cpp
     UnitInHistoryOut.cpp
+    UnitBypassRepeat.cpp
 )
 
 
