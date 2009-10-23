@@ -234,15 +234,15 @@ IF (NOT CUDA_TARGET_LINK)
 
   FIND_LIBRARY(FOUND_CUDART
     cudart
-    PATHS ${CUDA_SDK_DIR}/lib 
-          ${CUDA_SDK_DIR}/lib64
+    PATHS ${CUDA_SDK_DIR}/lib64 
+          ${CUDA_SDK_DIR}/lib
           $ENV{CUDA_LIB_PATH}
-          ${CMAKE_INSTALL_PREFIX}/lib
           ${CMAKE_INSTALL_PREFIX}/lib64
-          ${CMAKE_INSTALL_PREFIX}/cuda/lib
+          ${CMAKE_INSTALL_PREFIX}/lib
           ${CMAKE_INSTALL_PREFIX}/cuda/lib64
-          ${CUDA_DIR}/lib
+          ${CMAKE_INSTALL_PREFIX}/cuda/lib
           ${CUDA_DIR}/lib64
+          ${CUDA_DIR}/lib
           ${CUDA_DIR}
     DOC "\"cudart\" library"
     )
@@ -256,15 +256,15 @@ IF (NOT CUDA_TARGET_LINK)
   # some platforms.
   FIND_LIBRARY(FOUND_CUDA
     cuda
-    PATHS ${CUDA_SDK_DIR}/lib 
-          ${CUDA_SDK_DIR}/lib64
+    PATHS ${CUDA_SDK_DIR}/lib64 
+          ${CUDA_SDK_DIR}/lib
           $ENV{CUDA_LIB_PATH}
-          ${CMAKE_INSTALL_PREFIX}/lib
           ${CMAKE_INSTALL_PREFIX}/lib64
-          ${CMAKE_INSTALL_PREFIX}/cuda/lib
+          ${CMAKE_INSTALL_PREFIX}/lib
           ${CMAKE_INSTALL_PREFIX}/cuda/lib64
-          ${CUDA_DIR}/lib 
+          ${CMAKE_INSTALL_PREFIX}/cuda/lib
           ${CUDA_DIR}/lib64
+          ${CUDA_DIR}/lib 
           ${CUDA_DIR}
     DOC "\"cuda\" library (older versions only)."
     NO_DEFAULT_PATH
