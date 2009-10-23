@@ -55,6 +55,8 @@ class HDRRendering
             osgPPU::UnitBypass* bypass = new osgPPU::UnitBypass();
             bypass->setName("HDRBypass");
             firstUnit = bypass;
+            lastUnit = bypass;
+//return;
 
             // Now we have got a texture with only to bright pixels.
             // To simulate hdr glare we have to blur this texture.

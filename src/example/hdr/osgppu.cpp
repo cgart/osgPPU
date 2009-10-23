@@ -113,8 +113,8 @@ class Viewer : public osgViewer::Viewer
             mProcessor->addChild(firstUnit);
 
             // add a text ppu after the pipeline is setted up
+            osgPPU::UnitText* fpstext = new osgPPU::UnitText();
             {
-                osgPPU::UnitText* fpstext = new osgPPU::UnitText();
                 fpstext->setName("FPSTextPPU");
                 fpstext->setSize(44);
                 fpstext->setText("Example HDR-pipeline from a .ppu file (note: no change in adaptive luminance)");
@@ -128,12 +128,12 @@ class Viewer : public osgViewer::Viewer
             pputext->setSize(46);
             pputext->setText("osgPPU rocks!");
             pputext->setPosition(0.025, 0.425);
-            lastUnit->addChild(pputext);
+            fpstext->addChild(pputext);
 
             // The following setup does show how to include an offline ppu into the graph
             // This unit will just render the content of the input unit in a small window
             // over the screen.
-            if (1)
+            osgPPU::UnitInOut* bgppu = new osgPPU::UnitInOut();
             {
                 // This is a simple texture unit, which do just provide a given texture
                 // to the output, so that all children units can access this texture as input.
@@ -158,22 +158,20 @@ class Viewer : public osgViewer::Viewer
                 unittex->setTexture(img);
 
                 // create picture in picture ppu
-                osgPPU::UnitInOut* bgppu = new osgPPU::UnitInOut();
                 bgppu->setName("PictureInPicturePPU");
+
+                // this ppu has to be rendered after the hdr pipeline output
+                // however it shouldn't take the input of hdr output.
+                pputext->addChild(bgppu);
 
                 // at the beginning we setup the unittex as input to this unit
                 unittex->addChild(bgppu);
 
-                // this ppu has to be rendered after the hdr pipeline output
-                // however it shouldn't take the input of hdr output.
-                lastUnit->addChild(bgppu);
-
-                // hence ignore the input of the parent with index 1, which is hdr output
-                bgppu->setIgnoreInput(1, true);
-
-                // output texture will be the same as the output of the last ppu,
-                // which is the same as the output of the hdr ppu.
-                bgppu->setInputBypass(1);
+                // we bypass the first input and also set them to ignore
+                // this will make sure that bypassed input is used as soutput and ignored input 
+                // is not used in computations
+                bgppu->setInputBypass(0);
+                bgppu->setIgnoreInput(0);
 
                 // we do not want to use any ppu for viewport reference because we setted up our own viewport
                 bgppu->setInputTextureIndexForViewportReference(-1);
@@ -186,8 +184,24 @@ class Viewer : public osgViewer::Viewer
                 vp->height() *= 0.3;
                 bgppu->setViewport(vp);
 
-                // enable blending on this unit
-                bgppu->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+                // simple shader which passes its input to the output
+                // we use that shader to draw PictureInPicture effect
+                /*{
+                    const char* shaderSrc =
+                        "uniform sampler2D inputTexture;\n"
+                        "void main () {\n"
+                        "   gl_FragColor.rgb = texture2D(inputTexture, gl_TexCoord[0].st).rgb; \n"
+                        "   gl_FragColor.a = 1.0;\n"
+                        "}\n";
+
+                    osg::Shader* sh = new osg::Shader(osg::Shader::FRAGMENT);
+                    sh->setShaderSource(shaderSrc);
+                    osgPPU::ShaderAttribute* bypassshader = new osgPPU::ShaderAttribute();
+                    bypassshader->add("inputTexture", osg::Uniform::SAMPLER_2D);
+                    bypassshader->set("inputTexture", 0);
+                    bypassshader->addShader(sh);
+                    bgppu->getOrCreateStateSet()->setAttributeAndModes(bypassshader);
+                }*/
             }
 
             // As a last step we setup a ppu which do render the content of the result
@@ -196,7 +210,7 @@ class Viewer : public osgViewer::Viewer
             osgPPU::UnitOut* ppuout = new osgPPU::UnitOut();
             ppuout->setName("PipelineResult");
             ppuout->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera
-            lastUnit->addChild(ppuout);
+            bgppu->addChild(ppuout);
 
             // write pipeline to a file
             //osgDB::writeObjectFile(*mProcessor, "hdr.ppu");
@@ -272,6 +286,11 @@ public:
                 osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->findUnit("TextPPU"));
                 osgPPU::UnitInOut* pip = dynamic_cast<osgPPU::UnitInOut*>(viewer->getProcessor()->findUnit("PictureInPicturePPU"));
 
+                if (!ppu || !textppu || !pip)
+                {
+                    printf("ERROR\n");return true;
+                }
+
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
                     ppu->setTexture(viewer->getProcessor()->findUnit("HDRBypass")->getOrCreateOutputTexture(0));
@@ -308,6 +327,21 @@ public:
                     pip->getColorAttribute()->setEndTime(pip->getColorAttribute()->getStartTime() + 3.0);
                 }
                 #endif
+                break;
+            }
+
+            case (osgGA::GUIEventAdapter::RESIZE):
+            {
+                // set new size to the main camera
+                osg::Viewport* vp = new osg::Viewport(0, 0, ea.getWindowWidth(), ea.getWindowHeight());
+                viewer->getCamera()->setViewport(vp);
+
+                osg::Texture2D* rttTex = dynamic_cast<osg::Texture2D*>(viewer->getCamera()->getBufferAttachmentMap()[osg::Camera::COLOR_BUFFER]._texture.get());
+                rttTex->setTextureSize(ea.getWindowWidth(), ea.getWindowHeight());
+
+                // let processor know, that viewport changes, processor will inform all units
+                viewer->getProcessor()->onViewportChange();
+
                 break;
             }
             default:
@@ -360,18 +394,18 @@ int main(int argc, char **argv)
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
     // just make it singlethreaded since I get some problems if not in this mode
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
+    osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer->getCamera()->getGraphicsContext());
+    if (window) window->setWindowName("HDR Example");
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // setup scene
     osg::Group* node = new osg::Group();
-    //osg::Image* image = osgDB::readImageFile("Data/Images/AdobeFountain2.hdr");
-    //osg::Geode* loadedModel = osg::createGeodeForImage(image);
     osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
     if (!loadedModel) loadedModel = createTeapot();
     if (!loadedModel) return 1;

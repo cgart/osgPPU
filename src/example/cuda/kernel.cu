@@ -34,7 +34,7 @@ __device__ float4 getPixel(float4 *data, int x, int y, int width, int height)
 //-----------------------------------------------------------------------------
 // CUDA kernel to do a simple blurring
 //-----------------------------------------------------------------------------
-__global__ void blurKernel(float4* g_data, float4* g_odata, int imgw, int imgh, int tilew, int r, float threshold, float highlight)
+__global__ void blurKernel(float4* g_data, float4* g_odata, int imgw, int imgh, int tilew, int r)
 {
     extern __shared__ float4 sdata[];
 
@@ -111,7 +111,7 @@ __global__ void blurKernel(float4* g_data, float4* g_odata, int imgw, int imgh, 
 }
 
 
-void blurKernelWrapper(float4* in_data, float4* out_data, int width, int height, int radius, float threshold, float highlight)
+void blurKernelWrapper(float4* in_data, float4* out_data, int width, int height, int radius)
 {
     // run CUDA Kernel on the loaded data
 
@@ -125,7 +125,7 @@ void blurKernelWrapper(float4* in_data, float4* out_data, int width, int height,
     int sbytes = (block.x+(2*radius))*(block.y+(2*radius)) * sizeof(float4);
 
     // run kernel with the specified parameters
-    blurKernel<<< grid, block, sbytes>>>(in_data, out_data, width, height, block.x+(2*radius), radius, threshold, highlight);
+    blurKernel<<< grid, block, sbytes>>>(in_data, out_data, width, height, block.x+(2*radius), radius);
 }
 
 #endif // __KERNEL_H_

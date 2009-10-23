@@ -128,7 +128,10 @@ int main(int , char **)
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
-    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer->getCamera()->getGraphicsContext());
+    if (window) window->setWindowName("Video Processing (Greyscale Filter)");
+    //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 
     // load video file

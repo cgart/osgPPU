@@ -70,9 +70,7 @@ int main(int argc, char **argv)
     osg::ArgumentParser arguments(&argc,argv);
 
     // give some info in the console
-    printf("Usage: viewer ppufile [osgfile]\n");
-
-    if (argc <= 1) return 0;
+    printf("Usage: motionblur [osgfile]\n");
 
     // construct the viewer.
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
@@ -85,16 +83,16 @@ int main(int argc, char **argv)
     unsigned int windowHeight = 480;
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
     osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer->getCamera()->getGraphicsContext());
-    if (window) window->setWindowName(".ppu file viewer");
+    if (window) window->setWindowName("MotionBlur Fx by loaded Data/motionblur.ppu");
     //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // setup scene
     osg::Group* node = new osg::Group();
     osg::Node* loadedModel = NULL;
-    if (argc > 2) loadedModel = osgDB::readNodeFile(arguments[2]);
-    if (argc > 2 && !loadedModel)
+    if (argc > 1) loadedModel = osgDB::readNodeFile(arguments[1]);
+    if (argc > 1 && !loadedModel)
     {
-        printf("File not found %s !\n", arguments[2]);
+        printf("File not found %s !\n", arguments[1]);
         return 1;
     }
     if (!loadedModel) loadedModel = createTeapot();
@@ -110,10 +108,10 @@ int main(int argc, char **argv)
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
 
     // load the processor from a file
-    osgPPU::Processor* processor = dynamic_cast<osgPPU::Processor*>(osgDB::readObjectFile(arguments[1]));
+    osgPPU::Processor* processor = dynamic_cast<osgPPU::Processor*>(osgDB::readObjectFile("Data/motionblur.ppu"));
     if (!processor)
     {
-        osg::notify(osg::FATAL) << "File does not contain a valid pipeline" << std::endl;
+        osg::notify(osg::FATAL) << "File Data/motionblur.ppu either not found or does not contain a valid pipeline" << std::endl;
         return 0;
     }
 

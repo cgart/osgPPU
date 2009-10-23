@@ -19,7 +19,7 @@ using namespace osgPPU;
 
 
 
-extern void blurKernelWrapper(float4* in_data, float4* out_data, int width, int height, int radius, float threshold, float highlight);
+extern void blurKernelWrapper(float4* in_data, float4* out_data, int width, int height, int radius);
 
 
 
@@ -32,8 +32,8 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
         ProcessingModule(UnitInOutModule* parent) : UnitInOutModule::Module(parent)
         {
             // to get all thing properly we have to specify one input and one output pbo
-            parent->setUsePBOForInputTexture(0);
-            parent->setUsePBOForOutputTexture(0);
+            parent->setUsePBOForInputTexture(0, true);
+            parent->setUsePBOForOutputTexture(0, true);
 
             osg::notify(osg::INFO) << "osgPPU - Module - cudaKernel initialize" << std::endl;
         }
@@ -114,7 +114,7 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
             int radius = 4;
 
             // run kernel with the specified parameters
-            blurKernelWrapper(in_data, out_data, width, height, radius, 0.8f, 4.0f);
+            blurKernelWrapper(in_data, out_data, width, height, radius);
             //-----------------------------------------------------------------------------
 
             // don't render anything afterwards

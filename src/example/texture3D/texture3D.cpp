@@ -172,6 +172,7 @@ osg::StateSet* createState(osgPPU::Processor* processor)
     // attach some valid viewport to prevent warnings
     osg::Viewport* vp = new osg::Viewport(0,0,textureSize,textureSize);
     mainUnit->setViewport(vp);
+    mainUnit->setInputTextureIndexForViewportReference(-1);
 
     // the output texture is a one we specify here extra
     mainUnit->setOutputTextureType(osgPPU::UnitInOut::TEXTURE_3D);
@@ -316,7 +317,9 @@ int main(int , char **)
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer.setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
-    //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer.getCamera()->getGraphicsContext());
+    if (window) window->setWindowName("Rendering to 3D Texture");
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // create a model from the images and pass it to the viewer.
     viewer.setSceneData(createModel());

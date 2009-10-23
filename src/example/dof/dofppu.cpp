@@ -221,14 +221,16 @@ int main(int argc, char **argv)
     osg::ref_ptr<Viewer> viewer = new Viewer(arguments);
 
     // just make it singlethreaded since I get some problems if not in this mode
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    //viewer->setThreadingModel(osgViewer::Viewer::CullDrawThreadPerContext);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
+    osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer->getCamera()->getGraphicsContext());
+    if (window) window->setWindowName("Depth Of Field");
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    //viewer->setThreadingModel(osgViewer::Viewer::CullDrawThreadPerContext);
 
     // setup scene
     osg::Node* scene = osgDB::readNodeFile("Data/cow.osg");

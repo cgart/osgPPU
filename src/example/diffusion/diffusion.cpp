@@ -56,14 +56,79 @@
 
 using namespace osg;
 
+//--------------------------------------------------------------------------
+// Event handler to react on user input
+// You can switch with some keys to specified states of the HDR pipeline
+//--------------------------------------------------------------------------
+class KeyboardEventHandler : public osgGA::GUIEventHandler
+{
+public:
+    osgPPU::UnitBypassRepeat* unit;
+    osg::Uniform* dt;
+    osg::Uniform* intensity;
+
+    KeyboardEventHandler()
+    {
+        unit = NULL;
+        dt = NULL;
+        intensity = NULL;
+    }
+
+    bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
+    {
+        if (!unit || !dt || !intensity) return false;
+
+        float i,t;
+        intensity->get(i);
+        dt->get(t);
+
+        switch(ea.getEventType())
+        {
+            case(osgGA::GUIEventAdapter::KEYDOWN):
+            case(osgGA::GUIEventAdapter::KEYUP):
+            {
+                // iteration
+                if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F2)
+                {
+                    unit->setNumIterations(unit->getNumIterations()+1);
+                }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
+                {
+                    unit->setNumIterations(unit->getNumIterations()-1);
+                }
+
+                // intenisty
+                if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F3)
+                {
+                    intensity->set(i-0.1f);
+                }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F4)
+                {
+                    intensity->set(i+0.1f);
+                }
+
+                // dt
+                if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F5)
+                {
+                    dt->set(t-0.001f);
+                }else if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F6)
+                {
+                    dt->set(t+0.001f);
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        return false;
+    }
+};
 
 //-----------------------------------------------------------------------------------------
 // Just a callback to update the FPS counter
 //-----------------------------------------------------------------------------------------
 struct CameraPostDrawCallback : public osg::Camera::DrawCallback
 {
-    CameraPostDrawCallback(osgPPU::UnitText* unitText, osgViewer::Viewer* viewer) : 
-        _oldTime(0), _unitText(unitText), _viewer(viewer)
+    CameraPostDrawCallback(osgPPU::UnitText* unitText, KeyboardEventHandler* ke, osgViewer::Viewer* viewer) : 
+        _oldTime(0), _unitText(unitText), _keyHandler(ke), _viewer(viewer)
     {
     }
     
@@ -80,7 +145,12 @@ struct CameraPostDrawCallback : public osg::Camera::DrawCallback
         if (_unitText)
         {
             char txt[64];
-            sprintf(txt, "FPS: %4.2f", 1.0 / frameTime);
+            float dt, in;
+            _keyHandler->dt->get(dt);
+            _keyHandler->intensity->get(in);
+
+            sprintf(txt, "Iter=%d, dT=%2.3f, I=%1.1f - FPS: %4.2f", 
+                _keyHandler->unit->getNumIterations(), dt, in, 1.0 / frameTime);
             _unitText->setText(txt);
         }
     }
@@ -88,8 +158,8 @@ struct CameraPostDrawCallback : public osg::Camera::DrawCallback
     mutable  float _oldTime;
     osgPPU::UnitText* _unitText;
     osgViewer::Viewer* _viewer;
+    KeyboardEventHandler* _keyHandler;
 };
-
 
 //-----------------------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -98,25 +168,19 @@ int main(int argc, char** argv)
     ArgumentParser arguments(&argc, argv);
 
     // set up the usage document, in case we need to print out how to use this program.
-    arguments.getApplicationUsage()->setDescription(arguments.getApplicationName() + " exampel of demonstraing Screen-Space Ambient Occlusion within osgPPU");
+    arguments.getApplicationUsage()->setDescription(arguments.getApplicationName() + " exampel of demonstraing Image Diffusion Filter with osgPPU");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName());
-    arguments.getApplicationUsage()->addCommandLineOption("--width","Set the width of the render to texture (default windowWidth)");
-    arguments.getApplicationUsage()->addCommandLineOption("--height","Set the height of the render to texture (default windowHeight)");
-    arguments.getApplicationUsage()->addCommandLineOption("--simple","Use very simple algorithm to create SSAO effect (is used per default)");
-    arguments.getApplicationUsage()->addCommandLineOption("--aomap","Show only the Ambient Occlusion Map");
     arguments.getApplicationUsage()->write(std::cout);
 
     // construct the viewer.
     osgViewer::Viewer viewer;
-    unsigned int screenWidth;
-    unsigned int screenHeight;
+    unsigned int screenWidth,  windowWidth = 512;
+    unsigned int screenHeight, windowHeight = 512;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
-    unsigned int windowWidth = 640;
-    unsigned int windowHeight = 480;
     viewer.setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
     osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer.getCamera()->getGraphicsContext());
-    if (window) window->setWindowName("Simple Screen Space Ambient Occlusion");
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    if (window) window->setWindowName("Mean Curvature Diffusion Filter (naive PDE solver)");
+    viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // if user request help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
@@ -125,43 +189,13 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // check if we want to see the AO-map
-    bool showAOMap = false;
-    if (arguments.read("--aomap"))
-        showAOMap = true;
-    
-    // get parameters
-    unsigned tex_width = windowWidth;
-    unsigned tex_height = windowHeight;
-    while (arguments.read("--width", tex_width)) {}
-    while (arguments.read("--height", tex_height)) {}
-    arguments.reportRemainingOptionsAsUnrecognized();
-    if (arguments.errors())
-    {
-      arguments.writeErrorMessages(std::cout);
-      return 1;
-    }
-
-    // setup scene
-    osg::Group* root= new osg::Group;
-    osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
-    if (!loadedModel) loadedModel = osgDB::readNodeFile("Data/temple.ive");
-    if (!loadedModel)
-    {
-        printf("File not found: Data/temple.ive !\n");
-        return 1;
-    }
-
-    // rotate camera to look onto the model
-    osg::MatrixTransform* rotation = new osg::MatrixTransform;
-    rotation->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(15.0),0.0,1.0,0.0)
-                        * osg::Matrix::rotate(osg::DegreesToRadians(65.0),0.0,0.0,-1.0));
-    rotation->addChild(loadedModel);
-    root->addChild(rotation);
+    // setup keyboard event handler
+    osg::ref_ptr<KeyboardEventHandler> ke = new KeyboardEventHandler();
+    viewer.addEventHandler(ke);
 
     // setup an osgPPU pipeline to render the results
     osgPPU::Unit* lastUnit = NULL;
-    osgPPU::Processor* ppu = SimpleSSAO::createPipeline(tex_width, tex_height, viewer.getCamera(), lastUnit, showAOMap);
+    osgPPU::Processor* ppu = Diffusion::createPipeline(ke->unit, lastUnit, ke->dt, ke->intensity);
 
     // create a text unit, which will just print some info
     if (lastUnit)
@@ -170,25 +204,40 @@ int main(int argc, char** argv)
         osgPPU::UnitText* fpstext = new osgPPU::UnitText();
         fpstext->setName("FPSTextPPU");
         fpstext->setSize(56);
-        fpstext->setText("Example SSAO-pipeline");
+        fpstext->setText("Example ImageDiffusionFilter-pipeline");
         fpstext->setPosition(0.01, 0.95);
         lastUnit->addChild(fpstext);
 
         // create camera callback, so that we get update of the FPS
-        viewer.getCamera()->setPostDrawCallback(new CameraPostDrawCallback(fpstext, &viewer));
-        //viewer.getCamera()->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);  
-        //viewer.getCamera()->setProjectionMatrixAsPerspective(40.0, float(windowWidth)/float(windowHeight), 0.1, 100.0);
+        viewer.getCamera()->setPostDrawCallback(new CameraPostDrawCallback(fpstext, ke, &viewer));
 
         // OUTPUT ppu
         osgPPU::UnitOut* ppuout = new osgPPU::UnitOut();
         ppuout->setName("PipelineResult");
-        ppuout->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera
+        ppuout->setInputTextureIndexForViewportReference(-1); // need this here to get viewport from camera attached to processor
         ppuout->setViewport(new osg::Viewport(0,0,windowWidth, windowHeight));
-        lastUnit->addChild(ppuout);
+        fpstext->addChild(ppuout);
     }
     
-    // add ppu into the scene
+    printf("Keys:\n");
+    printf("\tF1 - Decrease iteration number\n");
+    printf("\tF2 - Increase number of iterations\n");
+    printf("\tF3 - Decrease intensity\n");
+    printf("\tF4 - Increase intensity\n");
+    printf("\tF5 - Decrease dT intensity\n");
+    printf("\tF6 - Increase dT intensity\n");
+    //printf("\tF12 - toggle ppu On/Off\n");
+
+    osg::Group* root = new osg::Group;
+    //osg::Node* loadedModel = createTeapot();
+    //root->addChild(loadedModel);
+    //osg::Switch* swtich = new osg::Switch();
+    //swtich->addChild(ppu);
+    //swtich->setAllChildrenOff();
+    //root->addChild(swtich);
+
     root->addChild(ppu);
+
     viewer.setSceneData(root);
 
     return viewer.run();
