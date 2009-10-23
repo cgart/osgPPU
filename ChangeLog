@@ -1,3 +1,165 @@
+2009-10-23 19:23  art
+
+	* [r231]
+	  - window title in examples added
+	  - new example showing UnitBypassRepeat in action (diffusion)
+	  - motionblur example, simpel motionblur by loading .ppu file
+	  - a lot of bug fixes
+	  - new images of Lenna
+
+2009-10-23 19:22  art
+
+	* [r230]
+	  - new unit: UnitBypassRepeat which can iteratively repeat its
+	  subgraph (very usefull for iterative algrithms)
+	  - a lot of bug fixes
+	  - comment fixes
+
+2009-10-23 15:03  art
+
+	* [r229]
+	  - when looking for CUDA installation first look in lib64 then lib
+	  directories. Just assume, that on 32bit system there is no lib64.
+	  On 64bit systems there are both, hence first one should be used.
+
+2009-10-23 12:44  art
+
+	* [r228]
+	  From J.P. Delport:
+	  - CMake path changes to support Debian64 (lib64 added)
+
+2009-10-13 17:55  art
+
+	* [r227]
+	  - reenable multithreading in hdr example
+
+2009-10-13 17:46  art
+
+	* [r226]
+	  - handling of mipmaps was wrong in previous version
+	  - rewritten the units handling with mipmaps in order to be
+	  visible when running in debug mode as also to render correctly
+	  - hdr example should work now more correct then before
+
+2009-10-12 12:43  art
+
+	* [r225]
+	  - support for osg 2.9.6
+	  - small changes in glow example
+
+2009-08-11 16:42  art
+
+	* [r224]
+	  - Units are now handling FBO support by them self
+	  - This is a neccessary step to allow an inbetween computation of
+	  Units in the scene graph
+	  - see thread "Running the processor between pre-render and main
+	  render" on the mailing list or forum
+
+2009-08-10 11:26  art
+
+	* [r223]
+	  - UnitInHistoryOut: class is not used now, however error when
+	  compiling, hence corrected this error
+
+2009-07-14 23:35  art
+
+	* [r222]
+	  
+
+2009-05-21 09:56  art
+
+	* [r221]
+	  - glow example changed to support depth
+
+2009-05-21 00:09  art
+
+	* [r220]
+	  - added history class
+	  - changed glow example to support depth values, however still in
+	  progress
+
+2009-03-27 12:02  art
+
+	* [r219]
+	  
+
+2009-03-26 17:38  art
+
+	* [r218]
+	  - so now policy should be handled properly
+
+2009-03-26 17:30  art
+
+	* [r217]
+	  - removed the policy, because it doesn't work on older version of
+	  CMake (TODO: correct policy!!!)
+
+2009-03-26 17:29  art
+
+	* [r216]
+	  - changes to the CMake system to support package building
+	  - also now includes the Config.h intoi installation path
+
+2009-03-26 15:47  art
+
+	* [r215]
+	  - small changed to FindCUDA to support linux non-cuda environment
+
+2009-03-26 15:32  art
+
+	* [r214]
+	  - first try to setup packaging support as for openscenegraph
+
+2009-03-26 14:03  art
+
+	* [r213]
+	  - corrected the osgversion command execution
+
+2009-03-26 13:59  art
+
+	* [r212]
+	  - corrected the osgversion command execution
+
+2009-03-26 13:39  art
+
+	* [r211]
+	  - changed CMake files to remove all unneccesary stuff
+	  - removed cuda util libraries, because they are curently not
+	  needed
+
+2009-03-25 17:48  art
+
+	* [r210]
+	  From Oleg Dedkow:
+	  
+	  1) You have to add the following value
+	  
+	  -ccbin "$(VCInstallDir)bin" -DWIN32
+	  
+	  to the CUDA_NVCC_FLAGS variable.
+	  
+	  2) The auto-generated "cudakernel" project does not contain the
+	  "Export.h" file.
+	  
+	  3) The "cudakernel" project does not contain references to the
+	  following
+	  needed libraries:
+	  
+	  "osg.lib", "OpenThreads.lib" and "osgPPU.lib"
+	  (Debug: "osgd.lib", "OpenThreadsd.lib" and "osgPPUd.lib")
+
+2009-03-25 14:22  art
+
+	* [r209]
+	  - changes to test on a Windows machine if cuda examples compiles
+	  correctly
+
+2009-03-23 14:50  art
+
+	* [r208]
+	  - contributor list and changelog changes
+
 2009-03-23 14:46  art
 
 	* [r207]

@@ -30,6 +30,7 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     UnitInHistoryOut::UnitInHistoryOut() : UnitInOut()
     {
+        osg::notify(osg::FATAL) << "UnitInHistoryOut is currently not implemented!!!" << std::endl;
     }
     
     //------------------------------------------------------------------------------
@@ -55,6 +56,7 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     osg::Texture* UnitInHistoryOut::getOrCreateOutputTexture(int mrt)
     {
+        osg::notify(osg::FATAL) << "UnitInHistoryOut is currently not implemented!!!" << std::endl;
         return NULL;
     }
     

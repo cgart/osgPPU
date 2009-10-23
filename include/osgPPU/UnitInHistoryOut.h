@@ -27,8 +27,10 @@
 
 namespace osgPPU
 {
-    //! Implementation of history buffer
+    //! NOT IMPLEMENTED (Implementation of history buffer)
     /**
+    * NOTE: CURRENTLY NOT IMPLEMENTED
+    *
     * A simple implementation of history buffer. Inputs are stored in a ring
     * buffer in an texture array. Output is the texture array and current index and
     * everything neccessary to use the data. 
