@@ -37,6 +37,7 @@ SET( OSG_SEARCH_PATHS
     ${CMAKE_INSTALL_PREFIX}
     ${CMAKE_PREFIX_PATH}
     /usr/local
+    /usr/local/lib64
     /usr
     /sw # Fink
     /opt/local # DarwinPorts
