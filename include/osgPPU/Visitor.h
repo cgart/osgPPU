@@ -73,33 +73,6 @@ private:
     OpenThreads::Mutex _mutex;
 };
 
-
-//------------------------------------------------------------------------------
-// Special visitor to mark units dirty and reupdate them
-// run until we meet UnitInOut, so a unit which generates output texture
-// this allows us to change any input above that unit and propagate that change to the unit graph
-//------------------------------------------------------------------------------
-class  CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor : public UnitVisitor
-{
-public:
-
-    CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor() : UnitVisitor()
-    {
-    }
-
-    const char* className() { return "CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor"; }
-
-    static osg::ref_ptr<CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor> sVisitor;
-
-    void apply (osg::Group &node);
-
-    void run (osg::Group* root);
-
-private:
-    OpenThreads::Mutex _mutex;
-
-};
-
 //------------------------------------------------------------------------------
 // Visitor to set update traversed flag to false
 //------------------------------------------------------------------------------
@@ -111,12 +84,7 @@ public:
     {
     }
 
-    void apply (osg::Group &node)
-    {
-        Unit* unit = dynamic_cast<Unit*>(&node);
-        if (unit) unit->mbCullTraversed = false;
-        node.traverse(*this);
-    }
+    void apply (osg::Group &node);
 
     void run (osg::Group* root);
 

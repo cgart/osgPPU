@@ -22,20 +22,6 @@
 
 namespace osgPPU
 {
-    #if 1
-    //------------------------------------------------------------------------------
-    // Cull callback to be used by last node, to prevent propagation below
-    //------------------------------------------------------------------------------
-    class EmptyNodeCullCallback : public osg::NodeCallback
-    {
-        public:
-            EmptyNodeCullCallback() {}
-            void operator() (osg::Node *node, osg::NodeVisitor *nv)
-            {
-            }
-    };
-    #endif
-
     //------------------------------------------------------------------------------
     // Notify callback, which will enable specified texture on a certain iteration.
     //------------------------------------------------------------------------------
@@ -94,7 +80,6 @@ namespace osgPPU
     void UnitBypassRepeat::setLastNode(Unit* node)
     {
         _lastNode = node;
-        _lastNodeCullCallback = new EmptyNodeCullCallback();
         dirty();        
     }
 
@@ -108,12 +93,15 @@ namespace osgPPU
             return;
         }
 
-        // let traversion stop on every child of last node, hence output is only computed until them
-        for (int i=0; i < _lastNode->getNumChildren(); i++)
-            _lastNode->getChild(i)->setCullCallback(_lastNodeCullCallback);//setNodeMask(0x0);
+        // disable access to all child units
+        for (unsigned i=0; i < _lastNode->getNumChildren(); i++)
+        {
+            Unit* unit = dynamic_cast<Unit*>(_lastNode->getChild(i));
+            if (unit) unit->setNodeMask(0x0);
+        }
 
         // for every iteration we do
-        for (int i=0; i < _numIterations; i++)
+        for (unsigned i=0; i < _numIterations; i++)
         {
             // mark every unit as not being culled before
             CleanCullTraversedVisitor::sVisitor->run(this);
@@ -122,12 +110,16 @@ namespace osgPPU
             UnitBypass::traverse(nv);
         }
 
-        // allow traversion of children
-        for (int i=0; i < _lastNode->getNumChildren(); i++)
-            _lastNode->getChild(i)->removeCullCallback(_lastNodeCullCallback);//setNodeMask(0xFFFFFFFF);
-
-        // continue traversing after last unit (this should start on children of last unit)
-        _lastNode->traverse(nv);
+        // continue traversing after last unit (start traversion on every child unit)
+        for (unsigned i=0; i < _lastNode->getNumChildren(); i++)
+        {
+            Unit* unit = dynamic_cast<Unit*>(_lastNode->getChild(i));
+            if (unit)
+            {
+                unit->setNodeMask(0xFFFFFFFF);
+                unit->accept(nv);
+            }
+        }
     }
 
     //------------------------------------------------------------------------------

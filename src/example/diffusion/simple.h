@@ -204,13 +204,13 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
         derivativeY->addChild(combine);
         repeat->addChild(combine);
         combine->setName("Combine");
+        repeat->setLastNode(combine);
     }
 
     //---------------------------------------------------------------------------------
     // Resulting unit, which combine original and filterd data
     //---------------------------------------------------------------------------------
     UnitInOut* result = new UnitInOut;
-    lastUnit = result;
     {
         osg::Shader* fpShader = new osg::Shader(osg::Shader::FRAGMENT);
 
@@ -223,7 +223,7 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
                 "void main() {\n"\
                 "   vec3 old = texture2D(original, gl_TexCoord[0].xy).xyz;\n"\
                 "   vec3 new = texture2D(filtered, gl_TexCoord[0].xy).xyz;\n"\
-                "   gl_FragData[0].xyz = new * intensity;//(new - old) * intensity;\n"\
+                "   gl_FragData[0].xyz = new * intensity;\n"\
                 "}\n"
             );
         }
@@ -244,9 +244,8 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
         colorBypass->addChild(result);
         combine->addChild(result);
         result->setName("ResultImage");
-
-        repeat->setLastNode(combine);
     }
+    lastUnit = result;
 
 
     return processor;

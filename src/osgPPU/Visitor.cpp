@@ -31,40 +31,29 @@ OpenThreads::Mutex    UnitVisitor::s_mutex_changeUnitSubgraph;
 // just an instance for faster access
 osg::ref_ptr<CleanUpdateTraversedVisitor> CleanUpdateTraversedVisitor::sVisitor = new CleanUpdateTraversedVisitor;
 osg::ref_ptr<CleanCullTraversedVisitor> CleanCullTraversedVisitor::sVisitor = new CleanCullTraversedVisitor;
-osg::ref_ptr<CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor> CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor::sVisitor = new CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor;
 
 //------------------------------------------------------------------------------
 void CleanUpdateTraversedVisitor::run (osg::Group* root)
 {
+    if (root == NULL) return;
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
     apply(*root);
-}
-
-//------------------------------------------------------------------------------
-void CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor::run (osg::Group* root)
-{
-    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    apply(*root);
-}
-
-//------------------------------------------------------------------------------
-void CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor::apply (osg::Group &node)
-{
-    Unit* unit = dynamic_cast<Unit*>(&node);
-    UnitInOut* unitIO = dynamic_cast<UnitInOut*>(&node);
-
-    if (unit)
-    {
-        unit->mbUpdateTraversed = false;
-        if (unitIO == NULL || unitIO->getInputBypass() >= 0) node.traverse(*this);
-    }
 }
 
 //------------------------------------------------------------------------------
 void CleanCullTraversedVisitor::run (osg::Group* root)
 {
+    if (root == NULL) return;
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
     apply(*root);
+}
+
+//------------------------------------------------------------------------------
+void CleanCullTraversedVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    if (unit) unit->mbCullTraversed = false;
+    node.traverse(*this);
 }
 
 //------------------------------------------------------------------------------

@@ -89,7 +89,6 @@ namespace osgPPU
             int _numIterations;
             unsigned _lastNodeOutputIndex;
             osg::ref_ptr<Unit>    _lastNode;
-            osg::ref_ptr<osg::NodeCallback> _lastNodeCullCallback;
     };
 
 };

@@ -483,7 +483,6 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         friend class CleanUpdateTraversedVisitor;
         friend class CleanCullTraversedVisitor;
         friend class SetMaximumInputsVisitor;
-        friend class CleanUpdateTraversedFlagUntilFirstUnitInOutVisitor;
 };
 
 };
