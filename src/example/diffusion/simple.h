@@ -46,6 +46,11 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
     UnitTexture* colorBypass = new UnitTexture();
     {
         osg::Image* img = osgDB::readImageFile("Data/Images/lenna.png");
+        if (img == NULL)
+        {
+            osg::notify(osg::FATAL) << "File Data/Images/lenna.png not found!" << std::endl;
+            exit(1);
+        }
         osg::Texture2D* tex = new osg::Texture2D();
         tex->setImage(img);
         colorBypass->setTexture(tex);
