@@ -286,6 +286,25 @@ void MarkUnitsDirtyVisitor::run (osg::Group* root)
     root->accept(*this);
 }
 
+//------------------------------------------------------------------------------
+void RemoveUnitsViewportsVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    if (unit)
+    {
+        if (unit->getInputTextureIndexForViewportReference() == _index)
+            unit->setViewport(NULL);
+    }
+    node.traverse(*this);
+}
+
+//------------------------------------------------------------------------------
+void RemoveUnitsViewportsVisitor::run (osg::Group* root)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    root->accept(*this);
+}
+
 }; //end namespace
 
 

@@ -302,13 +302,15 @@ void Unit::assignInputPBO()
 //--------------------------------------------------------------------------
 void Unit::setViewport(osg::Viewport* vp)
 {
-    // if viewport is valid and we have to ignore new settings
-    if (vp == NULL) return;
-
-    // otherwise setup new viewport
-    mViewport = new osg::Viewport(*vp);
-    assignViewport();
-
+    if (vp == NULL)
+    {
+        getOrCreateStateSet()->removeAttribute(mViewport.get());
+        mViewport = NULL;        
+    }else
+    {
+        mViewport = new osg::Viewport(*vp);
+        assignViewport();    
+    }
     dirty();
 }
 

@@ -192,6 +192,8 @@ void Processor::onViewportChange()
 {
     MarkUnitsDirtyVisitor nv;
     nv.run(this);
+    RemoveUnitsViewportsVisitor rv;
+    rv.run(this);
 }
 
 //------------------------------------------------------------------------------

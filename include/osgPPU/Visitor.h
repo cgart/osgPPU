@@ -278,6 +278,26 @@ private:
     OpenThreads::Mutex _mutex;
 };
 
+//------------------------------------------------------------------------------
+// Remove viewports on units which has -1 as index for viewport reference
+//------------------------------------------------------------------------------
+class OSGPPU_EXPORT RemoveUnitsViewportsVisitor : public UnitVisitor
+{
+public:
+
+    RemoveUnitsViewportsVisitor(int index = -1) : UnitVisitor(), _index(index)
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+
+    const char* className() { return "RemoveUnitsViewportsVisitor"; }
+private:
+    OpenThreads::Mutex _mutex;
+    int _index;
+};
+
 }; // end namespace
 
 #endif
