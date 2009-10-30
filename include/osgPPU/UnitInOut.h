@@ -208,7 +208,7 @@ namespace osgPPU
             virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* );
         
             //! Viewport changed
-            virtual void noticeChangeViewport();
+            virtual void noticeChangeViewport(osg::Viewport*);
     
             //! Reassign fbo if output textures changes
             virtual void assignOutputTexture();

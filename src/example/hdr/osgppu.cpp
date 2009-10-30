@@ -277,20 +277,22 @@ public:
 
     bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
     {
+        if (viewer->getProcessor() == NULL) return true;
+
+        osgPPU::UnitInOut* pip = dynamic_cast<osgPPU::UnitInOut*>(viewer->getProcessor()->findUnit("PictureInPicturePPU"));
+        osgPPU::UnitTexture* ppu = dynamic_cast<osgPPU::UnitTexture*>(viewer->getProcessor()->findUnit("TextureUnit"));
+        osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->findUnit("TextPPU"));
+
+        if (!ppu || !textppu || !pip)
+        {
+            printf("KeyboardEventHandler::handle() - ERROR\n");return true;
+        }
+
         switch(ea.getEventType())
         {
             case(osgGA::GUIEventAdapter::KEYDOWN):
             case(osgGA::GUIEventAdapter::KEYUP):
             {
-                osgPPU::UnitTexture* ppu = dynamic_cast<osgPPU::UnitTexture*>(viewer->getProcessor()->findUnit("TextureUnit"));
-                osgPPU::UnitText* textppu = dynamic_cast<osgPPU::UnitText*>(viewer->getProcessor()->findUnit("TextPPU"));
-                osgPPU::UnitInOut* pip = dynamic_cast<osgPPU::UnitInOut*>(viewer->getProcessor()->findUnit("PictureInPicturePPU"));
-
-                if (!ppu || !textppu || !pip)
-                {
-                    printf("ERROR\n");return true;
-                }
-
                 if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
                 {
                     ppu->setTexture(viewer->getProcessor()->findUnit("HDRBypass")->getOrCreateOutputTexture(0));
@@ -333,7 +335,7 @@ public:
             case (osgGA::GUIEventAdapter::RESIZE):
             {
                 // set new size to the main camera
-                osg::Viewport* vp = new osg::Viewport(0, 0, ea.getWindowWidth(), ea.getWindowHeight());
+                osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(0, 0, ea.getWindowWidth(), ea.getWindowHeight());
                 viewer->getCamera()->setViewport(vp);
 
                 osg::Texture2D* rttTex = dynamic_cast<osg::Texture2D*>(viewer->getCamera()->getBufferAttachmentMap()[osg::Camera::COLOR_BUFFER]._texture.get());
@@ -341,6 +343,14 @@ public:
 
                 // let processor know, that viewport changes, processor will inform all units
                 viewer->getProcessor()->onViewportChange();
+
+                // special treatments needed for PictureInPicturePPU, because it has its own special size of viewport
+                osg::ref_ptr<osg::Viewport> bvp = new osg::Viewport(*vp);
+                bvp->x() = 10;
+                bvp->y() = 10;
+                bvp->width() *= 0.4;
+                bvp->height() *= 0.3;
+                pip->setViewport(bvp);
 
                 break;
             }

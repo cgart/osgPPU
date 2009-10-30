@@ -506,7 +506,7 @@ namespace osgPPU
     }
 
     //------------------------------------------------------------------------------
-    void UnitInOut::noticeChangeViewport()
+    void UnitInOut::noticeChangeViewport(osg::Viewport* vp)
     {
         // change size of the result texture according to the viewport
         TextureMap::iterator it = mOutputTex.begin();
@@ -519,28 +519,28 @@ namespace osgPPU
                 {
                     // change size
                     osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
-                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
+                    mTex->setTextureSize(int(vp->width()), int(vp->height()) );
                 }
                 // if texture type is a cubemap texture
                 else if (dynamic_cast<osg::TextureCubeMap*>(it->second.get()) != NULL)
                 {
                     // change size
                     osg::TextureCubeMap* mTex = dynamic_cast<osg::TextureCubeMap*>(it->second.get());
-                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
+                    mTex->setTextureSize(int(vp->width()), int(vp->height()) );
                 }
                 // if texture type is a 3d texture
                 else if (dynamic_cast<osg::Texture3D*>(it->second.get()) != NULL)
                 {
                     // change size
                     osg::Texture3D* mTex = dynamic_cast<osg::Texture3D*>(it->second.get());
-                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth );
+                    mTex->setTextureSize(int(vp->width()), int(vp->height()), mOutputDepth );
                 }
                 // if texture type is a 2d array
                 else if (dynamic_cast<osg::Texture2DArray*>(it->second.get()) != NULL)
                 {
                     // change size
                     osg::Texture2DArray* mTex = dynamic_cast<osg::Texture2DArray*>(it->second.get());
-                    mTex->setTextureSize(int(mViewport->width()), int(mViewport->height()), mOutputDepth );
+                    mTex->setTextureSize(int(vp->width()), int(vp->height()), mOutputDepth );
                 }
                 // unknown textue
                 else

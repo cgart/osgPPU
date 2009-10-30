@@ -114,7 +114,7 @@ class HDRRendering
                 // which is the pixelLuminance
                 // Here no new textures are generated, but hte input texture is get
                 // additional mipmap levels, where we store our results
-                sceneLuminance->generateMipmapForInputTexture(0);
+                sceneLuminance->setGenerateMipmapForInputTexture(0);
             }
             pixelLuminance->addChild(sceneLuminance);
 

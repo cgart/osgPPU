@@ -264,7 +264,7 @@ bool readUnitInMipmapOut(osg::Object& obj, osgDB::Input& fr)
     int inputIndex = 0;
     if (fr.readSequence("inputIndex", inputIndex))
     {
-        unit.generateMipmapForInputTexture(inputIndex);
+        unit.setGenerateMipmapForInputTexture(inputIndex);
         itAdvanced = true;
     }
 

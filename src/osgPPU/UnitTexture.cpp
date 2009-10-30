@@ -103,7 +103,7 @@ namespace osgPPU
         mViewport->height() = (osg::Viewport::value_type)_externTexture->getTextureHeight();
         
         // just notice that the viewport size has changed
-        noticeChangeViewport();
+        noticeChangeViewport(mViewport);
     }
 
 

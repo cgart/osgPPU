@@ -82,6 +82,9 @@ Processor::Processor()
         osgUtil::RenderBin::addRenderBinPrototype(DefaultBin->getName(), DefaultBin.get());
     }
 
+    // the processor's stateset have to be activated as first in the pipeline
+    getOrCreateStateSet()->setRenderBinDetails(100, DefaultBin->getName());
+
     // no culling
     setCullingActive(false);
 }
@@ -111,6 +114,7 @@ void Processor::init()
 
     // the processor's stateset have to be activated as first in the pipeline
     mStateSet->setRenderBinDetails(100, DefaultBin->getName());
+    //mStateSet->setBinName(DefaultBin->getName());
     //mStateSet->setBinNumber(100);
 
     // setup default state set modes
@@ -258,7 +262,7 @@ void Processor::traverse(osg::NodeVisitor& nv)
     if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
         osg::notify(osg::DEBUG_INFO) << "--------------------------------------------------------------------" << std::endl;
-        osg::notify(osg::DEBUG_INFO) << "BEGIN FRAME" << getName() << std::endl;
+        osg::notify(osg::DEBUG_INFO) << "BEGIN FRAME " << getName() << std::endl;
 
         CleanCullTraversedVisitor::sVisitor->run(this);
     }

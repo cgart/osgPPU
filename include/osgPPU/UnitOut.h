@@ -58,7 +58,7 @@ namespace osgPPU
             virtual void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*);
         
             //! Viewport changed
-            virtual void noticeChangeViewport(osg::RenderInfo &renderInfo) {}
+            virtual void noticeChangeViewport(osg::RenderInfo&) {}
 
             //! Default FBO instance, so when apply this it FBO with id 0 will be applied
             osg::ref_ptr<osg::FrameBufferObject> mDefaultFBO;

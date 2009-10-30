@@ -180,7 +180,9 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         virtual void update();
 
         /**
-        * Set viewport which is used for this Unit while rendering
+        * Set viewport which is used for this Unit while rendering. Setting any viewport will force it
+        * to be used. If no viewport is set, then either input texture size is used as viewport or 
+        * processors camera viewport is used as input. 
         **/
         void setViewport(osg::Viewport* vp);
 
@@ -328,9 +330,9 @@ class OSGPPU_EXPORT Unit : public osg::Group {
 
                 NotifyCallback(){}
                 
-                NotifyCallback(const NotifyCallback& cb, const osg::CopyOp& cp){}
+                NotifyCallback(const NotifyCallback&, const osg::CopyOp&){}
 
-                virtual void operator()(osg::RenderInfo& ri, const Unit* unit) const{};
+                virtual void operator()(osg::RenderInfo&, const Unit*) const{};
         };
 
         /**
@@ -403,7 +405,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* ) {};
 
         //! Notice derived classes, that viewport size has changed.
-        virtual void noticeChangeViewport() {}
+        virtual void noticeChangeViewport(osg::Viewport* newViewport) {}
 
         //! Notice derived classes, when input texture has changed.
         virtual void noticeChangeInput() {}

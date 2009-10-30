@@ -467,7 +467,7 @@ void Unit::init()
         mViewport->height() = (osg::Viewport::value_type)getInputTexture(getInputTextureIndexForViewportReference())->getTextureHeight();
 
         // just notice that the viewport size is changed
-        noticeChangeViewport();
+        noticeChangeViewport(mViewport);
     }
 
     // reassign input and shaders

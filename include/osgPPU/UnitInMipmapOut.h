@@ -64,7 +64,7 @@ namespace osgPPU
             * be generated. Set to -1 if you would like to create an independent
             * output texture in which the input texture incl. mipmaps will be stored.
             **/
-            inline void generateMipmapForInputTexture(int index)
+            inline void setGenerateMipmapForInputTexture(int index)
             {
                 mGenerateMipmapInputIndex = index;
                 dirty();

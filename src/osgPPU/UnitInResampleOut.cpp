@@ -73,15 +73,19 @@ namespace osgPPU
         // if we have to reset the resampling factor
         if (mDirtyFactor)
         {
+            mDirtyFactor = false;
             float width = (float)mViewport->width();
             float height = (float)mViewport->height();
 
-            mViewport->width() = (osg::Viewport::value_type)(width * mWidthFactor);
-            mViewport->height() = (osg::Viewport::value_type)(height * mHeightFactor);
-            mDirtyFactor = false;
+            // force new viewport to be used
+            osg::ref_ptr<osg::Viewport> oldVp = new osg::Viewport(*mViewport);
+            osg::ref_ptr<osg::Viewport> newVp = new osg::Viewport(oldVp->x(), oldVp->y(), oldVp->width() * mWidthFactor, oldVp->height() * mHeightFactor);
 
-            // notice that we changed the viewport
-            noticeChangeViewport();
+            mViewport = newVp;
+            assignViewport();
+            mViewport = oldVp;
+
+            noticeChangeViewport(newVp);
         }    
     }
 
