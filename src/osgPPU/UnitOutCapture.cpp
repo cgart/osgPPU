@@ -26,8 +26,33 @@
 namespace osgPPU
 {
     //------------------------------------------------------------------------------
+    // Helper class to have own capture callbacks
+    //------------------------------------------------------------------------------
+    struct CaptureDrawCallback : public osg::Drawable::DrawCallback
+    {
+        CaptureDrawCallback(UnitOutCapture* parent) : osg::Drawable::DrawCallback(), _parent(parent) {}
+        ~CaptureDrawCallback() {}
+
+        void drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
+        {
+            if (_parent->getActive() && ri.getState())
+            {
+                _parent->captureInput(ri.getState());
+            }
+
+            if (_parent->getActive() && _parent->getShotOnce()) 
+                _parent->setActive(false);
+        }
+
+        UnitOutCapture* _parent;
+    };
+
+    //------------------------------------------------------------------------------
     UnitOutCapture::UnitOutCapture(const UnitOutCapture& unit, const osg::CopyOp& copyop) :
-        UnitOut(unit, copyop)
+        UnitOut(unit, copyop),
+        mPath(unit.mPath),
+        mExtension(unit.mExtension),
+        mShotOnce(unit.mShotOnce)
     {
     
     }
@@ -36,6 +61,7 @@ namespace osgPPU
     {
         mPath = ".";
         mExtension = "png";
+        mShotOnce = false;
     }
     
     //------------------------------------------------------------------------------
@@ -43,48 +69,54 @@ namespace osgPPU
     {
     }
     
-    
     //------------------------------------------------------------------------------
-    void UnitOutCapture::noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable)
+    void UnitOutCapture::init()
     {
-        if (getActive() && renderInfo.getState())
-        {
-            // for each input texture do
-            for (unsigned int i=0; i < mInputTex.size(); i++)
-            {
-                // create file name (allocate memory big enough to be just safe)
-                char* filename = (char*)malloc(sizeof(char) * (mPath.length() + mExtension.length() + 32));
-                sprintf( filename, "%s/%d_%04d.%s", mPath.c_str(), i, mCaptureNumber[i], mExtension.c_str());
-                osg::notify(osg::WARN) << "osgPPU::UnitOutCapture::Capture " << mCaptureNumber[i] << " frame to " << filename << " ...";
-                osg::notify(osg::WARN).flush();
-            
-                mCaptureNumber[i]++;
-    
-                // input texture 
-                osg::Texture* input = getInputTexture(i);
-    
-                // bind input texture, so that we can get image from it
-                if (input != NULL) 
-                    renderInfo.getState()->applyTextureAttribute(0, input);
-                
-                // retrieve texture content
-                osg::ref_ptr<osg::Image> img = new osg::Image();
-                img->readImageFromCurrentTexture(renderInfo.getContextID(), false, osg::Image::computeFormatDataType(input->getInternalFormat()));
-                osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
-                if (res.success())
-                    osg::notify(osg::WARN) << " OK" << std::endl;
-                else
-                    osg::notify(osg::WARN) << " failed! (" << res.message() << ")" << std::endl;
-                            
-                // unbind the texture back 
-                //if (input != NULL)
-                //    renderInfo.getState()->applyTextureMode(0, input->getTextureTarget(), false);
+        // init default
+        Unit::init();
 
-                // release character memory
-                free(filename);
-            }
+        // create a quad geometry
+        mDrawable = createTexturedQuadDrawable();
+        mDrawable->setDrawCallback(new CaptureDrawCallback(this));
+        mGeode->removeDrawables(0, mGeode->getNumDrawables());
+        mGeode->addDrawable(mDrawable.get());
+    }
+
+
+    //------------------------------------------------------------------------------
+    void UnitOutCapture::captureInput(osg::State* state)
+    {
+        // for each input texture do
+        for (unsigned int i=0; i < mInputTex.size(); i++)
+        {
+            // create file name (allocate memory big enough to be just safe)
+            char* filename = (char*)malloc(sizeof(char) * (mPath.length() + mExtension.length() + 32));
+            sprintf( filename, "%s/%d_%04d.%s", mPath.c_str(), i, mCaptureNumber[i], mExtension.c_str());
+            osg::notify(osg::WARN) << "osgPPU::UnitOutCapture::Capture " << mCaptureNumber[i] << " frame to " << filename << " ...";
+            osg::notify(osg::WARN).flush();
+        
+            mCaptureNumber[i]++;
+
+            // input texture 
+            osg::Texture* input = getInputTexture(i);
+
+            // bind input texture, so that we can get image from it
+            if (input != NULL) 
+                state->applyTextureAttribute(0, input);
+            
+            // retrieve texture content
+            osg::ref_ptr<osg::Image> img = new osg::Image();
+            img->readImageFromCurrentTexture(state->getContextID(), false, osg::Image::computeFormatDataType(input->getInternalFormat()));
+            osgDB::ReaderWriter::WriteResult res = osgDB::Registry::instance()->writeImage(*img, filename, NULL);
+            if (res.success())
+                osg::notify(osg::WARN) << " OK" << std::endl;
+            else
+                osg::notify(osg::WARN) << " failed! (" << res.message() << ")" << std::endl;
+                        
+            // release character memory
+            free(filename);
         }
-        UnitOut::noticeFinishRendering(renderInfo, drawable);
+    
     }
 
 }; // end namespace

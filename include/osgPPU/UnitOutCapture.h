@@ -56,10 +56,24 @@ namespace osgPPU
             //! get currently used extension 
             inline const std::string& getFileExtension() const { return mExtension; }
     
+            /**
+            * Set if the output should be generated only once.
+            * The unit will be activated only for one frame. 
+            * You will need to reactivate the unit, if you would like to have continous frame capturing
+            * after one frame shot.
+            **/
+            inline void setShotOnce(bool b) { mShotOnce = b; if (b) setActive(true); }
+
+            //! Check if the unit will shot once on the next traversion
+            inline bool getShotOnce() { return mShotOnce; }
+
+            //! Direct function, which can be used to take a screenshot.
+            virtual void captureInput(osg::State* state);
+
+            //! Initialze the default Processoring unit
+            virtual void init();
+
         protected:
-            
-            //! Here we are capturing the input to file
-            void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*);
         
             //! path were to store the files
             std::string mPath;
@@ -69,6 +83,8 @@ namespace osgPPU
     
             //! file extensions
             std::string mExtension;
+
+            bool mShotOnce;
     };
 
 };
