@@ -268,12 +268,12 @@ namespace osgPPU
             // reserve as much output textures, as we have MRT
             if (mOutputTex.size() < mOutputDepth)
             {
-                for (int i=mOutputTex.size(); i < mOutputDepth; i++)
+                for (size_t i=mOutputTex.size(); i < mOutputDepth; i++)
                     mOutputTex[i] = NULL;
             }else if (mOutputTex.size() > mOutputDepth)
             {
                 TextureMap::iterator it = mOutputTex.begin();
-                for (int i=mOutputDepth; i < mOutputTex.size(); i++) it++;
+                for (size_t i=mOutputDepth; i < mOutputTex.size(); i++) it++;
                 mOutputTex.erase(it, mOutputTex.end());
             }
         }

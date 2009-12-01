@@ -508,7 +508,7 @@ public:
             UnitInOut* unitIO = dynamic_cast<UnitInOut*>(unit);
             if (unitIO)
             {
-                for (int i=1; i < unitIO->getOutputDepth(); i++)
+                for (unsigned i=1; i < unitIO->getOutputDepth(); i++)
                     _input.push_back(unitIO->getOrCreateOutputTexture(i));
             }
 

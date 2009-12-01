@@ -101,7 +101,7 @@ namespace osgPPU
         }
 
         // for every iteration we do
-        for (unsigned i=0; i < _numIterations; i++)
+        for (int i=0; i < _numIterations; i++)
         {
             // mark every unit as not being culled before
             CleanCullTraversedVisitor::sVisitor->run(this);
@@ -144,13 +144,13 @@ namespace osgPPU
         }
 
         // input of each child should be changed on the second iteration
-        for (int i=0; i < getNumChildren(); i++)
+        for (unsigned i=0; i < getNumChildren(); i++)
         {
             Unit* unit = dynamic_cast<Unit*>(getChild(i));
             if (unit)
             {
                 // determine which input does this unit goes to its children and add a callback there
-                for (int j=0, index=0; j < unit->getNumParents(); j++)
+                for (unsigned j=0, index=0; j < unit->getNumParents(); j++)
                 {
                     if (unit->getParent(j) == this)
                         unit->setBeginDrawCallback(new ChangeInputsCallback(_lastNode->getOrCreateOutputTexture(_lastNodeOutputIndex), index, 1, _numIterations));

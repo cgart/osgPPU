@@ -247,7 +247,7 @@ namespace osgPPU
         for (; it != mOutputTex.end(); it++)
         {
             renderInfo.getState()->applyTextureAttribute(0, it->second.get());
-            fbo_ext->glGenerateMipmapEXT(it->second->getTextureTarget());
+            fbo_ext->glGenerateMipmap(it->second->getTextureTarget());
         }
     }
     
