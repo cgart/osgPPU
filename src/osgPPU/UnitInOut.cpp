@@ -27,6 +27,7 @@
 #include <osg/Texture2D>
 #include <osg/Texture3D>
 #include <osg/Texture2DArray>
+#include <osg/TextureRectangle>
 #include <osg/GL2Extensions>
 
 namespace osgPPU
@@ -135,7 +136,7 @@ namespace osgPPU
                 memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
 
                 // create the texture in usual OpenGL way
-                glTexImage2D( GL_TEXTURE_2D, 0, texture.getInternalFormat(),
+                glTexImage2D( GL_TEXTURE_2D , 0, texture.getInternalFormat(),
                     texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
                     texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
@@ -144,6 +145,42 @@ namespace osgPPU
 
             // no subload, because while we want to subload the texture should be already valid
             void subload (const osg::Texture2D &texture, osg::State &state) const
+            {
+
+            }
+    };
+
+    //------------------------------------------------------------------------------
+    // Helper class for filling the generated texture with default pixel values
+    //------------------------------------------------------------------------------
+    class SubloadRectangleCallback : public osg::TextureRectangle::SubloadCallback
+    {
+        public:
+            // fill texture with default pixel values
+            void load (const osg::TextureRectangle &texture, osg::State &state) const
+            {
+                // create temporary image which is initialized with 0 values
+                osg::ref_ptr<osg::Image> img = new osg::Image();
+                img->allocateImage(
+                    texture.getTextureWidth() ? texture.getTextureWidth() : 1,
+                    texture.getTextureHeight() ? texture.getTextureHeight() : 1,
+                    1,
+                    texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                    texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE);
+
+                // fill the image with 0 values
+                memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
+
+                // create the texture in usual OpenGL way
+                glTexImage2D( GL_TEXTURE_RECTANGLE, 0, texture.getInternalFormat(),
+                    texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
+                    texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
+                    texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
+                    img->data());
+            }
+
+            // no subload, because while we want to subload the texture should be already valid
+            void subload (const osg::TextureRectangle &texture, osg::State &state) const
             {
 
             }
@@ -243,7 +280,7 @@ namespace osgPPU
         mGeode->removeDrawables(0, mGeode->getNumDrawables());
         mGeode->addDrawable(mDrawable.get());
 
-        // setup unfiroms
+        // setup uniforms
         if (mOutputType == TEXTURE_CUBEMAP)
         {
             osg::Uniform* faceUniform = mDrawable->getOrCreateStateSet()->getOrCreateUniform(OSGPPU_CUBEMAP_FACE_UNIFORM, osg::Uniform::INT);
@@ -263,7 +300,7 @@ namespace osgPPU
                     osg::notify(osg::WARN) << "osgPPU::UnitInOut::init() - specified mrt index " << it->first << " is not valid. Results might be wrong!" << std::endl;
                 }
             }
-        }else if (mOutputType == TEXTURE_2D)
+        }else if (mOutputType == TEXTURE_2D || mOutputType == TEXTURE_RECTANGLE)
         {
             // reserve as much output textures, as we have MRT
             if (mOutputTex.size() < mOutputDepth)
@@ -320,7 +357,7 @@ namespace osgPPU
     {
         mOutputInternalFormat = format;
 
-        // now generate output texture's and assign them to fbo
+        // now generate output textures and assign them to fbo
         TextureMap::iterator it = mOutputTex.begin();
         for (;it != mOutputTex.end(); it++)
         {
@@ -346,7 +383,7 @@ namespace osgPPU
         osg::Texture* tex = mOutputTex[mrt].get();
         if (tex) return tex;
 
-        // if not exists, then do allocate it
+        // if not exists, then allocate it
         osg::Texture* mTex = NULL;
         if (mOutputType == TEXTURE_2D)
         {
@@ -354,6 +391,12 @@ namespace osgPPU
             dynamic_cast<osg::Texture2D*>(mTex)->setSubloadCallback(new Subload2DCallback());
             if (mViewport.valid())
                 dynamic_cast<osg::Texture2D*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
+        }else if (mOutputType == TEXTURE_RECTANGLE)
+        {
+            mTex = new osg::TextureRectangle();
+            dynamic_cast<osg::TextureRectangle*>(mTex)->setSubloadCallback(new SubloadRectangleCallback());
+            if (mViewport.valid())
+                dynamic_cast<osg::TextureRectangle*>(mTex)->setTextureSize(int(mViewport->width()), int(mViewport->height()) );
         }else if (mOutputType == TEXTURE_CUBEMAP)
         {
             mTex = new osg::TextureCubeMap();
@@ -430,11 +473,19 @@ namespace osgPPU
                 }
             }
 
-            // check whenever the output texture is a 2D texture
+            // check whether the output texture is a 2D texture
             osg::Texture2D* tex2D = dynamic_cast<osg::Texture2D*>(texture);
             if (tex2D != NULL)
             {
                 mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + it->first), osg::FrameBufferAttachment(tex2D));
+                continue;
+            }
+
+            // check whether the output texture is a 2D rect
+            osg::TextureRectangle* texRect = dynamic_cast<osg::TextureRectangle*>(texture);
+            if (texRect != NULL)
+            {
+                mFBO->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + it->first), osg::FrameBufferAttachment(texRect));
                 continue;
             }
 
@@ -494,7 +545,8 @@ namespace osgPPU
             }
     
             // check the type of the output texture. It must be a supported type
-            if (dynamic_cast<osg::Texture2D*>(texture) == NULL)
+            if ((dynamic_cast<osg::Texture2D*>(texture) == NULL) &&
+                (dynamic_cast<osg::TextureRectangle*>(texture) == NULL))
             {
                 osg::notify(osg::FATAL) << "osgPPU::Unit::assignOutputPBOs() - " << getName() << " output texture " << it->first << " has an unsupported format." << std::endl;
                 continue;
@@ -519,6 +571,13 @@ namespace osgPPU
                 {
                     // change size
                     osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
+                    mTex->setTextureSize(int(vp->width()), int(vp->height()) );
+                }
+                // if texture type is rectangle
+                else if (dynamic_cast<osg::TextureRectangle*>(it->second.get()) != NULL)
+                {
+                    // change size
+                    osg::TextureRectangle* mTex = dynamic_cast<osg::TextureRectangle*>(it->second.get());
                     mTex->setTextureSize(int(vp->width()), int(vp->height()) );
                 }
                 // if texture type is a cubemap texture

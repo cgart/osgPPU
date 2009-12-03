@@ -36,9 +36,9 @@ namespace osgPPU
 {
     //! Compute output texture based on the assigned shaders and input data
     /**
-    * InOut PPU, does render the content of input textures with applied shader 
+    * InOut PPU, renders the content of input textures with applied shader 
     * to the output textures. Rendering is done in background, so no information
-    * will leack to the frame buffer
+    * will leak to the frame buffer.
     **/
     class OSGPPU_EXPORT UnitInOut : public Unit {
         public:
@@ -54,7 +54,7 @@ namespace osgPPU
             //! Release it and used memory
             virtual ~UnitInOut();
             
-            //! Initialze the default Processoring unit
+            //! Initialze the default Processor unit
             virtual void init();
             
             /**
@@ -64,8 +64,8 @@ namespace osgPPU
 
             /**
             * UnitInOut can also be used to bypass the input texture to the output
-            * and perform a rendering on it. This is differently to the UnitBypass which
-            * do not perform any rendering but bypasses the data. 
+            * and perform rendering on it. This is different from the UnitBypass which
+            * does not perform any rendering but bypasses the data. 
             * Specify here the index of the input unit,
             * to bypass the input to the output.
             * @param index Index of an input unit to bypass to output. Specify -1, to 
@@ -90,7 +90,7 @@ namespace osgPPU
 
             /**
             * Set slice index which is used to render the output to.
-            * This settings have an effect only when using 3D textures as output.
+            * These settings have an effect only when using 3D textures as output.
             * The given slice will be defined for each MRT output.
             * @param slice Index of the slice (z-offset) to render the results to 
             * @param mrt MRT index of the output to be rendered to the given slice. This allows 
@@ -140,8 +140,11 @@ namespace osgPPU
                 //! 3D texture is used of the output
                 TEXTURE_3D,
 
-                //! Use 2d texture array
-                TEXTURE_2D_ARRAY
+                //! Use 2D texture array
+                TEXTURE_2D_ARRAY,
+
+                //! Use a texture rectangle
+                TEXTURE_RECTANGLE
             };
 
             /**
@@ -188,7 +191,7 @@ namespace osgPPU
             virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0);
             
             /**
-            * Set a mrt to texture map for output textures
+            * Set a MRT to texture map for output textures
             **/
             inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map; dirty();}
     

@@ -21,6 +21,7 @@
 #include <osg/Texture2DArray>
 #include <osg/Texture3D>
 #include <osg/TextureCubeMap>
+#include <osg/TextureRectangle>
 
 namespace osgPPU
 {
@@ -72,7 +73,8 @@ namespace osgPPU
             osg::Texture2DArray* tex2DArray = dynamic_cast<osg::Texture2DArray*>(_externTexture.get());
             osg::Texture3D* tex3D = dynamic_cast<osg::Texture3D*>(_externTexture.get());
             osg::TextureCubeMap* texCube = dynamic_cast<osg::TextureCubeMap*>(_externTexture.get());
-    
+            osg::TextureRectangle* texRectangle = dynamic_cast<osg::TextureRectangle*>(_externTexture.get());
+
             if (tex1D)
             {
                 tex1D->setTextureWidth(_externTexture->getImage(0)->s());
@@ -88,6 +90,8 @@ namespace osgPPU
             }else if (texCube)
             {
                 texCube->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t());
+            }else if (texRectangle) {
+                texRectangle->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t());
             }else
             {
                 osg::notify(osg::FATAL) << "osgPPU::UnitTexture::setTexture() - " << getName() << " non-supported texture type specified!" << std::endl;

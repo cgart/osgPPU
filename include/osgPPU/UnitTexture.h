@@ -44,7 +44,7 @@ namespace osgPPU
             
             /**
             * Set a texture which is used as output of this unit.
-            * The children will get this texture as input atomatically.
+            * The children will get this texture as input automatically.
             **/
             virtual void setTexture(osg::Texture* tex);
 
