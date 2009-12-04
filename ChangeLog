@@ -1,3 +1,55 @@
+2009-12-04 13:20  art
+
+	* [r240]
+	  From J.P. Delport:
+	  - Implementing TextureRectangle support for osgPPU, as we use
+	  them in other non-osgPPU stages of our pipeline. The main
+	  difference is the setup of the quad to be rendered: if the input
+	  texture is a rect, then the quad coords must be set up correctly.
+
+2009-12-03 13:15  art
+
+	* [r239]
+	  
+
+2009-12-01 15:08  art
+
+	* [r238]
+	  - changes to reflect current osg svn repository (mostly gl..EXT
+	  has been removed by (gl..)
+
+2009-11-04 20:50  art
+
+	* [r237]
+	  - bugs in capture unit solved
+	  - can now capture just one frame
+
+2009-10-30 18:53  art
+
+	* [r236]
+	  - HDR example almost supports resizing (it seems that OSG has a
+	  bug when resizing camera's FBO texture, have to proove that
+	  later)
+	  - small bugfixes
+	  - UnitInResampleOut should resize correctly even if it was marked
+	  as dirty in several frames. Before it has recized itself every
+	  time with resize factor and could cause to multiple resizement
+	  when multiple times marked as dirty
+
+2009-10-27 08:57  art
+
+	* [r235]
+	  - improve the onViewportChange functionality in the processor
+	  - dynamic resizing of osgppu pipeline do almost work now
+	  - HDR example don't work with resizing
+
+2009-10-26 15:28  art
+
+	* [r234]
+	  - unneeded visitors removed
+	  - Changes in UnitBypassRepeat iterative traversion (there was a
+	  bug)
+
 2009-10-26 11:07  art
 
 	* [r233]

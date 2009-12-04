@@ -90,7 +90,8 @@ namespace osgPPU
             }else if (texCube)
             {
                 texCube->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t());
-            }else if (texRectangle) {
+            }else if (texRectangle)
+            {
                 texRectangle->setTextureSize(_externTexture->getImage(0)->s(), _externTexture->getImage(0)->t());
             }else
             {
