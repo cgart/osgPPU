@@ -22,6 +22,7 @@
 #include <osgPPU/Utility.h>
 
 #include <osg/Texture2D>
+#include <osg/TextureRectangle>
 #include <osgDB/WriteFile>
 #include <osgDB/Registry>
 #include <osg/Image>
@@ -149,9 +150,62 @@ void Unit::setColorAttribute(ColorAttribute* ca)
 }
 
 //------------------------------------------------------------------------------
-osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const osg::Vec3& widthVec,const osg::Vec3& heightVec, float l, float b, float r, float t)
+osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const osg::Vec3& widthVec,const osg::Vec3& heightVec)
 {
-    osg::Geometry* geom = osg::createTexturedQuadGeometry(corner, widthVec, heightVec, l,b,r,t);
+    //osg::Geometry* geom = osg::createTexturedQuadGeometry(corner, widthVec, heightVec, l,b,r,t);
+
+    osg::Geometry* geom = new osg::Geometry;
+
+    // Vertex coordinates
+    osg::Vec3Array* coords = new osg::Vec3Array(4);
+    (*coords)[0] = corner+heightVec;
+    (*coords)[1] = corner;
+    (*coords)[2] = corner+widthVec;
+    (*coords)[3] = corner+widthVec+heightVec;
+    geom->setVertexArray(coords);
+
+    // Add texture coordinates for every input texture
+    // \todo Determine if use supplied coordinates might be required
+    TextureMap input_map = getInputTextureMap();
+    TextureMap::iterator it = input_map.begin();
+    for (; it != input_map.end(); it++)
+    {
+        int unit = it->first;
+        osg::Texture* tex = it->second.get();
+        osg::TextureRectangle* trect = dynamic_cast<osg::TextureRectangle*>(tex); 
+        if (it->second.valid())
+        {
+            // start with default normalised
+            float l = 0.0;
+            float b = 0.0;
+            float r = 1.0;
+            float t = 1.0;
+            if (trect) {
+                // adjust top-right
+                r = trect->getTextureWidth();
+                t = trect->getTextureHeight();
+            }
+            osg::Vec2Array* tcoords = new osg::Vec2Array(4);
+            (*tcoords)[0].set(l,t);
+            (*tcoords)[1].set(l,b);
+            (*tcoords)[2].set(r,b);
+            (*tcoords)[3].set(r,t);
+            geom->setTexCoordArray(unit, tcoords);
+        }
+    }
+    
+    //osg::Vec4Array* colours = new osg::Vec4Array(1);
+    //(*colours)[0].set(1.0f,1.0f,1.0,1.0f);
+    //geom->setColorArray(colours);
+    //geom->setColorBinding(Geometry::BIND_OVERALL);
+
+    osg::Vec3Array* normals = new osg::Vec3Array(1);
+    (*normals)[0] = widthVec^heightVec;
+    (*normals)[0].normalize();
+    geom->setNormalArray(normals);
+    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
 
     // setup default state set
     geom->setStateSet(new osg::StateSet());

@@ -420,7 +420,7 @@ class OSGPPU_EXPORT Unit : public osg::Group {
         virtual void assignInputPBO();
 
         //! Helper function to create screen sized quads
-        osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0), float l=0.0, float b=0.0, float r=1.0, float t=1.0);
+        osg::Drawable* createTexturedQuadDrawable(const osg::Vec3& corner = osg::Vec3(0,0,0),const osg::Vec3& widthVec=osg::Vec3(1,0,0),const osg::Vec3& heightVec=osg::Vec3(0,1,0));
 
         //! Input texture
         TextureMap  mInputTex;

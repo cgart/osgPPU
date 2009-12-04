@@ -136,7 +136,7 @@ namespace osgPPU
                 memset(img->data(), 0, img->getTotalSizeInBytesIncludingMipmaps() * sizeof(unsigned char));
 
                 // create the texture in usual OpenGL way
-                glTexImage2D( GL_TEXTURE_2D , 0, texture.getInternalFormat(),
+                glTexImage2D( GL_TEXTURE_2D, 0, texture.getInternalFormat(),
                     texture.getTextureWidth(), texture.getTextureHeight(), texture.getBorderWidth(),
                     texture.getSourceFormat() ? texture.getSourceFormat() : texture.getInternalFormat(),
                     texture.getSourceType() ? texture.getSourceType() : GL_UNSIGNED_BYTE,
@@ -275,7 +275,7 @@ namespace osgPPU
         // initialize all parts of the ppu
         Unit::init();
 
-        // setup a geode and the drawable as childs of this unit
+        // setup a geode and the drawable as children of this unit
         mDrawable = createTexturedQuadDrawable();
         mGeode->removeDrawables(0, mGeode->getNumDrawables());
         mGeode->addDrawable(mDrawable.get());
