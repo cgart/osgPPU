@@ -47,8 +47,8 @@ ${CMAKE_PREFIX_PATH}
 [HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;OSG_ROOT]/
 ~/Library/Frameworks
 /Library/Frameworks
-"C:\Program Files\OpenSceneGraph"
-"C:\Program Files (x86)\OpenSceneGraph"
+"C:\\Program Files\\OpenSceneGraph"
+"C:\\Program Files (x86)\\OpenSceneGraph"
 )
 
 FIND_PATH( ${THIS_OSG_INCLUDE_DIR} ${THIS_OSG_INCLUDE_FILE}
