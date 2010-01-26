@@ -220,7 +220,7 @@ class TexMatCullCallback : public osg::NodeCallback
 
 
 const char* shaderSrc =
-    "uniform samplerCube input; \n"
+    "uniform samplerCube inputCube; \n"
     "uniform int osgppu_CubeMapFace;\n"
     "\n"
     "void main () {\n"
@@ -337,7 +337,7 @@ osg::Group* createShadowedScene(osg::Node* reflectedSubgraph, osg::NodePath refl
             unit->getOrCreateStateSet()->setAttributeAndModes(program);
 
             // create unfirom to point to the texture
-            osg::Uniform* uniform = unit->getOrCreateStateSet()->getOrCreateUniform("input", osg::Uniform::SAMPLER_CUBE);
+            osg::Uniform* uniform = unit->getOrCreateStateSet()->getOrCreateUniform("inputCube", osg::Uniform::SAMPLER_CUBE);
             uniform->set((int)0);
 
             // add unit to the processor

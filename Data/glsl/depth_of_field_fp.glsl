@@ -43,7 +43,7 @@ void main(void)
     float a = zFar / ( zFar - zNear );
     float b = zFar * zNear / ( zNear - zFar );
     
-    float depth = texture2D( texDepthMap, inTex );
+    float depth = texture2D( texDepthMap, inTex ).x;
     float dist = b / ( depth - a );
     
     // get color map and blurred color map values 
@@ -52,7 +52,7 @@ void main(void)
     vec4 blurredValue2 = texture2D ( texStrongBlurredColorMap, inTex).rgba;
     
     // now compute the bluriness value 
-    float blur = saturate(abs(dist - focalLength) / focalRange);
+    float blur = clamp(abs(dist - focalLength) / focalRange, 0.0, 1.0);
     float factor1 = 1.0;
     float factor2 = 0.0;
     

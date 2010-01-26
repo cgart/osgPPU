@@ -30,7 +30,7 @@ void main(void)
 {
 
 	// store here resulting color
-	vec4 color = 0.0;
+	vec4 color = vec4(0.0);
 	float totalWeigth = 0.0;
 	float inputTexTexelWidth = 1.0 / osgppu_ViewportHeight;
 

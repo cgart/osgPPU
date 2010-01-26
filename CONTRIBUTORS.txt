@@ -18,5 +18,6 @@ Valery Bickov
 Oleg Dedkow
 J.P. Delport
 Paul Martz
-
+Bryan Thrall
+Christian Richardt
  

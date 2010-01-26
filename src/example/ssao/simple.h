@@ -194,7 +194,7 @@ osgPPU::Processor* createPipeline(int width, int height, osg::Camera* camera, os
                 "   float blurred = texture2D(blurredDepthTexture, gl_TexCoord[0].xy).x;\n"\
                 "   float original = texture2D(originalDepthTexture, gl_TexCoord[0].xy).x;\n"\
                 "   vec4 color = texture2D(colorTexture, gl_TexCoord[0].xy);\n"\
-                "   vec4 result = color - intensity * clamp((original - blurred), 0.0, 1.0);\n"\
+                "   vec4 result = color - vec4(intensity * clamp((original - blurred), 0.0, 1.0));\n"\
                 "   gl_FragData[0].xyzw = clamp(result, 0.0, 1.0);\n"\
                 "}\n"
             );
@@ -209,7 +209,7 @@ osgPPU::Processor* createPipeline(int width, int height, osg::Camera* camera, os
                 "   float blurred = texture2D(blurredDepthTexture, gl_TexCoord[0].xy).x;\n"\
                 "   float original = texture2D(originalDepthTexture, gl_TexCoord[0].xy).x;\n"\
                 "   vec4 color = texture2D(colorTexture, gl_TexCoord[0].xy);\n"\
-                "   vec4 result = 1.0 - intensity * clamp((original - blurred), 0.0, 1.0);\n"\
+                "   vec4 result = vec4(1.0 - intensity * clamp((original - blurred), 0.0, 1.0));\n"\
                 "   gl_FragData[0].xyzw = clamp(result, 0.0, 1.0);\n"\
                 "}\n"
             );

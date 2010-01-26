@@ -168,11 +168,11 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
                 "uniform sampler2D colorTexture;\n"\
                 "uniform float dt;\n"\
                 "void main() {\n"\
-                "   vec3 dxx = texture2D(derivativeXX, gl_TexCoord[0].xy);\n"\
-                "   vec3 dyy = texture2D(derivativeYY, gl_TexCoord[0].xy);\n"\
-                "   vec3 dxy = texture2D(derivativeXY, gl_TexCoord[0].xy);\n"\
-                "   vec3 dx  = texture2D(derivativeX, gl_TexCoord[0].xy);\n"\
-                "   vec3 dy  = texture2D(derivativeY, gl_TexCoord[0].xy);\n"\
+                "   vec3 dxx = texture2D(derivativeXX, gl_TexCoord[0].xy).xyz;\n"\
+                "   vec3 dyy = texture2D(derivativeYY, gl_TexCoord[0].xy).xyz;\n"\
+                "   vec3 dxy = texture2D(derivativeXY, gl_TexCoord[0].xy).xyz;\n"\
+                "   vec3 dx  = texture2D(derivativeX, gl_TexCoord[0].xy).xyz;\n"\
+                "   vec3 dy  = texture2D(derivativeY, gl_TexCoord[0].xy).xyz;\n"\
                 "   vec3 xy  = texture2D(colorTexture, gl_TexCoord[0].xy).xyz;\n"\
                 "   gl_FragData[0].xyz = xy + dt * ((1.0+dx*dx)*dyy - 2.0*dx*dy*dxy + (1.0 + dy*dy)*dxx) / (1.0 + dx*dx + dy*dy);\n"\
                 "}\n"
