@@ -550,7 +550,7 @@ bool writeShaderAttribute(const osg::Object& obj, osgDB::Output& fout)
         fout.writeBeginObject("RefUniformPair");
         fout.moveIn();
 
-            osgDB::Registry::instance()->writeObject(static_cast<const osg::Uniform&>(*(jt->second.first)), fout);
+            fout.writeObject(static_cast<const osg::Uniform&>(*(jt->second.first)));
             fout.indent() << "StateAttribute " << StateSet_getModeStr(jt->second.second) << std::endl;
 
         fout.moveOut();
@@ -687,7 +687,7 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     if (unit.getViewport())
     {
         fout << std::endl;
-        osgDB::Registry::instance()->writeObject(static_cast<const osg::Viewport&>(*(unit.getViewport())), fout);
+        fout.writeObject(static_cast<const osg::Viewport&>(*(unit.getViewport())));
     }
 
     // write shader attribute if shader attribute exists
@@ -696,14 +696,14 @@ bool writeUnit(const osg::Object& obj, osgDB::Output& fout)
     if (sh != NULL)
     {
         fout << std::endl;
-        osgDB::Registry::instance()->writeObject(static_cast<const osgPPU::ShaderAttribute&>(*sh), fout);
+        fout.writeObject(static_cast<const osgPPU::ShaderAttribute&>(*sh));
     }
 
     // write the color attribute
     if (unit.getColorAttribute())
     {
         fout << std::endl;
-        osgDB::Registry::instance()->writeObject(static_cast<const osgPPU::ColorAttribute&>(*(unit.getColorAttribute())), fout);
+        fout.writeObject(static_cast<const osgPPU::ColorAttribute&>(*(unit.getColorAttribute())));
     }
 
     return true;
@@ -715,8 +715,7 @@ bool writeUnitTexture(const osg::Object& obj, osgDB::Output& fout)
     // convert given object to unit
     const osgPPU::UnitTexture& unit = static_cast<const osgPPU::UnitTexture&>(obj);
 
-    osgDB::Registry::instance()->writeObject(
-        (static_cast<const osg::Texture&>(*(const_cast<osgPPU::UnitTexture&>(unit).getTexture()))), fout);
+    fout.writeObject((static_cast<const osg::Texture&>(*(const_cast<osgPPU::UnitTexture&>(unit).getTexture()))));
 
     return true;
 }
@@ -852,7 +851,7 @@ bool writeUnitText(const osg::Object& obj, osgDB::Output& fout)
     fout.indent() << "size " <<  unit.getSize() << std::endl;
 
     // write out shader program
-    osgDB::Registry::instance()->writeObject(unit.getText(), fout);
+    fout.writeObject(unit.getText());
 
     return true;
 }

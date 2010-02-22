@@ -10,25 +10,36 @@ IF(COMMAND cmake_policy)
 ENDIF(COMMAND cmake_policy)
 
 
+################################################################################
+# Set default values
+################################################################################
 PROJECT(osgPPU)
-
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules;${osgPPU_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
 SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
 SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
+
 
 #######################################
 # Versions
 #######################################
 SET(OSGPPU_MAJOR_VERSION 0)
 SET(OSGPPU_MINOR_VERSION 5)
-SET(OSGPPU_PATCH_VERSION 6)
+SET(OSGPPU_PATCH_VERSION 7)
 SET(OSGPPU_SOVERSION 5)
 
 SET(OSGPPU_RELEASE_CANDIDATE 0)
 
 SET(OSGPPU_VERSION ${OSGPPU_MAJOR_VERSION}.${OSGPPU_MINOR_VERSION}.${OSGPPU_PATCH_VERSION})
 SET(OSGPPU_SONAMES TRUE)
+
+
+################################################################################
+# Define already some installation components.
+# This is need for later installation process if we enable it
+################################################################################
+IF(CMAKE_CPACK_COMMAND)
+ENDIF(CMAKE_CPACK_COMMAND)
 
 
 #######################################
@@ -55,7 +66,9 @@ FIND_PACKAGE( OSG REQUIRED )
 INCLUDE(${CMAKE_SOURCE_DIR}/CMakeModules/cuda/FindCuda.cmake)
 
 
+################################################################################
 # Make the headers visible to everything
+################################################################################
 IF(NOT ${PROJECT_BINARY_DIR} EQUAL ${PROJECT_SOURCE_DIR})
    INCLUDE_DIRECTORIES(BEFORE ${PROJECT_BINARY_DIR}/include)
 ENDIF(NOT ${PROJECT_BINARY_DIR} EQUAL ${PROJECT_SOURCE_DIR})
@@ -99,17 +112,16 @@ IF(WIN32)
         ADD_DEFINITIONS(-DNOMINMAX)
     ENDIF(UNIX)
 
-########################################################################################################
-# the following options are MSVC specific,
-# the first OSG_MSVC_VERSIONED_DLL activate a custom build-time layout that should allow to run examples and application
-# fron bin folder without requiring installation step.
-# it also prepend "osg${OPENSCENEGRAPH_SOVERSION}-" to only .dll files, leaving .lib files untouched in lib
-# it also use a hack to get rid of Debug and Release folder in MSVC projects
-# all the .dll and .pdb are in bin and all the .lib and .exp are in lib
-#
-# the second option disable incremental linking in debug build , that is enabled by default by CMake
-##########################################################################################################
-
+	########################################################################################################
+	# the following options are MSVC specific,
+	# the first OSG_MSVC_VERSIONED_DLL activate a custom build-time layout that should allow to run examples and application
+	# fron bin folder without requiring installation step.
+	# it also prepend "osg${OPENSCENEGRAPH_SOVERSION}-" to only .dll files, leaving .lib files untouched in lib
+	# it also use a hack to get rid of Debug and Release folder in MSVC projects
+	# all the .dll and .pdb are in bin and all the .lib and .exp are in lib
+	#
+	# the second option disable incremental linking in debug build , that is enabled by default by CMake
+	##########################################################################################################
     IF(MSVC)
         IF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
             MESSAGE("Warning:  disabling versioned options 2.4.6 exibits inconsintencies in .pdb naming, at least under MSVC, suggested upgrading at least to 2.4.7")
@@ -132,7 +144,9 @@ ENDIF(WIN32)
 
 
 
+################################################################################
 #Solution
+################################################################################
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 SET(EXAMPLE_PREFIX osgppu_ CACHE STRING "Prefix used to build examples")
@@ -222,13 +236,61 @@ ENDIF(OSGPPU_MAINTAINER)
 # present the packaging option only if we have the cpack command defined (effectively >= 2.6.0)
 ################################################################################
 IF(CMAKE_CPACK_COMMAND)
-    OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
-    IF(BUILD_OSGPPU_PACKAGES)
 
-#      INCLUDE(CPack)
+	# option to build the package target
+	OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
 
-      INCLUDE(OsgPPUCPack)
-    ENDIF(BUILD_OSGPPU_PACKAGES)
+	# names used in other cmake script to determine package component
+	SET(PACKAGE_HEADERS headers)
+	SET(PACKAGE_LIB libraries)
+	SET(PACKAGE_DATA data)
+	SET(PACKAGE_SRC  source)
+	SET(PACKAGE_EXAMPLES  examples)
+
+	# we would like to build all components
+	SET(CPACK_COMPONENTS_ALL ${PACKAGE_HEADERS} ${PACKAGE_LIB} ${PACKAGE_DATA} ${PACKAGE_SRC})
+
+	# group according package properties
+	SET(CPACK_COMPONENT_GROUP_DEV_DISPLAY_NAME "Development")
+	SET(CPACK_COMPONENT_GROUP_RUNTIME_DISPLAY_NAME "Runtime")
+	SET(CPACK_COMPONENT_GROUP_EXTRA_DISPLAY_NAME "Extras")
+
+	# setup component properties
+	SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C/C++ Headers")
+	SET(CPACK_COMPONENT_HEADERS_DEPENDS ${PACKAGE_LIB})
+	SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
+
+	SET(CPACK_COMPONENT_SOURCE_DISPLAY_NAME "C/C++ Sources")
+	SET(CPACK_COMPONENT_SOURCE_DEPENDS ${PACKAGE_HEADERS})
+	SET(CPACK_COMPONENT_SOURCE_DISABLED TRUE)
+	SET(CPACK_COMPONENT_SOURCE_GROUP "Development")
+
+	SET(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Runtime libraries")
+	SET(CPACK_COMPONENT_LIBRARIES_REQUIRED TRUE)
+	SET(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
+
+	SET(CPACK_COMPONENT_DATA_DISPLAY_NAME "Data files for Examples")
+	SET(CPACK_COMPONENT_DATA_DISABLED TRUE)
+	SET(CPACK_COMPONENT_DATA_GROUP "Extras")
+
+	SET(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "C/C++ Example Sources")
+	SET(CPACK_COMPONENT_EXAMPLES_DEPENDS ${PACKAGE_HEADERS} ${PACKAGE_LIB} ${PACKAGE_SRC})
+	SET(CPACK_COMPONENT_EXAMPLES_DISABLED TRUE)
+	SET(CPACK_COMPONENT_EXAMPLES_GROUP "Extras")
+
+	# if we would like to build them
+	IF(BUILD_OSGPPU_PACKAGES)
+
+		# include all macros which will specify target build for the packages
+		INCLUDE(OsgPPUCPack)
+
+		SET(PACKAGE_GROUP "")
+		list(APPEND PACKAGE_GROUP ${PACKAGE_HEADERS})
+		list(APPEND PACKAGE_GROUP ${PACKAGE_SRC})
+		list(APPEND PACKAGE_GROUP ${PACKAGE_EXAMPLES})
+		GENERATE_PACKAGING_GROUP_TARGET("complete")
+
+	ENDIF(BUILD_OSGPPU_PACKAGES)
 ENDIF(CMAKE_CPACK_COMMAND)
 
 
@@ -263,3 +325,5 @@ ADD_CUSTOM_TARGET(uninstall
 # Compile subdirectory
 ################################################################################
 ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(Data)
+

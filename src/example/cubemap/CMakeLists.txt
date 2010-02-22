@@ -29,3 +29,15 @@ if(MSVC)
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../")
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "Example ${TARGET_TARGETNAME}")
 endif(MSVC)
+
+
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+		${TARGET_SRC}
+	DESTINATION src/examples/cubemap
+	COMPONENT  ${PACKAGE_EXAMPLES}
+)

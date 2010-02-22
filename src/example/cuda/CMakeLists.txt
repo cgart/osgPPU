@@ -17,12 +17,15 @@ SET(CUDA_MODULE_HEADERS
 )
 
 # Link cuda code in a library to something else.
-CUDA_ADD_LIBRARY(cudakernel
+SET(CUDA_MODULE_SRC
   kernel.cu
   ProcessingModule.cpp
   Export.h
   BlurKernelWrapper.h
   osgteapot.h
+)
+CUDA_ADD_LIBRARY(cudakernel
+	${CUDA_MODULE_SRC}
 )
 
 # Link with osgPPU
@@ -76,3 +79,17 @@ if(MSVC)
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../")
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "Example ${TARGET_TARGETNAME}")
 endif(MSVC)
+
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+		${TARGET_SRC}
+		${TARGET_H}
+		${CUDA_MODULE_HEADERS}
+		${CUDA_MODULE_SRC}
+	DESTINATION src/examples/cuda
+	COMPONENT  ${PACKAGE_EXAMPLES}
+)

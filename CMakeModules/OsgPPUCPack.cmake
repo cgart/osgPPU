@@ -9,6 +9,7 @@
 # ...where compiler optionally set using a cmake gui (OSGPPU_CPACK_COMPILER). This script tries to guess compiler version for msvc generators
 # ...build_type matches CMAKE_BUILD_TYPE for all generators but the msvc ones
 
+
 # resolve architecture. The reason i "change" i686 to i386 is that debian packages
 # require i386 so this is for the future
 IF("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
@@ -71,12 +72,10 @@ ENDIF(MSVC_IDE)
 
 
 # Get all defined components
-GET_CMAKE_PROPERTY(CPACK_COMPONENTS_ALL COMPONENTS)
+# if not defined before, then just build default package
+#GET_CMAKE_PROPERTY(CPACK_COMPONENTS_ALL COMPONENTS)
 IF(NOT CPACK_COMPONENTS_ALL)
-  # cmake 2.6.0 don't supply the COMPONENTS property.
-  # I set it manually to be the packages that can always be packaged
-#  MESSAGE("When building packages please consider using cmake version 2.6.1 or above")
-  SET(CPACK_COMPONENTS_ALL libosgPPU libosgPPU-dev libosgPPU-doc)
+  SET(CPACK_COMPONENTS_ALL libosgPPU)
 ENDIF(NOT CPACK_COMPONENTS_ALL)
 
 # Create a target that will be used to generate all packages defined below
@@ -129,11 +128,32 @@ MACRO(GENERATE_PACKAGING_TARGET package_name)
 ENDMACRO(GENERATE_PACKAGING_TARGET)
 
 # Create configs and targets for a package including all components
-SET(OSGPPU_CPACK_COMPONENT ALL)
+#SET(OSGPPU_CPACK_COMPONENT ALL)
 #GENERATE_PACKAGING_TARGET(osgppu-all)
 
+
+# -------------------------------------------------
+# Create a rule to build group of components
+# -------------------------------------------------
+MACRO(GENERATE_PACKAGING_GROUP_TARGET group_name)
+
+	# set empty list
+	SET(CPACK_INSTALL_CMAKE_PROJECTS "")
+
+	# we have predefined a group (list of components) before this macro
+	foreach(component ${PACKAGE_GROUP})
+		list(APPEND CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};${PROJECT_NAME};${component};/")
+	endforeach(component)
+
+	# generate package build target for this group
+	SET(OSGPPU_CPACK_COMPONENT ${group_name})
+	GENERATE_PACKAGING_TARGET(${group_name})
+	
+ENDMACRO(GENERATE_PACKAGING_GROUP_TARGET)
+
+
 # Create configs and targets for each component
-FOREACH(package ${CPACK_COMPONENTS_ALL})
-    SET(OSGPPU_CPACK_COMPONENT ${package})
-    GENERATE_PACKAGING_TARGET(${package})
-ENDFOREACH(package ${CPACK_COMPONENTS_ALL})
+#FOREACH(package ${CPACK_COMPONENTS_ALL})
+#    SET(OSGPPU_CPACK_COMPONENT ${package})
+#    GENERATE_PACKAGING_TARGET(${package})
+#ENDFOREACH(package ${CPACK_COMPONENTS_ALL})

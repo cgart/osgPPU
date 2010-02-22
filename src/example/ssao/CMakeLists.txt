@@ -2,6 +2,11 @@ SET(TARGET_TARGETNAME
     ${EXAMPLE_PREFIX}ssao
 )
 
+SET(TARGET_H
+    simple.h
+	osgteapot.h
+)
+
 SET(TARGET_SRC 
     ssao.cpp
 )
@@ -29,3 +34,16 @@ if(MSVC)
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../")
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "Example ${TARGET_TARGETNAME}")
 endif(MSVC)
+
+
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+		${TARGET_SRC}
+		${TARGET_H}
+	DESTINATION src/examples/ssao
+	COMPONENT  ${PACKAGE_EXAMPLES}
+)

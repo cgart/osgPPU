@@ -14,6 +14,15 @@ IF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
     ADD_SUBDIRECTORY(cuda)
 ENDIF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
 
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+	DESTINATION src/examples
+	COMPONENT  ${PACKAGE_EXAMPLES}
+)
 
 ################################################################################
 # Copy data files out from src/examples into the build bin directory
