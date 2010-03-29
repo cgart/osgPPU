@@ -4,6 +4,9 @@
 #include <osgDB/WriteFile>
 
 #include <osgPPU/Processor.h>
+#include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitInResampleOut.h>
+#include <osgPPU/UnitOut.h>
 
 #include "osgteapot.h"
 
@@ -130,6 +133,3 @@ int main(int argc, char **argv)
     // run viewer
     return viewer->run();
 }
-
-
-
