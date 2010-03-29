@@ -128,11 +128,13 @@ ENDIF(CUDA_BUILD_TYPE MATCHES "Emulation")
 # --------------------------------------
 # Setup windows specific cuda variables
 # --------------------------------------
-IF(WIN32)
-    IF(MSVC)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -ccbin\ \"$(VCInstallDir)bin\";-DWIN32 CACHE STRING "Semi-colon delimit multiple arguments.")
-    ENDIF(MSVC)
-ENDIF(WIN32)
+IF(MSVC)
+	IF(WIN32)
+        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -ccbin\ \"$(VCInstallDir)bin\" -DWIN32 CACHE STRING "Semi-colon delimit multiple arguments.")
+    ELSE(WIN32)
+        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -ccbin\ \"$(VCInstallDir)bin\" CACHE STRING "Semi-colon delimit multiple arguments.")    
+	ENDIF(WIN32)
+ENDIF(MSVC)
 
 IF(CUDA_NVCC_FLAGS)
 	 SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE STRING "Semi-colon delimit multiple arguments.")
