@@ -34,7 +34,7 @@ osgPPU::Processor {
                 name "fMotionBlurFactor"
                 type float 1 FloatArray 1
                 {
-                    0.25548
+                    0.85548
                 }
             }
             StateAttribute PROTECTED|OVERRIDE|ON
@@ -61,7 +61,7 @@ osgPPU::Processor {
             "	vec4 lastValue = texture2D (Prev, texCoords).rgba;"
             "	"
             "	// the resulting color value is the combination of blurred and non-blurred map "
-            "	gl_FragColor = mix(currentValue, lastValue, fMotionBlurFactor);"
+            "	gl_FragColor = lastValue + fMotionBlurFactor * (currentValue-lastValue); //mix(currentValue, lastValue, fMotionBlurFactor);"
             ""
             "}"
             }
