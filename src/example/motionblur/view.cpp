@@ -95,7 +95,16 @@ int main(int argc, char **argv)
         printf("File not found %s !\n", arguments[1]);
         return 1;
     }
-    if (!loadedModel) loadedModel = createTeapot();
+    if (!loadedModel)
+    {
+        //loadedModel = createTeapot();
+        loadedModel = osgDB::readNodeFile("Data/cow.osg");
+        if (loadedModel == NULL)
+        {
+                printf("File not found: Data/cow.osg !\n");
+                return 1;
+        }
+    }                                           
     node->addChild(loadedModel);
 
     // disable color clamping, because we want to work on real hdr values
