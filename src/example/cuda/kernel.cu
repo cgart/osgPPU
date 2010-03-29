@@ -5,6 +5,7 @@
 #ifndef __KERNEL_H_
 #define __KERNEL_H_
 
+#include <math.h>
 
 //#define _DEBUG
 
