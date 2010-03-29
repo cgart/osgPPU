@@ -101,8 +101,8 @@ int main(int argc, char **argv)
         loadedModel = osgDB::readNodeFile("Data/cow.osg");
         if (loadedModel == NULL)
         {
-                printf("File not found: Data/cow.osg !\n");
-                return 1;
+			printf("File not found: Data/cow.osg !\n");
+			return 1;
         }
     }                                           
     node->addChild(loadedModel);
@@ -134,7 +134,8 @@ int main(int argc, char **argv)
     // add model to viewer.
     viewer->setSceneData( node );
 
-    // run viewer
+    // run viewer (with fixed 80 FPS)
+	viewer->setRunMaxFrameRate(80);
     return viewer->run();
 }
 

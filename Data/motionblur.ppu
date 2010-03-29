@@ -34,7 +34,7 @@ osgPPU::Processor {
                 name "fMotionBlurFactor"
                 type float 1 FloatArray 1
                 {
-                    0.93548
+                    0.25548
                 }
             }
             StateAttribute PROTECTED|OVERRIDE|ON
