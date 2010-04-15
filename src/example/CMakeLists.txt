@@ -8,6 +8,7 @@ ADD_SUBDIRECTORY(ssao)
 ADD_SUBDIRECTORY(glow)
 ADD_SUBDIRECTORY(diffusion)
 ADD_SUBDIRECTORY(motionblur)
+ADD_SUBDIRECTORY(blurScene)
 
 #if CUDA found, then build cuda example
 IF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
