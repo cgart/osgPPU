@@ -167,13 +167,9 @@ void Processor::setCamera(osg::Camera* camera)
 //------------------------------------------------------------------------------
 Unit* Processor::findUnit(const std::string& name)
 {
-    if (!mbDirtyUnitGraph)
-    {
-        FindUnitVisitor uv(name);
-        uv.run(this);
-        return uv.getResult();
-    }
-    return NULL;
+    FindUnitVisitor uv(name);
+    uv.run(this);
+    return uv.getResult();
 }
 
 //------------------------------------------------------------------------------

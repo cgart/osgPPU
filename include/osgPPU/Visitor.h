@@ -133,19 +133,27 @@ public:
 
     void apply (osg::Group &node)
     {
+        // first check if we have already visited that node, if yes, it might be a loop in the graph, so don't go further
+        if (std::find(_visitedNodes.begin(), _visitedNodes.end(), &node) != _visitedNodes.end()) return;
+        
         Unit* unit = dynamic_cast<Unit*>(&node);
         if (unit && unit->getName() == _name)
             _result = unit;
         else
+        {
+            _visitedNodes.push_back(&node);
             node.traverse(*this);
+        }
     }
 
     Unit* getResult() { return _result; }
 
     const char* className() { return "FindUnitVisitor"; }
+
 private:
     std::string _name;
     Unit* _result;
+    std::vector<osg::Group*> _visitedNodes;
 };
 
 //------------------------------------------------------------------------------

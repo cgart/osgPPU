@@ -64,7 +64,7 @@ bool readShaderAttribute(osg::Object& obj, osgDB::Input& fr)
         osg::StateAttribute::GLModeValue mode = osg::StateAttribute::ON;
         if (fr.readSequence("StateAttribute", stateAttribute))
         {
-            StateSet_matchModeStr(stateAttribute.c_str(),mode);
+            ppu_StateSet_matchModeStr(stateAttribute.c_str(),mode);
         }
 
         ++fr;
@@ -156,7 +156,7 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
     if (fr.readSequence("outputInternalFormat", internalFormatStr))
     {
         int fmt;
-        if (Texture_matchInternalFormatStr(internalFormatStr.c_str(), fmt) != 0)
+        if (ppu_Texture_matchInternalFormatStr(internalFormatStr.c_str(), fmt) != 0)
         {
             unit.setOutputInternalFormat(fmt);
         }else{
@@ -169,7 +169,7 @@ bool readUnitInOut(osg::Object& obj, osgDB::Input& fr)
     if (fr.readSequence("outputTextureType", outputTextureTypeStr))
     {
         osgPPU::UnitInOut::TextureType fmt;
-        if (Texture_matchOutputTypeStr(outputTextureTypeStr.c_str(), fmt) != 0)
+        if (ppu_Texture_matchOutputTypeStr(outputTextureTypeStr.c_str(), fmt) != 0)
         {
             unit.setOutputTextureType(fmt);
         }else{
@@ -551,7 +551,7 @@ bool writeShaderAttribute(const osg::Object& obj, osgDB::Output& fout)
         fout.moveIn();
 
             fout.writeObject(static_cast<const osg::Uniform&>(*(jt->second.first)));
-            fout.indent() << "StateAttribute " << StateSet_getModeStr(jt->second.second) << std::endl;
+            fout.indent() << "StateAttribute " << ppu_StateSet_getModeStr(jt->second.second) << std::endl;
 
         fout.moveOut();
         fout.writeEndObject();
@@ -742,7 +742,7 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
 
     // write internal format
     {
-        const char* str = Texture_getInternalFormatStr(unit.getOutputInternalFormat());
+        const char* str = ppu_Texture_getInternalFormatStr(unit.getOutputInternalFormat());
 
         if (str) fout.indent() << "outputInternalFormat " << str << std::endl;
         else fout.indent() << "outputInternalFormat " << unit.getOutputInternalFormat() << std::endl;
@@ -750,7 +750,7 @@ bool writeUnitInOut(const osg::Object& obj, osgDB::Output& fout)
 
     // write output type
     {
-        const char* str = Texture_getOutputTextureTypeStr(unit.getOutputTextureType());
+        const char* str = ppu_Texture_getOutputTextureTypeStr(unit.getOutputTextureType());
 
         if (str) fout.indent() << "outputTextureType " << str << std::endl;
         else fout.indent() << "outputTextureType " << unit.getOutputTextureType() << std::endl;
