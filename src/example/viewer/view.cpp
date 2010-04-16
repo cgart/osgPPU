@@ -67,6 +67,36 @@ void setupCamera(osg::Camera* camera)
 }
 
 //--------------------------------------------------------------------------
+// Event handler to react on resize events
+//--------------------------------------------------------------------------
+class ResizeEventHandler : public osgGA::GUIEventHandler
+{
+public:
+    osgPPU::Processor* _processor;
+    osg::Camera* _camera;
+    
+    ResizeEventHandler(osgPPU::Processor* proc, osg::Camera* cam) : _processor(proc), _camera(cam) {}
+    
+    bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
+    {
+        if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
+        {
+            // set new size to the main camera
+            osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(0, 0, ea.getWindowWidth(), ea.getWindowHeight());
+            _camera->setViewport(vp);
+
+            osg::Texture2D* rttTex = dynamic_cast<osg::Texture2D*>(_camera->getBufferAttachmentMap()[osg::Camera::COLOR_BUFFER]._texture.get());
+            rttTex->setTextureSize(ea.getWindowWidth(), ea.getWindowHeight());
+
+            // let processor know, that viewport changes, processor will inform all units
+            _processor->onViewportChange();
+        }
+        return false;
+    }
+};
+
+
+//--------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
     // parse arguments
@@ -128,6 +158,7 @@ int main(int argc, char **argv)
     node->addChild(processor);
 
     // add model to viewer.
+    viewer->addEventHandler(new ResizeEventHandler(processor, viewer->getCamera()));
     viewer->setSceneData( node );
 
     // run viewer
