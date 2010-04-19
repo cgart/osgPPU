@@ -39,11 +39,11 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth)
 }
 
 //--------------------------------------------------------------------------
-// Setup the camera to do the render to texture
+// Setup the camera 
 //--------------------------------------------------------------------------
-void setupCamera(osg::Camera* camera)
+void setupCamera(osg::Camera* camera, osg::Viewport* viewport = NULL)
 {
-    osg::Viewport* vp = camera->getViewport();
+	osg::Viewport* vp = viewport == NULL ? camera->getViewport() : viewport;
 
     // create texture to render to
     osg::Texture* texture = createRenderTexture((int)vp->width(), (int)vp->height(), false);
@@ -81,15 +81,21 @@ public:
     {
         if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
         {
-            // set new size to the main camera
-            osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(0, 0, ea.getWindowWidth(), ea.getWindowHeight());
-            _camera->setViewport(vp);
+			int width = ea.getWindowWidth();
+			int height = ea.getWindowHeight();
 
-            osg::Texture2D* rttTex = dynamic_cast<osg::Texture2D*>(_camera->getBufferAttachmentMap()[osg::Camera::COLOR_BUFFER]._texture.get());
-            rttTex->setTextureSize(ea.getWindowWidth(), ea.getWindowHeight());
+            // resetup camera with new viewport, this is neccessary to reset camera's RTT texture to proper size
+            osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(0, 0, width, height);
+			setupCamera(_camera, vp);
 
-            // let processor know, that viewport changes, processor will inform all units
-            _processor->onViewportChange();
+			// inform renderer that there was a resize event and that it has to update the main camera's FBO
+			osgViewer::Renderer* renderer = (osgViewer::Renderer*)_camera->getRenderer();
+			renderer->getSceneView(0)->getRenderStage()->setCameraRequiresSetUp(true);
+			renderer->getSceneView(0)->getRenderStage()->setFrameBufferObject(NULL);
+
+			// let processor know, that viewport changes, processor will inform all units
+			_processor->onViewportChange();
+			_processor->dirtyUnitSubgraph();
         }
         return false;
     }
