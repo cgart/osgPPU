@@ -194,6 +194,7 @@ void Processor::onViewportChange()
     nv.run(this);
     RemoveUnitsViewportsVisitor rv;
     rv.run(this);
+	dirtyUnitSubgraph();
 }
 
 //------------------------------------------------------------------------------

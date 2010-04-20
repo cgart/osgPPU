@@ -23,8 +23,7 @@
 //-------------------------------------------------------------------------
 #include <osgPPU/Export.h>
 #include <osgPPU/Unit.h>
-
-#include <osg/FrameBufferObject>
+#include <osgPPU/Camera.h>
 
 #define OSGPPU_MIPMAP_LEVEL_UNIFORM "osgppu_MipmapLevel"
 #define OSGPPU_MIPMAP_LEVEL_NUM_UNIFORM "osgppu_MipmapLevelNum"
@@ -34,6 +33,7 @@
 
 namespace osgPPU
 {
+
     //! Compute output texture based on the assigned shaders and input data
     /**
     * InOut PPU, renders the content of input textures with applied shader 
@@ -60,7 +60,7 @@ namespace osgPPU
             /**
             * Get framebuffer object used by this ppu. 
             **/
-            inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
+            inline FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
 
             /**
             * UnitInOut can also be used to bypass the input texture to the output
@@ -219,7 +219,7 @@ namespace osgPPU
             virtual void assignOutputPBO();
 
             //! Framebuffer object where results are written
-            osg::ref_ptr<osg::FrameBufferObject>    mFBO;    
+            osg::ref_ptr<FrameBufferObject>    mFBO;    
 
             //! index of the bypassed input
             int mBypassedInput;

@@ -34,6 +34,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/UnitInHistoryOut.h
     ${HEADER_PATH}/UnitInOutModule.h
     ${HEADER_PATH}/UnitBypassRepeat.h
+    ${HEADER_PATH}/Camera.h
     ${OSGPPU_CONFIG_HEADER}
 )
 
@@ -63,6 +64,7 @@ SET(LIB_SRC_FILES
 	CMakeLists.txt
     UnitInHistoryOut.cpp
     UnitBypassRepeat.cpp
+    Camera.cpp
 )
 
 
@@ -84,6 +86,7 @@ LINK_WITH_VARIABLES(${LIB_NAME}
     OSGDB_LIBRARY
     OSGTEXT_LIBRARY
     OSGUTIL_LIBRARY
+    OSGVIEWER_LIBRARY
     OPENTHREADS_LIBRARY
 )
 LINK_EXTERNAL(${LIB_NAME} ${OPENGL_LIBRARIES}) 

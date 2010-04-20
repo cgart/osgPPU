@@ -61,7 +61,7 @@ osgPPU::Processor {
             "	vec4 lastValue = texture2D (Prev, texCoords).rgba;"
             "	"
             "	// the resulting color value is the combination of blurred and non-blurred map "
-            "	gl_FragColor = lastValue + fMotionBlurFactor * (currentValue-lastValue); //mix(currentValue, lastValue, fMotionBlurFactor);"
+            "	gl_FragColor = mix(currentValue, lastValue, fMotionBlurFactor);"
             ""
             "}"
             }

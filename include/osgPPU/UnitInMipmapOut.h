@@ -96,7 +96,7 @@ namespace osgPPU
             void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable);
             void createAndAttachFBOs(osg::Texture* output, int mrt);
         
-            std::vector<osg::ref_ptr<osg::FrameBufferObject> > mMipmapFBO;
+            std::vector<osg::ref_ptr<FrameBufferObject> > mMipmapFBO;
             std::vector<osg::ref_ptr<osg::Viewport> > mMipmapViewport;
             std::vector<osg::ref_ptr<osg::Drawable> > mMipmapDrawable;
 

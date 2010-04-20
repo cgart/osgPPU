@@ -4,6 +4,7 @@
 #include <osgDB/WriteFile>
 
 #include <osgPPU/Processor.h>
+#include <osgPPU/Camera.h>
 
 #include "osgteapot.h"
 
@@ -64,6 +65,29 @@ void setupCamera(osg::Camera* camera)
 }
 
 //--------------------------------------------------------------------------
+// Event handler to react on resize events
+//--------------------------------------------------------------------------
+class ResizeEventHandler : public osgGA::GUIEventHandler
+{
+public:
+	osgPPU::Processor* _processor;
+	osg::Camera* _camera;
+
+	ResizeEventHandler(osgPPU::Processor* proc, osg::Camera* cam) : _processor(proc), _camera(cam) {}
+
+	bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
+	{
+		if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
+		{
+			osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), _camera);
+
+			_processor->onViewportChange();
+		}
+		return false;
+	}
+};
+
+//--------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
     // parse arguments
@@ -88,23 +112,22 @@ int main(int argc, char **argv)
 
     // setup scene
     osg::Group* node = new osg::Group();
-    osg::Node* loadedModel = NULL;
+	osg::Node* loadedModel = NULL;
+
     if (argc > 1) loadedModel = osgDB::readNodeFile(arguments[1]);
     if (argc > 1 && !loadedModel)
     {
         printf("File not found %s !\n", arguments[1]);
         return 1;
-    }
-    if (!loadedModel)
-    {
-        //loadedModel = createTeapot();
-        loadedModel = osgDB::readNodeFile("Data/cow.osg");
-        if (loadedModel == NULL)
-        {
-			printf("File not found: Data/cow.osg !\n");
+    }else
+	{
+		loadedModel = osgDB::readNodeFile("Data/cow.osg");
+		if (loadedModel == NULL)
+		{
+			printf("Could not load Data/cow.osg\n");
 			return 1;
-        }
-    }                                           
+		}
+	}
     node->addChild(loadedModel);
 
     // disable color clamping, because we want to work on real hdr values
@@ -133,6 +156,7 @@ int main(int argc, char **argv)
 
     // add model to viewer.
     viewer->setSceneData( node );
+	viewer->addEventHandler(new ResizeEventHandler(processor, viewer->getCamera()));
 
     // run viewer (with fixed 80 FPS)
 	viewer->setRunMaxFrameRate(80);

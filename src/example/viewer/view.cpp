@@ -7,6 +7,7 @@
 #include <osgPPU/UnitBypass.h>
 #include <osgPPU/UnitInResampleOut.h>
 #include <osgPPU/UnitOut.h>
+#include <osgPPU/Camera.h>
 
 #include "osgteapot.h"
 
@@ -81,21 +82,9 @@ public:
     {
         if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
         {
-			int width = ea.getWindowWidth();
-			int height = ea.getWindowHeight();
+			osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), _camera);
 
-            // resetup camera with new viewport, this is neccessary to reset camera's RTT texture to proper size
-            osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(0, 0, width, height);
-			setupCamera(_camera, vp);
-
-			// inform renderer that there was a resize event and that it has to update the main camera's FBO
-			osgViewer::Renderer* renderer = (osgViewer::Renderer*)_camera->getRenderer();
-			renderer->getSceneView(0)->getRenderStage()->setCameraRequiresSetUp(true);
-			renderer->getSceneView(0)->getRenderStage()->setFrameBufferObject(NULL);
-
-			// let processor know, that viewport changes, processor will inform all units
 			_processor->onViewportChange();
-			_processor->dirtyUnitSubgraph();
         }
         return false;
     }

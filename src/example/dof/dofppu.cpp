@@ -194,15 +194,12 @@ public:
     {
         switch(ea.getEventType())
         {
-            case(osgGA::GUIEventAdapter::KEYDOWN):
-            case(osgGA::GUIEventAdapter::KEYUP):
-            {
-
-                if (ea.getKey() == osgGA::GUIEventAdapter::KEY_F1)
-                {
-                }
-                break;
-            }
+			case (osgGA::GUIEventAdapter::RESIZE):
+			{
+				osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), viewer->getCamera());
+				viewer->getProcessor()->onViewportChange();
+				break;
+			}
             default:
                 break;
         }

@@ -257,7 +257,7 @@ namespace osgPPU
         mOutputType(TEXTURE_2D),
         mOutputInternalFormat(GL_RGBA16F_ARB)
     {
-        mFBO = new osg::FrameBufferObject();
+        mFBO = new FrameBufferObject();
 
         // add empty mrt=0 output texture
         setOutputTexture(NULL, 0);
@@ -560,6 +560,9 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitInOut::noticeChangeViewport(osg::Viewport* vp)
     {
+		// mark FBOs attachments as dirty
+		mFBO->dirty();
+
         // change size of the result texture according to the viewport
         TextureMap::iterator it = mOutputTex.begin();
         for (; it != mOutputTex.end(); it++)
@@ -572,6 +575,7 @@ namespace osgPPU
                     // change size
                     osg::Texture2D* mTex = dynamic_cast<osg::Texture2D*>(it->second.get());
                     mTex->setTextureSize(int(vp->width()), int(vp->height()) );
+					mTex->dirtyTextureObject();
                 }
                 // if texture type is rectangle
                 else if (dynamic_cast<osg::TextureRectangle*>(it->second.get()) != NULL)
@@ -579,6 +583,7 @@ namespace osgPPU
                     // change size
                     osg::TextureRectangle* mTex = dynamic_cast<osg::TextureRectangle*>(it->second.get());
                     mTex->setTextureSize(int(vp->width()), int(vp->height()) );
+					mTex->dirtyTextureObject();
                 }
                 // if texture type is a cubemap texture
                 else if (dynamic_cast<osg::TextureCubeMap*>(it->second.get()) != NULL)
@@ -586,6 +591,7 @@ namespace osgPPU
                     // change size
                     osg::TextureCubeMap* mTex = dynamic_cast<osg::TextureCubeMap*>(it->second.get());
                     mTex->setTextureSize(int(vp->width()), int(vp->height()) );
+					mTex->dirtyTextureObject();
                 }
                 // if texture type is a 3d texture
                 else if (dynamic_cast<osg::Texture3D*>(it->second.get()) != NULL)
@@ -593,6 +599,7 @@ namespace osgPPU
                     // change size
                     osg::Texture3D* mTex = dynamic_cast<osg::Texture3D*>(it->second.get());
                     mTex->setTextureSize(int(vp->width()), int(vp->height()), mOutputDepth );
+					mTex->dirtyTextureObject();
                 }
                 // if texture type is a 2d array
                 else if (dynamic_cast<osg::Texture2DArray*>(it->second.get()) != NULL)
@@ -600,6 +607,7 @@ namespace osgPPU
                     // change size
                     osg::Texture2DArray* mTex = dynamic_cast<osg::Texture2DArray*>(it->second.get());
                     mTex->setTextureSize(int(vp->width()), int(vp->height()), mOutputDepth );
+					mTex->dirtyTextureObject();
                 }
                 // unknown textue
                 else

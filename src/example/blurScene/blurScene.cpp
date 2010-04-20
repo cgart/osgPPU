@@ -83,14 +83,15 @@ float gBlurRadius2 = 10.0;
 class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
-    osg::ref_ptr<osgViewer::Viewer> viewer; // not needed
-    osg::ref_ptr<osg::Switch> m_oswBlur;
-    osg::ref_ptr<osg::Switch> m_oswNoBlur;
+    osgViewer::Viewer* viewer; // not needed
+    osg::Switch* m_oswBlur;
+    osg::Switch* m_oswNoBlur;
+	osgPPU::Processor* m_procBlur;
+	osgPPU::Processor* m_procNoBlur;
 
-    KeyboardEventHandler(osg::ref_ptr<osgViewer::Viewer> &v, 
-      osg::ref_ptr<osg::Switch> &p_oswBlur,
-      osg::ref_ptr<osg::Switch> &p_oswNoBlur) : viewer(v), m_oswBlur(p_oswBlur),
-      m_oswNoBlur(p_oswNoBlur)
+	KeyboardEventHandler(osgViewer::Viewer* v, osg::Switch* p_oswBlur, osg::Switch* p_oswNoBlur, osgPPU::Processor* procBlur, osgPPU::Processor* procNoBlur) :
+		viewer(v), m_oswBlur(p_oswBlur), m_oswNoBlur(p_oswNoBlur),
+		m_procBlur(procBlur), m_procNoBlur(procNoBlur)
     {
     } // ctor
 
@@ -115,14 +116,20 @@ public:
               } // sw on ea
               break;
             }// case key up
+
+			case (osgGA::GUIEventAdapter::RESIZE):
+			{
+				osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), viewer->getCamera());
+				m_procBlur->onViewportChange();
+				m_procNoBlur->onViewportChange();
+				break;
+			}
             default:
                 break;
         }// sw
         return false;
     }// handle
 }; // class keyevent
-
-
 
 
 //------------------------------------------------------------------------------
@@ -666,7 +673,7 @@ int main(int argc, char** argv)
     printf("Keys:\n");
     printf("\tF1 - Show Blurred Scene\n");
     printf("\tF2 - Show Non-Blurred Scene\n");
-    viewer->addEventHandler(new KeyboardEventHandler(viewer, blurswitch, noblurswitch));
+    viewer->addEventHandler(new KeyboardEventHandler(viewer, blurswitch, noblurswitch, m_ppuProcessor, m_ppuProcessor2));
 
     // setup scene
     viewer->setSceneData(mainTransform.get());

@@ -104,7 +104,7 @@ namespace osgPPU
                 mIOMipmapViewport.push_back(vp);
     
                 // this is the fbo for this level 
-                osg::ref_ptr<osg::FrameBufferObject> fbo = new osg::FrameBufferObject();
+				osg::ref_ptr<FrameBufferObject> fbo = new FrameBufferObject();
     
                 // for each output texture do
                 std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();

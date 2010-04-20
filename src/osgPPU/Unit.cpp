@@ -363,7 +363,8 @@ void Unit::setViewport(osg::Viewport* vp)
     }else
     {
         mViewport = new osg::Viewport(*vp);
-        assignViewport();    
+        assignViewport();
+		noticeChangeViewport(vp);
     }
     dirty();
 }
@@ -475,8 +476,6 @@ void Unit::traverse(osg::NodeVisitor& nv)
 
         mbUpdateTraversed = true;
 
-        //printf("UPDATE VISIT %s\n", getName().c_str());
-
         update();
         getStateSet()->runUpdateCallbacks(&nv);
 
@@ -491,8 +490,6 @@ void Unit::traverse(osg::NodeVisitor& nv)
             if (unit && !unit->mbCullTraversed) return;
         }
 
-        //printf("CULL VISIT %s\n", getName().c_str());
-
         // mark this unit as has been traversed and traverse
         mbCullTraversed = true;        
     }
@@ -504,8 +501,6 @@ void Unit::traverse(osg::NodeVisitor& nv)
 //------------------------------------------------------------------------------
 void Unit::init()
 {
-    //printf("INIT VISIT %s\n", getName().c_str());
-
     // collect all inputs from the units above
     setupInputsFromParents();
 

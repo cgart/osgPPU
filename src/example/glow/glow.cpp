@@ -223,7 +223,7 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth = fa
 // Slave camera has a smaller viewport, because we do not need high resolution
 // for objects which are just get blurred ;)
 //------------------------------------------------------------------------------
-osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_width, unsigned tex_height, unsigned windowWidth, unsigned windowHeight, osg::Camera::RenderTargetImplementation renderImplementation)
+osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_width, unsigned tex_height, unsigned windowWidth, unsigned windowHeight, osg::Camera::RenderTargetImplementation renderImplementation, osgPPU::Processor*& processor)
 {
     osg::Group* group = new osg::Group;
 
@@ -284,7 +284,7 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
     }
 
     // setup osgPPU pipeline processor, which will use the main camera
-    osgPPU::Processor* processor = new osgPPU::Processor();
+    processor = new osgPPU::Processor();
     processor->setCamera(camera);
 
     // setup unit which will bring the color output of the first camera into the pipeline
@@ -390,13 +390,35 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
     unitCam1->addChild(unitOut);
     blury->addChild(unitOut);
 
-    // add scnee and processor to the resulting group and return it back
+    // add scene and processor to the resulting group and return it back
     group->addChild(slaveCamera);
     group->addChild(processor);
 
     return group;
 }
 
+//--------------------------------------------------------------------------
+// Event handler to react on resize events
+//--------------------------------------------------------------------------
+class ResizeEventHandler : public osgGA::GUIEventHandler
+{
+public:
+	osgPPU::Processor* _processor;
+	osg::Camera* _camera;
+
+	ResizeEventHandler(osgPPU::Processor* proc, osg::Camera* cam) : _processor(proc), _camera(cam) {}
+
+	bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
+	{
+		if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
+		{
+			osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), _camera);
+
+			_processor->onViewportChange();
+		}
+		return false;
+	}
+};
 
 //------------------------------------------------------------------------------
 // Main code
@@ -470,12 +492,13 @@ int main(int argc, char** argv)
 
 
     // setup camera and glower
-    osg::Group* group = setupGlow(viewer.getCamera(), glowedScene, tex_width, tex_height, windowWidth, windowHeight, renderImplementation);
+	osgPPU::Processor* processor = NULL;
+    osg::Group* group = setupGlow(viewer.getCamera(), glowedScene, tex_width, tex_height, windowWidth, windowHeight, renderImplementation, processor);
     group->addChild(scene.get());
     mainTransform->addChild(group);
 
     // setup scene
     viewer.setSceneData(mainTransform.get());
-
+	viewer.addEventHandler(new ResizeEventHandler(processor, viewer.getCamera()));
     return viewer.run();
 }

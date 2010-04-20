@@ -153,14 +153,6 @@ namespace osgPPU
         int mwh = std::max(width, height);
         int numLevel = 1 + static_cast<int>(floor(logf(mwh)/logf(2.0f)));
 
-        // check if sizes are valid 
-        /*if ((mOutputWidth != 0 && width != mOutputWidth)
-          ||(mOutputHeight != 0 && height != mOutputHeight))
-        {
-            osg::notify(osg::FATAL) << "osgPPU::UnitInMipmapOut::createAndAttachFBOs() - output textures are not of the same size (" << width << "x" << height << ") != (" << mOutputWidth << "x" << mOutputHeight << ") !" << std::endl;
-            return;
-        }*/
-
         // set new sizes
         mOutputWidth = width;
         mOutputHeight = height;
@@ -186,7 +178,7 @@ namespace osgPPU
                 mMipmapViewport.push_back(vp);
                 
                 // generate fbo and assign a mipmap level to it
-                osg::ref_ptr<osg::FrameBufferObject> fbo = new osg::FrameBufferObject();
+				osg::ref_ptr<FrameBufferObject> fbo = new FrameBufferObject();
                 fbo->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + mrt), osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
                 mMipmapFBO.push_back(fbo);
 

@@ -334,18 +334,11 @@ public:
 
             case (osgGA::GUIEventAdapter::RESIZE):
             {
-                // set new size to the main camera
-                osg::ref_ptr<osg::Viewport> vp = new osg::Viewport(0, 0, ea.getWindowWidth(), ea.getWindowHeight());
-                viewer->getCamera()->setViewport(vp);
-
-                osg::Texture2D* rttTex = dynamic_cast<osg::Texture2D*>(viewer->getCamera()->getBufferAttachmentMap()[osg::Camera::COLOR_BUFFER]._texture.get());
-                rttTex->setTextureSize(ea.getWindowWidth(), ea.getWindowHeight());
-
-                // let processor know, that viewport changes, processor will inform all units
-                viewer->getProcessor()->onViewportChange();
+				osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), viewer->getCamera());
+				viewer->getProcessor()->onViewportChange();
 
                 // special treatments needed for PictureInPicturePPU, because it has its own special size of viewport
-                osg::ref_ptr<osg::Viewport> bvp = new osg::Viewport(*vp);
+                osg::ref_ptr<osg::Viewport> bvp = new osg::Viewport(0,0,ea.getWindowWidth(),ea.getWindowHeight());
                 bvp->x() = 10;
                 bvp->y() = 10;
                 bvp->width() *= 0.4;

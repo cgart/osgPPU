@@ -56,8 +56,8 @@ namespace osgPPU
 
             bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* );
 
+			std::vector<osg::ref_ptr<FrameBufferObject> > mIOMipmapFBO;
             std::vector<osg::ref_ptr<osg::Viewport> > mIOMipmapViewport;
-            std::vector<osg::ref_ptr<osg::FrameBufferObject> > mIOMipmapFBO;
             std::vector<osg::ref_ptr<osg::Drawable> > mIOMipmapDrawable;
 
             osg::ref_ptr<osg::RefMatrix> mProjectionMatrix;
