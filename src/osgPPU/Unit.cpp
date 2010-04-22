@@ -717,17 +717,14 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
         // unit should know that we are about to render it and let us know if we should render 
         if (_parent->noticeBeginRendering(ri, dr))
         {    
-            // set matricies used for the unit
             ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
             ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
 
-            // notice that we will start rendering soon
             if (_parent->getBeginDrawCallback())
                 (*_parent->getBeginDrawCallback())(ri, _parent);
 
             dr->drawImplementation(ri);
 
-            // notice that we will start rendering soon
             if (_parent->getEndDrawCallback())
                 (*_parent->getEndDrawCallback())(ri, _parent);
         }

@@ -22,7 +22,7 @@
 // Includes
 //-------------------------------------------------------------------------
 #include <osgPPU/Export.h>
-#include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitInOut.h>
 
 namespace osgPPU
 {
@@ -33,24 +33,26 @@ namespace osgPPU
     * parent of a repeatable unit is used as input to the subgraph. After full computation of
     * the subgraph the output of the last unit is set as input to the repeatable unit.
     * Then the subgraph is iterated until numIterations-1 is reached. 
-    * After all iterations the continue child is executed with the output of the last unit in 
+    * After all iterations the child of a last unit is executed with the output of the last unit in 
     * the repeatable subgraph.
     *
-    * This unit is a bypass unit, which do not have any special rendering routines.
-    * So the execution time of this Unit is negligable. The iterative execution is achieved by
-    * using special CullVisitor, so using other kind of CullVisitors will break up here.
+    * This unit is derived from UnitInOut. Per default the data is just bypassed without any shader processing.
+	* You can specify your own shader to use the iteration unit as processing unit too. However, notice,
+	* that at least one child has to exists, otherwise the unit will write to itself, which is forbidden.
+	* Having at least one child makes sure, that the output of that child can be reused as input to the repeatable subgraph.
+	* One can use this to implement Ping-Ponging or similar techniques.
     *
     * NOTE: Currently only 1 input to the repeat unit is supported!
     *       Please check that last node (which output is reused) has also only 1 output specified!
     **/
-    class OSGPPU_EXPORT UnitBypassRepeat : public UnitBypass {
+    class OSGPPU_EXPORT UnitInOutRepeat : public UnitInOut {
         public:
-            META_Node(osgPPU,UnitBypassRepeat);
+            META_Node(osgPPU,UnitInOutRepeat);
         
-            UnitBypassRepeat();
-            UnitBypassRepeat(const UnitBypassRepeat&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+            UnitInOutRepeat();
+            UnitInOutRepeat(const UnitInOutRepeat&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
             
-            virtual ~UnitBypassRepeat();
+            virtual ~UnitInOutRepeat();
 
             /**
             * Set child unit, which is used as last/output unit in the iterative unit subgraph.
@@ -67,8 +69,7 @@ namespace osgPPU
             * Set the amount of iterations (default 1).
             **/
             inline void setNumIterations(int num) { _numIterations = num; dirty(); }
-            inline int getNumIterations() { return _numIterations; }
-            inline const unsigned getNumIterations() const { return _numIterations; }
+            inline int getNumIterations() const { return _numIterations; }
 
             /**
             * If last node in the iterative subgraph has more than one output (MRT), then
@@ -76,8 +77,7 @@ namespace osgPPU
             * (default is 0)
             **/
             inline void setLastNodeOutputIndex(unsigned index) { _lastNodeOutputIndex = index; dirty(); }
-            inline unsigned getLastNodeOutputIndex() { return _lastNodeOutputIndex; }
-            inline const unsigned getLastNodeOutputIndex() const { return _lastNodeOutputIndex; }
+            inline unsigned getLastNodeOutputIndex() const { return _lastNodeOutputIndex; }
 
         protected:
             //! Overriden method from the base class

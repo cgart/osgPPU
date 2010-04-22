@@ -9,7 +9,7 @@
 #include <osgPPU/UnitInOut.h>
 #include <osgPPU/UnitOut.h>
 #include <osgPPU/UnitTexture.h>
-#include <osgPPU/UnitBypassRepeat.h>
+#include <osgPPU/UnitInOutRepeat.h>
 #include <osgPPU/ShaderAttribute.h>
 
 namespace Diffusion
@@ -29,7 +29,7 @@ int gNumiterations = 10;
 // Also the camera will be attached to the processor.
 // Set widht and height to define internal size of the pipeline textures.
 //---------------------------------------------------------------------------------
-osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU::Unit*& lastUnit, osg::Uniform*& dt, osg::Uniform*& intensity)
+osgPPU::Processor* createPipeline(osgPPU::UnitInOutRepeat*& repeatUnit, osgPPU::Unit*& lastUnit, osg::Uniform*& dt, osg::Uniform*& intensity)
 {
     using namespace osgPPU;
 
@@ -45,10 +45,10 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
     //---------------------------------------------------------------------------------
     UnitTexture* colorBypass = new UnitTexture();
     {
-        osg::Image* img = osgDB::readImageFile("Data/Images/lenna.png");
+        osg::Image* img = osgDB::readImageFile("Data/Images/lenna.rgb");
         if (img == NULL)
         {
-            osg::notify(osg::FATAL) << "File Data/Images/lenna.png not found!" << std::endl;
+            osg::notify(osg::FATAL) << "File Data/Images/lenna.rgb not found!" << std::endl;
             exit(1);
         }
         osg::Texture2D* tex = new osg::Texture2D();
@@ -61,7 +61,7 @@ osgPPU::Processor* createPipeline(osgPPU::UnitBypassRepeat*& repeatUnit, osgPPU:
     //---------------------------------------------------------------------------------
     // Next unit is the iterative unit, which run the computation for certain amount of iterations
     //---------------------------------------------------------------------------------
-    UnitBypassRepeat* repeat = new UnitBypassRepeat;
+    UnitInOutRepeat* repeat = new UnitInOutRepeat;
     repeatUnit = repeat;
     {
         colorBypass->addChild(repeat);

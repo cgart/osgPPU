@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2008   Art Tevs                                         *
+ *   Copyright (c) 2010   Art Tevs                                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -14,7 +14,7 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#include <osgPPU/UnitBypassRepeat.h>
+#include <osgPPU/UnitInOutRepeat.h>
 #include <osgPPU/Processor.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/Visitor.h>
@@ -53,7 +53,7 @@ namespace osgPPU
     };
 
     //------------------------------------------------------------------------------
-    UnitBypassRepeat::UnitBypassRepeat() : UnitBypass()
+    UnitInOutRepeat::UnitInOutRepeat() : UnitInOut()
     {
         _numIterations = 0;
         _lastNode = NULL;
@@ -61,8 +61,8 @@ namespace osgPPU
     }
 
     //------------------------------------------------------------------------------
-    UnitBypassRepeat::UnitBypassRepeat(const UnitBypassRepeat& u, const osg::CopyOp& copyop) : 
-        UnitBypass(u, copyop),
+    UnitInOutRepeat::UnitInOutRepeat(const UnitInOutRepeat& u, const osg::CopyOp& copyop) : 
+        UnitInOut(u, copyop),
         _numIterations(u._numIterations),
         _lastNodeOutputIndex(u._lastNodeOutputIndex),
         _lastNode(u._lastNode)
@@ -71,33 +71,38 @@ namespace osgPPU
     }
     
     //------------------------------------------------------------------------------
-    UnitBypassRepeat::~UnitBypassRepeat()
+    UnitInOutRepeat::~UnitInOutRepeat()
     {
 
     }
     
     //------------------------------------------------------------------------------
-    void UnitBypassRepeat::setLastNode(Unit* node)
+    void UnitInOutRepeat::setLastNode(Unit* node)
     {
         _lastNode = node;
         dirty();        
     }
 
     //------------------------------------------------------------------------------
-    void UnitBypassRepeat::traverse(osg::NodeVisitor& nv)
+    void UnitInOutRepeat::traverse(osg::NodeVisitor& nv)
     {
         // the repeatable traversion is only interesting for cull visitors
         if (nv.getVisitorType() != osg::NodeVisitor::CULL_VISITOR || _lastNode == NULL || _numIterations <= 1)
         {
-            UnitBypass::traverse(nv);
+            UnitInOut::traverse(nv);
             return;
         }
 
         // disable access to all child units
+		std::vector<unsigned> nodeMasks(_lastNode->getNumChildren(), 0);
         for (unsigned i=0; i < _lastNode->getNumChildren(); i++)
         {
             Unit* unit = dynamic_cast<Unit*>(_lastNode->getChild(i));
-            if (unit) unit->setNodeMask(0x0);
+            if (unit)
+			{
+				nodeMasks[i] = unit->getNodeMask();
+				unit->setNodeMask(0x0);
+			}
         }
 
         // for every iteration we do
@@ -106,8 +111,8 @@ namespace osgPPU
             // mark every unit as not being culled before
             CleanCullTraversedVisitor::sVisitor->run(this);
 
-            // run cull visitor which will stop by certain unit
-            UnitBypass::traverse(nv);
+            // run cull visitor which will stop after the last unit
+            UnitInOut::traverse(nv);
         }
 
         // continue traversing after last unit (start traversion on every child unit)
@@ -116,14 +121,14 @@ namespace osgPPU
             Unit* unit = dynamic_cast<Unit*>(_lastNode->getChild(i));
             if (unit)
             {
-                unit->setNodeMask(0xFFFFFFFF);
+                unit->setNodeMask(nodeMasks[i]);
                 unit->accept(nv);
             }
         }
     }
 
     //------------------------------------------------------------------------------
-    void UnitBypassRepeat::init()
+    void UnitInOutRepeat::init()
     {
         // currently only one input per repeat unit is supported, hence force it
         if (getNumParents() > 1)
@@ -132,7 +137,7 @@ namespace osgPPU
             return;
         }
 
-        Unit::init();
+        UnitInOut::init();
 
         if (_lastNode == NULL || _numIterations <= 1) return;
 
@@ -143,13 +148,16 @@ namespace osgPPU
             _lastNodeOutputIndex = 0;
         }
 
+		// setup a change in the input on my self, so get on the second iteration the output of the last unit
+		setBeginDrawCallback(new ChangeInputsCallback(_lastNode->getOrCreateOutputTexture(_lastNodeOutputIndex), 0, 1, _numIterations));
+
         // input of each child should be changed on the second iteration
-        for (unsigned i=0; i < getNumChildren(); i++)
+        /*for (unsigned i=0; i < getNumChildren(); i++)
         {
             Unit* unit = dynamic_cast<Unit*>(getChild(i));
             if (unit)
             {
-                // determine which input does this unit goes to its children and add a callback there
+                // determine which input from this unit goes to its children and add a callback there
                 for (unsigned j=0, index=0; j < unit->getNumParents(); j++)
                 {
                     if (unit->getParent(j) == this)
@@ -161,7 +169,7 @@ namespace osgPPU
                     else index ++;
                 }
             }
-        }
+        }*/
     }
 
 

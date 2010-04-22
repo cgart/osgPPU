@@ -33,7 +33,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/UnitCamera.h
     ${HEADER_PATH}/UnitInHistoryOut.h
     ${HEADER_PATH}/UnitInOutModule.h
-    ${HEADER_PATH}/UnitBypassRepeat.h
+    ${HEADER_PATH}/UnitInOutRepeat.h
     ${HEADER_PATH}/Camera.h
     ${OSGPPU_CONFIG_HEADER}
 )
@@ -63,7 +63,7 @@ SET(LIB_SRC_FILES
     UnitInOutModule.cpp
 	CMakeLists.txt
     UnitInHistoryOut.cpp
-    UnitBypassRepeat.cpp
+    UnitInOutRepeat.cpp
     Camera.cpp
 )
 

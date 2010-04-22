@@ -63,7 +63,7 @@ using namespace osg;
 class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
-    osgPPU::UnitBypassRepeat* unit;
+    osgPPU::UnitInOutRepeat* unit;
     osg::Uniform* dt;
     osg::Uniform* intensity;
 

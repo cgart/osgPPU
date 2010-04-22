@@ -29,7 +29,7 @@
 #include <osgPPU/BarrierNode.h>
 #include <osgPPU/ColorAttribute.h>
 #include <osgPPU/ShaderAttribute.h>
-#include <osgPPU/UnitBypassRepeat.h>
+#include <osgPPU/UnitInOutRepeat.h>
 
 #include <osg/Notify>
 #include <osg/io_utils>
@@ -296,10 +296,10 @@ bool readUnitInOutModule(osg::Object& obj, osgDB::Input& fr)
 }
 
 //--------------------------------------------------------------------------
-bool readUnitBypassRepeat(osg::Object& obj, osgDB::Input& fr)
+bool readUnitInOutRepeat(osg::Object& obj, osgDB::Input& fr)
 {
     // convert given object to unit
-    osgPPU::UnitBypassRepeat& unit = static_cast<osgPPU::UnitBypassRepeat&>(obj);
+    osgPPU::UnitInOutRepeat& unit = static_cast<osgPPU::UnitInOutRepeat&>(obj);
 
     bool itAdvanced = false;
     unsigned iterations;
@@ -822,10 +822,10 @@ bool writeUnitInOutModule(const osg::Object& obj, osgDB::Output& fout)
 }
 
 //--------------------------------------------------------------------------
-bool writeUnitBypassRepeat(const osg::Object& obj, osgDB::Output& fout)
+bool writeUnitInOutRepeat(const osg::Object& obj, osgDB::Output& fout)
 {
     // convert given object to unit
-    const osgPPU::UnitBypassRepeat& unit = static_cast<const osgPPU::UnitBypassRepeat&>(obj);
+    const osgPPU::UnitInOutRepeat& unit = static_cast<const osgPPU::UnitInOutRepeat&>(obj);
 
     fout.indent() << "numIterations " <<  unit.getNumIterations() << std::endl;
 
@@ -897,16 +897,6 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitBypassProxy
 );
 
 // register the read and write functions with the osgDB::Registry.
-osgDB::RegisterDotOsgWrapperProxy g_UnitBypassRepeatProxy
-(
-    new osgPPU::UnitBypassRepeat,
-    "UnitBypassRepeat",
-    "UnitBypassRepeat",
-    &readUnitBypassRepeat,
-    &writeUnitBypassRepeat
-);
-
-// register the read and write functions with the osgDB::Registry.
 osgDB::RegisterDotOsgWrapperProxy g_UnitDepthbufferBypassProxy
 (
     new osgPPU::UnitDepthbufferBypass,
@@ -954,6 +944,16 @@ osgDB::RegisterDotOsgWrapperProxy g_UnitInOutProxy
     "Unit UnitInOut",
     &readUnitInOut,
     &writeUnitInOut
+);
+
+// register the read and write functions with the osgDB::Registry.
+osgDB::RegisterDotOsgWrapperProxy g_UnitInOutRepeatProxy
+(
+	new osgPPU::UnitInOutRepeat,
+	"UnitInOutRepeat",
+	"Unit UnitInOut UnitInOutRepeat",
+	&readUnitInOutRepeat,
+	&writeUnitInOutRepeat
 );
 
 // register the read and write functions with the osgDB::Registry.

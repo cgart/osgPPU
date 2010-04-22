@@ -211,7 +211,7 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth = fa
         texture2D->setSourceType(GL_FLOAT);
     }else{
         texture2D->setInternalFormat(GL_DEPTH_COMPONENT);
-        texture2D->setSourceFormat(GL_DEPTH_COMPONENT);
+        //texture2D->setSourceFormat(GL_DEPTH_COMPONENT);
     }
 
     return texture2D;
