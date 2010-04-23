@@ -40,9 +40,25 @@ SET(TARGET_SRC
     Base.cpp
     Base.h
 )
-SET(TARGET_ADDED_LIBRARIES osgPPU )
+
+SET(TARGET_ADDED_LIBRARIES 
+	 osgPPU 
+	 ${OSG_LIBRARY}
+	 ${OSGDB_LIBRARY}
+)
 SETUP_PLUGIN(ppu)
 
+
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+		${TARGET_SRC}
+	DESTINATION src/osgPlugins/osgPPU
+	COMPONENT  ${PACKAGE_SRC}
+)
 
 
 

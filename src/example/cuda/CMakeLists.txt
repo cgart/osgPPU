@@ -21,9 +21,9 @@ LINK_WITH_VARIABLES(${TARGET_TARGETNAME}
     OSGTEXT_LIBRARY
     OSGUTIL_LIBRARY
     OSG_LIBRARY
+    OPENTHREADS_LIBRARY
 )
 LINK_EXTERNAL(${TARGET_TARGETNAME} ${OPENGL_LIBRARIES}) 
-LINK_WITH_VARIABLES(${TARGET_TARGETNAME} OPENTHREADS_LIBRARY)
 
 IF (NOT DYNAMIC_OSGPPU)
     LINK_EXTERNAL(${TARGET_TARGETNAME} pthread) 
@@ -36,7 +36,19 @@ if(MSVC)
 endif(MSVC)
 
 
-
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+		${TARGET_SRC}
+		${TARGET_H}
+		${CUDA_MODULE_HEADERS}
+		${CUDA_MODULE_SRC}
+	DESTINATION src/examples/cuda
+	COMPONENT  ${PACKAGE_EXAMPLES}
+)
 
 #------------------------------------
 # CUDA module project UnitInOutModule

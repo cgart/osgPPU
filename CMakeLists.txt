@@ -244,14 +244,66 @@ ENDIF(OSGPPU_MAINTAINER)
 
 
 
+
 ################################################################################
 # present the packaging option only if we have the cpack command defined (effectively >= 2.6.0)
 ################################################################################
 IF(CMAKE_CPACK_COMMAND)
-    OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
-    IF(BUILD_OSGPPU_PACKAGES)
-      INCLUDE(OsgPPUCPack)
-    ENDIF(BUILD_OSGPPU_PACKAGES)
+
+	# option to build the package target
+	OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
+
+	# names used in other cmake script to determine package component
+	SET(PACKAGE_HEADERS headers)
+	SET(PACKAGE_LIB libraries)
+	SET(PACKAGE_DATA data)
+	SET(PACKAGE_SRC  source)
+	SET(PACKAGE_EXAMPLES  examples)
+
+	# we would like to build all components
+	SET(CPACK_COMPONENTS_ALL ${PACKAGE_HEADERS} ${PACKAGE_LIB} ${PACKAGE_DATA} ${PACKAGE_SRC})
+
+	# group according package properties
+	SET(CPACK_COMPONENT_GROUP_DEV_DISPLAY_NAME "Development")
+	SET(CPACK_COMPONENT_GROUP_RUNTIME_DISPLAY_NAME "Runtime")
+	SET(CPACK_COMPONENT_GROUP_EXTRA_DISPLAY_NAME "Extras")
+
+	# setup component properties
+	SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C/C++ Headers")
+	SET(CPACK_COMPONENT_HEADERS_DEPENDS ${PACKAGE_LIB})
+	SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
+
+	SET(CPACK_COMPONENT_SOURCE_DISPLAY_NAME "C/C++ Sources")
+	SET(CPACK_COMPONENT_SOURCE_DEPENDS ${PACKAGE_HEADERS})
+	SET(CPACK_COMPONENT_SOURCE_DISABLED TRUE)
+	SET(CPACK_COMPONENT_SOURCE_GROUP "Development")
+
+	SET(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Runtime libraries")
+	SET(CPACK_COMPONENT_LIBRARIES_REQUIRED TRUE)
+	SET(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
+
+	SET(CPACK_COMPONENT_DATA_DISPLAY_NAME "Data files for Examples")
+	SET(CPACK_COMPONENT_DATA_DISABLED TRUE)
+	SET(CPACK_COMPONENT_DATA_GROUP "Extras")
+
+	SET(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "C/C++ Example Sources")
+	SET(CPACK_COMPONENT_EXAMPLES_DEPENDS ${PACKAGE_HEADERS} ${PACKAGE_LIB} ${PACKAGE_SRC})
+	SET(CPACK_COMPONENT_EXAMPLES_DISABLED TRUE)
+	SET(CPACK_COMPONENT_EXAMPLES_GROUP "Extras")
+
+	# if we would like to build them
+	IF(BUILD_OSGPPU_PACKAGES)
+
+		# include all macros which will specify target build for the packages
+		INCLUDE(OsgPPUCPack)
+
+		SET(PACKAGE_GROUP "")
+		list(APPEND PACKAGE_GROUP ${PACKAGE_HEADERS})
+		list(APPEND PACKAGE_GROUP ${PACKAGE_SRC})
+		list(APPEND PACKAGE_GROUP ${PACKAGE_EXAMPLES})
+		GENERATE_PACKAGING_GROUP_TARGET("complete")
+
+	ENDIF(BUILD_OSGPPU_PACKAGES)
 ENDIF(CMAKE_CPACK_COMMAND)
 
 
@@ -269,8 +321,21 @@ ENDIF(CMAKE_CPACK_COMMAND)
 IF(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
+ADD_SUBDIRECTORY(Data)
+ADD_SUBDIRECTORY(doc)
+ADD_SUBDIRECTORY(CMakeModules)
 ADD_SUBDIRECTORY(src)
 
+INSTALL(
+	FILES        
+		ChangeLog
+		CONTRIBUTORS.txt
+		README.txt
+		LICENSE.txt
+		CMakeLists.txt
+	DESTINATION  .
+	COMPONENT    ${PACKAGE_SRC}
+)
 
 ################################################################################
 # Set Config file
@@ -278,7 +343,6 @@ ADD_SUBDIRECTORY(src)
 SET(OSGPPU_CONFIG_HEADER "${PROJECT_BINARY_DIR}/include/osgPPU/Config.h")
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/osgPPU/Config.in"
                "${OSGPPU_CONFIG_HEADER}")
-# INSTALL_FILES(/include/osg/ FILES "${OPENSCENEGRAPH_CONFIG_HEADER}")
 
 
 ################################################################################

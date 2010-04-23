@@ -10,10 +10,19 @@ ADD_SUBDIRECTORY(motionblur)
 ADD_SUBDIRECTORY(blurScene)
 
 #if CUDA found, then build cuda example
-IF(CUDA_NVCC)
+IF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
     ADD_SUBDIRECTORY(cuda)
-ENDIF(CUDA_NVCC)
+ENDIF(CUDA_BUILD_EXAMPLES AND CUDA_NVCC)
 
+#-----------------------------------------------
+# Add the file to the install target
+#-----------------------------------------------
+INSTALL (
+	FILES
+		CMakeLists.txt
+	DESTINATION src/examples
+	COMPONENT  ${PACKAGE_EXAMPLES}
+)
 
 ################################################################################
 # Copy data files out from src/examples into the build bin directory

@@ -7,6 +7,9 @@ ENDIF(DYNAMIC_OSGPPU)
 SET(LIB_NAME ${PROJECT_NAME})
 SET(HEADER_PATH ${osgPPU_SOURCE_DIR}/include/${LIB_NAME})
 
+#-----------------------------------
+# Setup headers
+#-----------------------------------
 SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Export.h
     ${HEADER_PATH}/UnitText.h
@@ -33,10 +36,10 @@ SET(LIB_PUBLIC_HEADERS
     ${OSGPPU_CONFIG_HEADER}
 )
 
-
-ADD_LIBRARY(${LIB_NAME}
-    ${OSGPPU_USER_DEFINED_DYNAMIC_OR_STATIC}
-    ${LIB_PUBLIC_HEADERS}
+#-----------------------------------
+# Setup source files
+#-----------------------------------
+SET(LIB_SRC_FILES
     Unit.cpp
     UnitBypass.cpp
     UnitDepthbufferBypass.cpp
@@ -56,10 +59,24 @@ ADD_LIBRARY(${LIB_NAME}
     ShaderAttribute.cpp
     UnitCamera.cpp
     UnitInOutModule.cpp
+	CMakeLists.txt
     Camera.cpp
 )
 
 
+#-----------------------------------
+# Create library command, combines headers and sources
+#-----------------------------------
+ADD_LIBRARY(${LIB_NAME}
+    ${OSGPPU_USER_DEFINED_DYNAMIC_OR_STATIC}
+    ${LIB_PUBLIC_HEADERS}
+    ${LIB_SRC_FILES}
+)
+
+
+#-----------------------------------
+# Link other libraries
+#-----------------------------------
 LINK_WITH_VARIABLES(${LIB_NAME}     
     OSG_LIBRARY
     OSGDB_LIBRARY
@@ -71,10 +88,17 @@ LINK_WITH_VARIABLES(${LIB_NAME}
 LINK_EXTERNAL(${LIB_NAME} ${OPENGL_LIBRARIES}) 
 LINK_CORELIB_DEFAULT(${LIB_NAME})
 
+#-----------------------------------
+# Some definitions for debug and msvc
+#-----------------------------------
 SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES DEBUG_POSTFIX "d")
 if(MSVC)
     SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES PREFIX "../")
     SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES IMPORT_PREFIX "../")
 endif(MSVC)
 
+
+#-----------------------------------
+# Include install module
+#-----------------------------------
 INCLUDE(ModuleInstall OPTIONAL)
