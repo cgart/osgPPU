@@ -128,7 +128,13 @@ int main(int argc, char **argv)
 			unitCuda->loadModule("../lib/Release/osgppu_cudakernel.dll");
 	#endif 
 #else
-    unitCuda->loadModule("../lib/osgppu_cudakernel.so");
+#ifdef _DEBUG
+	if (!unitCuda->loadModule("osgppu_cudakerneld.so"))
+		unitCuda->loadModule("../lib/osgppu_cudakerneld.so");
+#else
+	if (!unitCuda->loadModule("osgppu_cudakernel.so"))
+		unitCuda->loadModule("../lib/osgppu_cudakernel.so");
+#endif
 #endif
 
     // setup output unit 
