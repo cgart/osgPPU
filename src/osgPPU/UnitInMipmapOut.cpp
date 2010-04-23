@@ -26,6 +26,7 @@ namespace osgPPU
         UnitInOut(unit, copyop),
         mMipmapFBO(unit.mMipmapFBO),
         mMipmapViewport(unit.mMipmapViewport),
+        mMipmapDrawable(unit.mMipmapDrawable),
         mNumLevels(unit.mNumLevels),
         mGenerateMipmapInputIndex(unit.mGenerateMipmapInputIndex),
         mUseShader(unit.mUseShader),
@@ -42,6 +43,8 @@ namespace osgPPU
         mUseShader = true;
         mOutputWidth = 0;
         mOutputHeight = 0;
+        mProjectionMatrix = new osg::RefMatrix(osg::Matrix::ortho(0,1,0,1,0,1));
+        mModelviewMatrix = new osg::RefMatrix(osg::Matrixf::identity());
     }
     
     //------------------------------------------------------------------------------
@@ -49,14 +52,14 @@ namespace osgPPU
     {
     
     }
-        
+
     //------------------------------------------------------------------------------
     void UnitInMipmapOut::init()
     {
         // default initialization
         UnitInOut::init();
 
-        // if we have to create the output texture, then do it
+        // if we have to create mipmaps for an input texture
         if (mGenerateMipmapInputIndex >= 0)
         {
             setOutputTexture(getInputTexture(mGenerateMipmapInputIndex));
@@ -70,7 +73,7 @@ namespace osgPPU
         if (mUseShader)
         {
             // disable standard fbo
-            getOrCreateStateSet()->removeAttribute(mFBO.get());
+            //getOrCreateStateSet()->removeAttribute(mFBO.get());
             getOrCreateStateSet()->removeAttribute(mViewport.get());
 
             // this is the base level of mipmap generation
@@ -79,20 +82,12 @@ namespace osgPPU
             // stay the same.
             int baseLevel = (mGenerateMipmapInputIndex < 0 ? 0 : 1);
 
-            // remove all drawables we currently have 
-            // do not remove the drawable 0, since there is our base level stored
-            mGeode->removeDrawables(0, mGeode->getNumDrawables());
-
             // attach a drawable for each mipmap level
-            // however if we want to 
             for (int i = baseLevel; i < mNumLevels; i++)
             {
                 // setup the drawable
-                osg::Drawable* draw = createTexturedQuadDrawable();
+                osg::Drawable* draw = mMipmapDrawable[i];
                 osg::StateSet* ss = draw->getOrCreateStateSet();
-                ss->setAttribute(mMipmapViewport[i].get(), osg::StateAttribute::ON);
-                ss->setAttribute(mMipmapFBO[i].get(), osg::StateAttribute::ON);
-                mGeode->addDrawable(draw);
 
                 // setup drawable uniforms
                 osg::Uniform* w = ss->getOrCreateUniform(OSGPPU_VIEWPORT_WIDTH_UNIFORM, osg::Uniform::FLOAT);
@@ -158,14 +153,6 @@ namespace osgPPU
         int mwh = std::max(width, height);
         int numLevel = 1 + static_cast<int>(floor(logf(mwh)/logf(2.0f)));
 
-        // check if sizes are valid 
-        if ((mOutputWidth != 0 && width != mOutputWidth)
-          ||(mOutputHeight != 0 && height != mOutputHeight))
-        {
-            osg::notify(osg::FATAL) << "osgPPU::UnitInMipmapOut::createAndAttachFBOs() - output textures are not of the same size!" << std::endl;
-            return;
-        }
-
         // set new sizes
         mOutputWidth = width;
         mOutputHeight = height;
@@ -180,9 +167,10 @@ namespace osgPPU
             // generate mipmap levels
             mMipmapFBO.clear();
             mMipmapViewport.clear();
+            mMipmapDrawable.clear();
             for (int i=0; i < numLevel; i++)
             {
-                // generate viewport
+                // generate viewport for the mipmap level
                 osg::ref_ptr<osg::Viewport> vp = new osg::Viewport();
                 int w = std::max(1, (int)floor(float(width) / float(pow(2.0f, (float)i)) ));
                 int h = std::max(1, (int)floor(float(height) / float(pow(2.0f, (float)i)) ));
@@ -190,14 +178,47 @@ namespace osgPPU
                 mMipmapViewport.push_back(vp);
                 
                 // generate fbo and assign a mipmap level to it
-                osg::ref_ptr<osg::FrameBufferObject> fbo = new osg::FrameBufferObject();
+				osg::ref_ptr<osg::FrameBufferObject> fbo = new osg::FrameBufferObject();
+                fbo->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + mrt), osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
                 mMipmapFBO.push_back(fbo);
+
+                // generate drawable which is responsible for this level
+                osg::Drawable* draw = createTexturedQuadDrawable();
+                osg::StateSet* ss = draw->getOrCreateStateSet();
+                ss->setAttribute(vp, osg::StateAttribute::ON);
+                //ss->setAttribute(fbo, osg::StateAttribute::ON);
+                mMipmapDrawable.push_back(draw);
             }
         }
+    }
 
-        // setup the attachments according to the outputs
-        for (int i=0; i < numLevel; i++)
-            mMipmapFBO[i]->setAttachment(osg::Camera::BufferComponent(osg::Camera::COLOR_BUFFER0 + mrt), osg::FrameBufferAttachment(dynamic_cast<osg::Texture2D*>(output), i));
+    //--------------------------------------------------------------------------
+    bool UnitInMipmapOut::noticeBeginRendering (osg::RenderInfo& info, const osg::Drawable* )
+    {
+        // if mipmaps generated not by shader, then do nothing
+        if (mUseShader == false) return false;
+
+        // setup matricies, they must be setted up correctly in order
+        // to have correct rendering of mipmaps
+        info.getState()->applyProjectionMatrix(mProjectionMatrix.get());
+        info.getState()->applyModelViewMatrix(mModelviewMatrix.get());
+
+        pushFrameBufferObject(*info.getState());
+
+        // perform manual rendering of all drawables of this unit
+        // the drawables are used for every mipmap level 
+        for (unsigned i=(mGenerateMipmapInputIndex < 0 ? 0 : 1); i < mMipmapDrawable.size(); i++)
+        {
+            info.getState()->apply(mMipmapDrawable[i]->getStateSet());
+            mMipmapFBO[i]->apply(*info.getState());
+            mMipmapDrawable[i]->drawImplementation(info);
+        }
+
+        popFrameBufferObject(*info.getState());
+        
+        // return false, so that parent drawable will not be rendered
+        // this unit does the handling of drawables manually
+        return false;
     }
 
     //--------------------------------------------------------------------------

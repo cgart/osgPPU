@@ -62,25 +62,39 @@ namespace osgPPU
     //------------------------------------------------------------------------------
     void UnitText::init()
     {
-        // init inout ppu
         UnitInOut::init();
 
-        // add text as drawable
-        mGeode->removeDrawables(0, mGeode->getNumDrawables());
-        mGeode->addDrawable(mText.get());
+        setOutputTextureMap(getInputTextureMap());
 
-        // setup new draw callback for the text
-        mText->setDrawCallback(new Unit::DrawCallback(this));
+        //mGeode->removeDrawables(0, mGeode->getNumDrawables());
+        //mGeode->addDrawable(mText.get());
+
+        //mText->setDrawCallback(new Unit::DrawCallback(this));
 
         // we take the width 640 as reference width for the size of characters
         mText->setCharacterSize(mSize * (float(getViewport()->width()) / 640.0), 1.0);
+    }
 
-        // text is the same as bypass, hence do bypass here
-        setOutputTextureMap(getInputTextureMap());
+    //------------------------------------------------------------------------------
+    bool UnitText::noticeBeginRendering (osg::RenderInfo& ri, const osg::Drawable* dr)
+    {
+        UnitInOut::noticeBeginRendering(ri, dr);
 
-        // assign fbo
-        assignFBO();
+        // set matricies used for the unit
+        ri.getState()->applyProjectionMatrix(sProjectionMatrix.get());
+        ri.getState()->applyModelViewMatrix(sModelviewMatrix.get());
 
+        // notice that we will start rendering soon
+        if (getBeginDrawCallback())
+            (*getBeginDrawCallback())(ri, this);
+
+        mText->draw(ri);
+
+        // notice that we will start rendering soon
+        if (getEndDrawCallback())
+            (*getEndDrawCallback())(ri, this);
+
+        return false;
     }
 
 }; // end namespace

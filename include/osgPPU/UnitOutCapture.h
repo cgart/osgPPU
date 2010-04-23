@@ -56,10 +56,37 @@ namespace osgPPU
             //! get currently used extension 
             inline const std::string& getFileExtension() const { return mExtension; }
     
+            /**
+            * Set if the output should be generated only once.
+            * The unit will be activated only for one frame. 
+            * You will need to reactivate the unit, if you would like to have continous frame capturing
+            * after one frame shot.
+            **/
+            inline void setShotOnce(bool b) { mShotOnce = b; if (b) setActive(true); }
+
+            //! Check if the unit will shot once on the next traversion
+            inline bool getShotOnce() { return mShotOnce; }
+
+            //! Direct function, which can be used to take a screenshot.
+            virtual void captureInput(osg::State* state);
+
+            //! Initialze the default Processoring unit
+            virtual void init();
+
+			/**
+			* Specify whenever the pixel format of the image to store should be the same as the internal format
+			* of input texture. This might be helpful if you want to store directly as it is, without converting.
+			* However if you want for example store a float texture to JPG files, you might need to disable
+			* this feature allowing the plugin to handle the texture data.
+			* 
+			* Per default this feature is disabled.
+			**/
+			inline void setUseInputTextureInternalFormat(bool use) { mUseInputTextureInternalFormat = use; }
+
+			//! Check whenever internal format of input texture is used as pixel format for storing
+			inline bool getUseInputTextureInternalFormat() const { return mUseInputTextureInternalFormat; }
+
         protected:
-            
-            //! Here we are capturing the input to file
-            void noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable*);
         
             //! path were to store the files
             std::string mPath;
@@ -69,6 +96,12 @@ namespace osgPPU
     
             //! file extensions
             std::string mExtension;
+
+			//! Do only one screenshot
+            bool mShotOnce;
+
+			//! Store with the same pixel format as used by the input textures
+			bool mUseInputTextureInternalFormat;
     };
 
 };

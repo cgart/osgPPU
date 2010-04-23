@@ -25,13 +25,16 @@ namespace osgPPU
     UnitMipmapInMipmapOut::UnitMipmapInMipmapOut(const UnitMipmapInMipmapOut& unit, const osg::CopyOp& copyop) :
         UnitInOut(unit, copyop),
         mIOMipmapViewport(unit.mIOMipmapViewport),
-        mIOMipmapFBO(unit.mIOMipmapFBO)
+        mIOMipmapFBO(unit.mIOMipmapFBO),
+        mIOMipmapDrawable(unit.mIOMipmapDrawable)
     {
     }
     
     //------------------------------------------------------------------------------
     UnitMipmapInMipmapOut::UnitMipmapInMipmapOut() : UnitInOut()
     {
+        mProjectionMatrix = new osg::RefMatrix(osg::Matrix::ortho(0,1,0,1,0,1));
+        mModelviewMatrix = new osg::RefMatrix(osg::Matrixf::identity());
     }
     
     //------------------------------------------------------------------------------
@@ -49,17 +52,12 @@ namespace osgPPU
         // recheck the mipmap bypass data structures
         checkIOMipmappedData();    
     
-        // remove all drawables we currently have 
-        mGeode->removeDrawables(0, mGeode->getNumDrawables());
-
         // attach a drawable for each mipmap level
         for (unsigned int i=0; i < mIOMipmapViewport.size(); i++)
         {
-            osg::Drawable* draw = createTexturedQuadDrawable();
+            osg::Drawable* draw = mIOMipmapDrawable[i];
             osg::StateSet* ss = draw->getOrCreateStateSet();
             ss->setAttribute(mIOMipmapViewport[i].get(), osg::StateAttribute::ON);
-            ss->setAttribute(mIOMipmapFBO[i].get(), osg::StateAttribute::ON);
-            mGeode->addDrawable(draw);
 
             // setup drawable uniforms
             osg::Uniform* w = ss->getOrCreateUniform(OSGPPU_VIEWPORT_WIDTH_UNIFORM, osg::Uniform::FLOAT);
@@ -87,7 +85,8 @@ namespace osgPPU
             // clean viewport data
             mIOMipmapViewport.clear();
             mIOMipmapFBO.clear();
-        
+            mIOMipmapDrawable.clear();
+
             // get dimensions of the output data
             int width = (mOutputTex.begin()->second)->getTextureWidth();
             int height = (mOutputTex.begin()->second)->getTextureHeight();
@@ -131,8 +130,41 @@ namespace osgPPU
     
                 // store fbo
                 mIOMipmapFBO.push_back(fbo);
+
+                // generate mipmap drawables
+                osg::Drawable* draw = createTexturedQuadDrawable();
+                osg::StateSet* ss = draw->getOrCreateStateSet();
+                ss->setAttribute(vp, osg::StateAttribute::ON);
+                //ss->setAttribute(fbo, osg::StateAttribute::ON);
+                mIOMipmapDrawable.push_back(draw);
             }
         }
+    }
+
+    //--------------------------------------------------------------------------
+    bool UnitMipmapInMipmapOut::noticeBeginRendering (osg::RenderInfo& info, const osg::Drawable* )
+    {
+        // setup matricies, they must be setted up correctly in order
+        // to have correct rendering of mipmaps
+        info.getState()->applyProjectionMatrix(mProjectionMatrix.get());
+        info.getState()->applyModelViewMatrix(mModelviewMatrix.get());
+
+        pushFrameBufferObject(*info.getState());
+
+        // perform manual rendering of all drawables of this unit
+        // the drawables are used for every mipmap level 
+        for (unsigned i=0; i < mIOMipmapDrawable.size(); i++)
+        {
+            info.getState()->apply(mIOMipmapDrawable[i]->getStateSet());
+            mIOMipmapFBO[i]->apply(*info.getState());
+            mIOMipmapDrawable[i]->drawImplementation(info);
+        }
+
+        popFrameBufferObject(*info.getState());
+        
+        // return false, so that parent drawable will not be rendered
+        // this unit does the handling of drawables manually
+        return false;
     }
         
 }; // end namespace

@@ -77,7 +77,7 @@ layouts and accessors, or small macros, inline functions and templates
    b) Accompany the object code with a copy of the GNU GPL and this license
    document.
 
-  4. Combined Works.
+  4. Combined Works. 
 
   You may convey a Combined Work under terms of your choice that,
 taken together, effectively do not restrict modification of the

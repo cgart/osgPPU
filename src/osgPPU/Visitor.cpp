@@ -16,30 +16,43 @@
 
 #include <osgPPU/Visitor.h>
 #include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitInOut.h>
 #include <osgPPU/BarrierNode.h>
 #include <osgUtil/CullVisitor>
 
 #include <OpenThreads/ScopedLock>
 #include <OpenThreads/Mutex>
 
-// Mutex used to let threads only change data values of Units in serialized manner
-static OpenThreads::Mutex    s_mutex_changeUnitSubgraph;
-
 namespace osgPPU
 {
+// Mutex used to let threads only change data values of Units in serialized manner
+OpenThreads::Mutex    UnitVisitor::s_mutex_changeUnitSubgraph;
+
+// just an instance for faster access
+osg::ref_ptr<CleanUpdateTraversedVisitor> CleanUpdateTraversedVisitor::sVisitor = new CleanUpdateTraversedVisitor;
+osg::ref_ptr<CleanCullTraversedVisitor> CleanCullTraversedVisitor::sVisitor = new CleanCullTraversedVisitor;
 
 //------------------------------------------------------------------------------
 void CleanUpdateTraversedVisitor::run (osg::Group* root)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    root->traverse(*this);
+    apply(*root);
 }
 
 //------------------------------------------------------------------------------
 void CleanCullTraversedVisitor::run (osg::Group* root)
 {
+    if (root == NULL) return;
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    root->traverse(*this);
+    apply(*root);
+}
+
+//------------------------------------------------------------------------------
+void CleanCullTraversedVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    if (unit) unit->mbCullTraversed = false;
+    node.traverse(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -258,6 +271,39 @@ void SetupUnitRenderingVisitor::apply (osg::Group &node)
     }
 }
 
+//------------------------------------------------------------------------------
+void MarkUnitsDirtyVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    if (unit) unit->dirty();
+    node.traverse(*this);
+}
+
+//------------------------------------------------------------------------------
+void MarkUnitsDirtyVisitor::run (osg::Group* root)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    root->accept(*this);
+}
+
+//------------------------------------------------------------------------------
+void RemoveUnitsViewportsVisitor::apply (osg::Group &node)
+{
+    Unit* unit = dynamic_cast<Unit*>(&node);
+    if (unit)
+    {
+        if (unit->getInputTextureIndexForViewportReference() == _index)
+            unit->setViewport(NULL);
+    }
+    node.traverse(*this);
+}
+
+//------------------------------------------------------------------------------
+void RemoveUnitsViewportsVisitor::run (osg::Group* root)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    root->accept(*this);
+}
 
 }; //end namespace
 

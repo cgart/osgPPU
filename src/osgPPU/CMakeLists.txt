@@ -29,6 +29,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/ShaderAttribute.h
     ${HEADER_PATH}/UnitCamera.h
     ${HEADER_PATH}/UnitInOutModule.h
+    ${HEADER_PATH}/Camera.h
     ${OSGPPU_CONFIG_HEADER}
 )
 
@@ -55,6 +56,7 @@ ADD_LIBRARY(${LIB_NAME}
     ShaderAttribute.cpp
     UnitCamera.cpp
     UnitInOutModule.cpp
+    Camera.cpp
 )
 
 
@@ -63,6 +65,7 @@ LINK_WITH_VARIABLES(${LIB_NAME}
     OSGDB_LIBRARY
     OSGTEXT_LIBRARY
     OSGUTIL_LIBRARY
+    OSGVIEWER_LIBRARY
     OPENTHREADS_LIBRARY
 )
 LINK_EXTERNAL(${LIB_NAME} ${OPENGL_LIBRARIES}) 

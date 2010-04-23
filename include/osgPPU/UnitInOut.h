@@ -23,7 +23,6 @@
 //-------------------------------------------------------------------------
 #include <osgPPU/Export.h>
 #include <osgPPU/Unit.h>
-
 #include <osg/FrameBufferObject>
 
 #define OSGPPU_MIPMAP_LEVEL_UNIFORM "osgppu_MipmapLevel"
@@ -36,15 +35,15 @@ namespace osgPPU
 {
     //! Compute output texture based on the assigned shaders and input data
     /**
-    * InOut PPU, does render the content of input textures with applied shader 
+    * InOut PPU, renders the content of input textures with applied shader 
     * to the output textures. Rendering is done in background, so no information
-    * will leack to the frame buffer
+    * will leak to the frame buffer.
     **/
     class OSGPPU_EXPORT UnitInOut : public Unit {
         public:
             META_Node(osgPPU,UnitInOut);
         
-            //! Mapping of MRt to ZSlice
+            //! Mapping of MRT to ZSlice
             typedef std::map<unsigned int, unsigned int> OutputSliceMap;
 
             //! Create default ppfx 
@@ -54,18 +53,18 @@ namespace osgPPU
             //! Release it and used memory
             virtual ~UnitInOut();
             
-            //! Initialze the default Processoring unit
+            //! Initialze the default Processor unit
             virtual void init();
             
             /**
             * Get framebuffer object used by this ppu. 
             **/
-            inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
+			inline osg::FrameBufferObject* getFrameBufferObject() { return mFBO.get(); }
 
             /**
             * UnitInOut can also be used to bypass the input texture to the output
-            * and perform a rendering on it. This is differently to the UnitBypass which
-            * do not perform any rendering but bypasses the data. 
+            * and perform rendering on it. This is different from the UnitBypass which
+            * does not perform any rendering but bypasses the data. 
             * Specify here the index of the input unit,
             * to bypass the input to the output.
             * @param index Index of an input unit to bypass to output. Specify -1, to 
@@ -90,7 +89,7 @@ namespace osgPPU
 
             /**
             * Set slice index which is used to render the output to.
-            * This settings have an effect only when using 3D textures as output.
+            * These settings have an effect only when using 3D textures as output.
             * The given slice will be defined for each MRT output.
             * @param slice Index of the slice (z-offset) to render the results to 
             * @param mrt MRT index of the output to be rendered to the given slice. This allows 
@@ -111,7 +110,10 @@ namespace osgPPU
 
             /**
             * Specify the depth of the output texture when using a 3D or layered texture 
-            * as output texture.
+            * as output texture. Is a 2D texture is used as output, then this value specifies
+            * the amount of MRT (multiple render targets) which has to be used by this unit.
+            * 
+            * NOTE: Currently there is no support to specify slices of different 3D or layered textures as MRTs
             **/
             void setOutputDepth(unsigned int depth);
 
@@ -135,7 +137,13 @@ namespace osgPPU
                 TEXTURE_CUBEMAP,
 
                 //! 3D texture is used of the output
-                TEXTURE_3D
+                TEXTURE_3D,
+
+                //! Use 2D texture array
+                TEXTURE_2D_ARRAY,
+
+                //! Use a texture rectangle
+                TEXTURE_RECTANGLE
             };
 
             /**
@@ -182,11 +190,24 @@ namespace osgPPU
             virtual osg::Texture* getOrCreateOutputTexture(int mrt = 0);
             
             /**
-            * Set a mrt to texture map for output textures
+            * Set a MRT to texture map for output textures
             **/
             inline void setOutputTextureMap(const TextureMap& map) { mOutputTex = map; dirty();}
     
         protected:
+
+            /**
+            * Here the FBO will be applied, so that Unit can render its output to 
+            * attached textures. If you overwrite this method in derived class,
+            * so you have to take care about FBO handling.
+            **/
+            virtual bool  noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) ;
+
+            /**
+            * Drawing is complete. So in our case, we will unbind used FBO and reset it to previous state
+            * Derived methods has to take care about correct handling of FBOs!
+            **/
+            virtual void  noticeFinishRendering(osg::RenderInfo&, const osg::Drawable* );
         
             //! Viewport changed
             virtual void noticeChangeViewport();
@@ -194,12 +215,10 @@ namespace osgPPU
             //! Reassign fbo if output textures changes
             virtual void assignOutputTexture();
 
-            virtual void assignFBO();
-
             virtual void assignOutputPBO();
 
             //! Framebuffer object where results are written
-            osg::ref_ptr<osg::FrameBufferObject>    mFBO;    
+			osg::ref_ptr<osg::FrameBufferObject>    mFBO;    
 
             //! index of the bypassed input
             int mBypassedInput;

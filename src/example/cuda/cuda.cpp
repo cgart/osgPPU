@@ -118,7 +118,18 @@ int main(int argc, char **argv)
     // setup cuda unit
     osg::ref_ptr<osgPPU::UnitInOutModule> unitCuda = new osgPPU::UnitInOutModule;
     unitCuda->setName("CUDA-PPU");
+
+#ifdef WIN32
+	#ifdef _DEBUG
+		if (!unitCuda->loadModule("osgppu_cudakerneld.dll"))
+			unitCuda->loadModule("../lib/Debug/osgppu_cudakerneld.dll");
+	#else 
+		if (!unitCuda->loadModule("osgppu_cudakernel.dll"))
+			unitCuda->loadModule("../lib/Release/osgppu_cudakernel.dll");
+	#endif 
+#else
     unitCuda->loadModule("../lib/osgppu_cudakernel.so");
+#endif
 
     // setup output unit 
     osg::ref_ptr<osgPPU::UnitOut> unitOut = new osgPPU::UnitOut;

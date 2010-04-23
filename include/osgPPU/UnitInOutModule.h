@@ -28,6 +28,8 @@
 //! Name of the function which is the entry point of the module 
 #define OSGPPU_MODULE_ENTRY osgppuInitModule
 #define OSGPPU_MODULE_ENTRY_STR "osgppuInitModule"
+#define OSGPPU_MODULE_RELEASE osgppuReleaseModule
+#define OSGPPU_MODULE_RELEASE_STR "osgppuReleaseModule"
 
 namespace osgPPU
 {
@@ -52,7 +54,7 @@ namespace osgPPU
             * Interface class of a module which can be used with this unit to process the input 
             * data.
             **/
-            class Module : public osg::Referenced
+			class Module// : public osg::Referenced
             {
                 public:
                     //! Default constructor of the module
@@ -78,6 +80,7 @@ namespace osgPPU
             };
 
             typedef bool (*OSGPPU_MODULE_ENTRY)(UnitInOutModule*);
+			typedef void (*OSGPPU_MODULE_RELEASE)(void);
 
             /**
             * Specify the file name of a dynamic libray containg the module.
@@ -100,8 +103,10 @@ namespace osgPPU
             const std::string& getModuleFile() const { return _moduleFile; }
 
             //! Get currently loaded module
-            Module* getModule() { return _module.get(); }
-            const Module* getModule() const { return _module.get(); }
+            inline Module* getModule() { return _module; }
+            inline const Module* getModule() const { return _module; }
+
+			void init();
 
         protected:
 
@@ -112,9 +117,12 @@ namespace osgPPU
             virtual void noticeFinishRendering(osg::RenderInfo &, const osg::Drawable* );
 
             bool  _moduleDirty;
-            osg::ref_ptr<Module> _module;
             osg::ref_ptr<osgDB::DynamicLibrary> _moduleLib;
             std::string _moduleFile;
+
+			//! We do not handle the destruction and release of module, because it has to be made in the address space of loaded module
+			//osg::ref_ptr<Module> _module;
+			Module* _module;
     };
 
 };

@@ -1,16 +1,13 @@
 SET(TARGET_TARGETNAME
-    ${EXAMPLE_PREFIX}cuda
+    ${EXAMPLE_PREFIX}motionblur
 )
 
 SET(TARGET_SRC 
-    cuda.cpp
+    view.cpp
 )
-
 SET(TARGET_H 
     osgteapot.h
 )
-
-#### end var setup  ###
 
 ADD_EXECUTABLE(${TARGET_TARGETNAME} ${TARGET_SRC} ${TARGET_H})
 LINK_INTERNAL(${TARGET_TARGETNAME} osgPPU)
@@ -21,9 +18,10 @@ LINK_WITH_VARIABLES(${TARGET_TARGETNAME}
     OSGTEXT_LIBRARY
     OSGUTIL_LIBRARY
     OSG_LIBRARY
+    OPENTHREADS_LIBRARY
 )
+
 LINK_EXTERNAL(${TARGET_TARGETNAME} ${OPENGL_LIBRARIES}) 
-LINK_WITH_VARIABLES(${TARGET_TARGETNAME} OPENTHREADS_LIBRARY)
 
 IF (NOT DYNAMIC_OSGPPU)
     LINK_EXTERNAL(${TARGET_TARGETNAME} pthread) 
@@ -34,30 +32,4 @@ if(MSVC)
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PREFIX "../")
 	SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "Example ${TARGET_TARGETNAME}")
 endif(MSVC)
-
-
-
-
-#------------------------------------
-# CUDA module project UnitInOutModule
-#------------------------------------
-# Add current directory to the nvcc include line.
-CUDA_INCLUDE_DIRECTORIES(
-    ${OPENGL_INCLUDE_DIR}
-    ${OSG_INCLUDE_DIRS}
-    ${SOURCE_DIR}/include
-)
-
-# Link cuda code in a library to something else.
-CUDA_ADD_LIBRARY(osgppu_cudakernel
-  kernel.cu
-  ProcessingModule.cpp
-  Export.h
-  BlurKernelWrapper.h
-  cutil.h
-  )
-
-# Link cuda with cutil library and with internals of osgPPU
-TARGET_LINK_LIBRARIES(osgppu_cudakernel ${CUDA_CUT_TARGET_LINK} )
-LINK_INTERNAL(osgppu_cudakernel osgPPU)
 

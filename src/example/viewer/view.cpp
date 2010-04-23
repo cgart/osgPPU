@@ -4,6 +4,10 @@
 #include <osgDB/WriteFile>
 
 #include <osgPPU/Processor.h>
+#include <osgPPU/UnitBypass.h>
+#include <osgPPU/UnitInResampleOut.h>
+#include <osgPPU/UnitOut.h>
+#include <osgPPU/Camera.h>
 
 #include "osgteapot.h"
 
@@ -36,11 +40,11 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth)
 }
 
 //--------------------------------------------------------------------------
-// Setup the camera to do the render to texture
+// Setup the camera 
 //--------------------------------------------------------------------------
-void setupCamera(osg::Camera* camera)
+void setupCamera(osg::Camera* camera, osg::Viewport* viewport = NULL)
 {
-    osg::Viewport* vp = camera->getViewport();
+	osg::Viewport* vp = viewport == NULL ? camera->getViewport() : viewport;
 
     // create texture to render to
     osg::Texture* texture = createRenderTexture((int)vp->width(), (int)vp->height(), false);
@@ -59,9 +63,33 @@ void setupCamera(osg::Camera* camera)
     camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 
     // attach the texture and use it as the color buffer.
-    camera->attach(osg::Camera::COLOR_BUFFER, texture);
+    camera->attach(osg::Camera::COLOR_BUFFER, texture);//, 0, 0, false, 8, 8);
     camera->attach(osg::Camera::DEPTH_BUFFER, depthTexture);
 }
+
+//--------------------------------------------------------------------------
+// Event handler to react on resize events
+//--------------------------------------------------------------------------
+class ResizeEventHandler : public osgGA::GUIEventHandler
+{
+public:
+    osgPPU::Processor* _processor;
+    osg::Camera* _camera;
+    
+    ResizeEventHandler(osgPPU::Processor* proc, osg::Camera* cam) : _processor(proc), _camera(cam) {}
+    
+    bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
+    {
+        if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
+        {
+			osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), _camera);
+
+			_processor->onViewportChange();
+        }
+        return false;
+    }
+};
+
 
 //--------------------------------------------------------------------------
 int main(int argc, char **argv)
@@ -78,13 +106,15 @@ int main(int argc, char **argv)
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
     // just make it singlethreaded since I get some problems if not in this mode
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
+    osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer->getCamera()->getGraphicsContext());
+    if (window) window->setWindowName(".ppu file viewer");
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // setup scene
     osg::Group* node = new osg::Group();
@@ -108,7 +138,7 @@ int main(int argc, char **argv)
     node->getOrCreateStateSet()->setAttribute(clamp, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE | osg::StateAttribute::PROTECTED);
 
     // load the processor from a file
-    osg::ref_ptr<osgPPU::Processor> processor = dynamic_cast<osgPPU::Processor*>(osgDB::readObjectFile(arguments[1]));
+    osgPPU::Processor* processor = dynamic_cast<osgPPU::Processor*>(osgDB::readObjectFile(arguments[1]));
     if (!processor)
     {
         osg::notify(osg::FATAL) << "File does not contain a valid pipeline" << std::endl;
@@ -120,14 +150,12 @@ int main(int argc, char **argv)
     processor->setCamera(viewer->getCamera());
 
     // add processor to the scene
-    node->addChild(processor.get());
+    node->addChild(processor);
 
     // add model to viewer.
+    viewer->addEventHandler(new ResizeEventHandler(processor, viewer->getCamera()));
     viewer->setSceneData( node );
 
     // run viewer
     return viewer->run();
 }
-
-
-

@@ -47,10 +47,6 @@ class PPUProcessingBin : public osgUtil::RenderBin
 // This is a default rendering bin which all units are usign
 static osg::ref_ptr<osgUtil::RenderBin> DefaultBin = new PPUProcessingBin("PPUProcessingBin");
 
-// just an instance for faster access
-static osg::ref_ptr<UnitVisitor> sCleanUpdateTraverseMaskVisitor = new CleanUpdateTraversedVisitor;
-static osg::ref_ptr<UnitVisitor> sCleanCullTraverseMaskVisitor = new CleanCullTraversedVisitor;
-
 //------------------------------------------------------------------------------
 Processor::Processor()
 {
@@ -147,13 +143,9 @@ void Processor::setCamera(osg::Camera* camera)
 //------------------------------------------------------------------------------
 Unit* Processor::findUnit(const std::string& name)
 {
-    if (!mbDirtyUnitGraph)
-    {
-        FindUnitVisitor uv(name);
-        uv.run(this);
-        return uv.getResult();
-    }
-    return NULL;
+    FindUnitVisitor uv(name);
+    uv.run(this);
+    return uv.getResult();
 }
 
 //------------------------------------------------------------------------------
@@ -169,6 +161,16 @@ bool Processor::removeUnit(Unit* unit)
     uv.run(unit);
 
     return true;
+}
+
+//------------------------------------------------------------------------------
+void Processor::onViewportChange()
+{
+    MarkUnitsDirtyVisitor nv;
+    nv.run(this);
+    RemoveUnitsViewportsVisitor rv;
+    rv.run(this);
+	dirtyUnitSubgraph();
 }
 
 
@@ -188,6 +190,10 @@ void Processor::traverse(osg::NodeVisitor& nv)
         ResolveUnitsCyclesVisitor rv;
         rv.run(this);
 
+        // mark every unit as dirty, so that they get updated on the next call
+        MarkUnitsDirtyVisitor nv;
+        nv.run(this);
+
         // debug information
         osg::notify(osg::INFO) << "--------------------------------------------------------------------" << std::endl;
         osg::notify(osg::INFO) << "BEGIN " << getName() << std::endl;
@@ -206,16 +212,18 @@ void Processor::traverse(osg::NodeVisitor& nv)
     // first we need to clear traversion bit of every unit
     if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        sCleanUpdateTraverseMaskVisitor->run(this);
+        CleanUpdateTraversedVisitor::sVisitor->run(this);
     }
 
     // if processor is propagated by a cull visitor, hence first clean the traverse bit
     if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
-        sCleanCullTraverseMaskVisitor->run(this);
+        osg::notify(osg::DEBUG_INFO) << "--------------------------------------------------------------------" << std::endl;
+        osg::notify(osg::DEBUG_INFO) << "BEGIN FRAME " << getName() << std::endl;
+
+        CleanCullTraversedVisitor::sVisitor->run(this);
     }
 
-    // just a normal traversion
     if (mbDirtyUnitGraph == false || nv.getVisitorType() == osg::NodeVisitor::NODE_VISITOR)
     {
         osg::Group::traverse(nv);
@@ -226,7 +234,3 @@ void Processor::traverse(osg::NodeVisitor& nv)
 
 
 }; //end namespace
-
-
-
-

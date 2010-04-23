@@ -291,7 +291,7 @@ bool ShaderAttribute::bindTexture(unsigned int index, const std::string& name, o
     // check if index is valid
     if (index > get(name)->getNumElements() )
     {
-        printf("You want to bind a texture to %s[%d], but there is only %d elements registered\n", name.c_str(), index, get(name)->getNumElements());
+        //osg::notify(osg::WARN) << "You want to bind a texture to %s[%d], but there is only %d elements registered\n", name.c_str(), index, get(name)->getNumElements());
         return false;
     }
 
@@ -402,7 +402,7 @@ void ShaderAttribute::resetTextureUniforms()
                 if (units[jt->second.unit] == NULL)
                     units[jt->second.unit] = &jt->second;
                 else {
-                    printf("Shader::enable() - You have specified a unit number %d to %s in %s which is already given!\n", jt->second.unit, it->first.c_str(), getName().c_str());
+                    //printf("Shader::enable() - You have specified a unit number %d to %s in %s which is already given!\n", jt->second.unit, it->first.c_str(), getName().c_str());
                 }
             }
         }

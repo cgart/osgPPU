@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2008   Art Tevs                                         *
+ *   Copyright (c) 2010   Art Tevs                                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -26,24 +26,22 @@
 
 namespace osgPPU
 {
-    //------------------------------------------------------------------------------
-    // Helper class to block cycle traversion throught the nodes
-    //------------------------------------------------------------------------------
+    /**
+    * Helper class to block cycle traversion throught the nodes
+    **/
     class BarrierNode : public osg::Node
     {
         public:
-            // initalize default values
             BarrierNode() : osg::Node() {}
             ~BarrierNode(){}
     
-            // The barrier node do just block the traversion
-            void traverse (osg::NodeVisitor &nv)
-            {}
+            //! The barrier node do just block the traversion, hence childs are not traversed
+            void traverse (osg::NodeVisitor &nv){}
     
-            // The barrier node do just block the traversion
-            void ascend (osg::NodeVisitor &nv)
-            {}
-    
+            //! The barrier node do just block the traversion, hence childs are not traversed
+            void ascend (osg::NodeVisitor &nv){}
+
+            //! Since traversion is blocked, we should allow the computation of bounding sphere    
             inline osg::BoundingSphere  computeBound() const {return osg::BoundingSphere();}
 
             //! Get the node, which was previously the child

@@ -14,10 +14,8 @@
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
 
-#ifndef _C_OSGPPU_EXPORT_H_
-#define _C_OSGPPU_EXPORT_H_
-
-#include <osgPPU/Config.h>
+#ifndef _C_OSGPPU_CUDAKERNEL_EXPORT_H_
+#define _C_OSGPPU_CUDAKERNEL_EXPORT_H_
 
 #if defined(_MSC_VER)
  #pragma warning( disable : 4244 )
@@ -32,15 +30,15 @@
 #endif
 
 #if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__)  || defined( __MWERKS__)
-    #  if defined( OSGPPU_LIBRARY_STATIC )
+    #  if defined( OSGPPU_CUDAKERNEL_LIBRARY_STATIC )
     #    define OSGPPU_EXPORT
-    #  elif defined( OSGPPU_LIBRARY )
-    #    define OSGPPU_EXPORT   __declspec(dllexport)
+    #  elif defined( OSGPPU_CUDAKERNEL_LIBRARY )
+    #    define OSGPPU_CUDAK_EXPORT   __declspec(dllexport)
     #  else
-    #    define OSGPPU_EXPORT   __declspec(dllimport)
+    #    define OSGPPU_CUDAK_EXPORT   __declspec(dllimport)
     #  endif
 #else
-    #  define OSGPPU_EXPORT
+    #  define OSGPPU_CUDAK_EXPORT
 #endif
 
 // set up define for whether member templates are supported by VisualStudio compilers.
@@ -60,4 +58,4 @@
     #endif
 #endif //NULL
 
-#endif //_C_OSGPPU_EXPORT_H_
+#endif //_C_OSGPPU_CUDAKERNEL_EXPORT_H_

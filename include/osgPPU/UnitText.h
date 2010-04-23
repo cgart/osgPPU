@@ -28,7 +28,7 @@
 
 namespace osgPPU
 {
-    //! Smae as UnitInOut but do render a text onto the output
+    //! Same as UnitInOut but renders text onto the output.
     /**
     * The text is displayed in 2D ortho mode. This class is wrapper for the 
     * osgText::Text class, so check it for more information about the text support.
@@ -80,6 +80,10 @@ namespace osgPPU
 
             //! Size of the font
             float mSize;
+
+            virtual bool noticeBeginRendering (osg::RenderInfo&, const osg::Drawable* ) ;
+
+
     };
 
 }; // end namespace

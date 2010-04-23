@@ -24,6 +24,9 @@
 #include <osgPPU/Unit.h>
 #include <osg/NodeVisitor>
 #include <osg/Group>
+#include <osgUtil/CullVisitor>
+#include <queue>
+#include <list>
 
 namespace osgPPU
 {
@@ -38,6 +41,8 @@ class OSGPPU_EXPORT UnitVisitor : public osg::NodeVisitor
         inline  void run(osg::Group& root) { run(&root); }
 
         virtual const char* getVisitorName() { return ""; }
+
+        static OpenThreads::Mutex s_mutex_changeUnitSubgraph;
 };
 
 //------------------------------------------------------------------------------
@@ -61,6 +66,7 @@ public:
     void run (osg::Group* root);
 
     const char* getVisitorName() { return "CleanUpdateTraversedVisitor"; }
+    static osg::ref_ptr<CleanUpdateTraversedVisitor> sVisitor;
 
 private:
     OpenThreads::Mutex _mutex;
@@ -77,16 +83,12 @@ public:
     {
     }
 
-    void apply (osg::Group &node)
-    {
-        Unit* unit = dynamic_cast<Unit*>(&node);
-        if (unit) unit->mbCullTraversed = false;
-        node.traverse(*this);
-    }
+    void apply (osg::Group &node);
 
     void run (osg::Group* root);
 
     const char* getVisitorName() { return "CleanCullTraversedVisitor"; }
+    static osg::ref_ptr<CleanCullTraversedVisitor> sVisitor;
 
 private:
     OpenThreads::Mutex _mutex;
@@ -129,11 +131,17 @@ public:
 
     void apply (osg::Group &node)
     {
+        // first check if we have already visited that node, if yes, it might be a loop in the graph, so don't go further
+        if (std::find(_visitedNodes.begin(), _visitedNodes.end(), &node) != _visitedNodes.end()) return;
+        
         Unit* unit = dynamic_cast<Unit*>(&node);
         if (unit && unit->getName() == _name)
             _result = unit;
         else
+        {
+            _visitedNodes.push_back(&node);
             node.traverse(*this);
+        }
     }
 
     Unit* getResult() { return _result; }
@@ -142,6 +150,7 @@ public:
 private:
     std::string _name;
     Unit* _result;
+    std::vector<osg::Group*> _visitedNodes;
 };
 
 //------------------------------------------------------------------------------
@@ -202,7 +211,7 @@ public:
 
 //------------------------------------------------------------------------------
 // Visitor used to setup all units in a correct order in an appropriate rendering bin
-// ev ery unit will also be initialized
+// every unit will also be initialized
 //------------------------------------------------------------------------------
 class OSGPPU_EXPORT SetupUnitRenderingVisitor : public UnitVisitor
 {
@@ -245,6 +254,44 @@ public:
     const char* getVisitorName() { return "FindProcessorVisitor"; }
 };
 
+//------------------------------------------------------------------------------
+// Mark every unit in the graph as dirty
+//------------------------------------------------------------------------------
+class OSGPPU_EXPORT MarkUnitsDirtyVisitor : public UnitVisitor
+{
+public:
+
+    MarkUnitsDirtyVisitor() : UnitVisitor()
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+
+    const char* className() { return "MarkUnitsDirtyVisitor"; }
+private:
+    OpenThreads::Mutex _mutex;
+};
+
+//------------------------------------------------------------------------------
+// Remove viewports on units which has -1 as index for viewport reference
+//------------------------------------------------------------------------------
+class OSGPPU_EXPORT RemoveUnitsViewportsVisitor : public UnitVisitor
+{
+public:
+
+    RemoveUnitsViewportsVisitor(int index = -1) : UnitVisitor(), _index(index)
+    {
+    }
+
+    void apply (osg::Group &node);
+    void run (osg::Group* root);
+
+    const char* className() { return "RemoveUnitsViewportsVisitor"; }
+private:
+    OpenThreads::Mutex _mutex;
+    int _index;
+};
 
 }; // end namespace
 

@@ -22,6 +22,7 @@
 #include <osgPPU/Utility.h>
 
 #include <osg/Texture2D>
+#include <osg/TextureRectangle>
 #include <osgDB/WriteFile>
 #include <osgDB/Registry>
 #include <osg/Image>
@@ -49,6 +50,11 @@ Unit::Unit() : osg::Group(),
     mGeode->setCullingActive(false);
     addChild(mGeode.get());
 
+    // setup default drawable
+    osg::Drawable* drawable = createTexturedQuadDrawable();
+    drawable->setDrawCallback(new EmptyDrawCallback(this));
+    mGeode->addDrawable(drawable);
+
     // initialze projection matrix
     sProjectionMatrix = new osg::RefMatrix(osg::Matrix::ortho(0,1,0,1,0,1));
 
@@ -58,7 +64,8 @@ Unit::Unit() : osg::Group(),
     // setup default empty fbo and empty program, so that in default mode
     // we do not use any fbo or program
     getOrCreateStateSet()->setAttribute(new osg::Program(), osg::StateAttribute::ON);
-    getOrCreateStateSet()->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
+    //getOrCreateStateSet()->setAttribute(new osg::FrameBufferObject(), osg::StateAttribute::ON);
+    //mPushedFBO = NULL;
 
     // we also setup empty textures so that this unit do not get any input texture
     // as long as one is not defined
@@ -93,7 +100,8 @@ Unit::Unit(const Unit& ppu, const osg::CopyOp& copyop) :
     mInputTexIndexForViewportReference(ppu.mInputTexIndexForViewportReference),
     mbActive(ppu.mbActive),
     mbUpdateTraversed(ppu.mbUpdateTraversed),
-    mbCullTraversed(ppu.mbCullTraversed)
+    mbCullTraversed(ppu.mbCullTraversed),
+    mPushedFBO(ppu.mPushedFBO)
 {
 
 }
@@ -283,13 +291,16 @@ void Unit::assignInputPBO()
 //--------------------------------------------------------------------------
 void Unit::setViewport(osg::Viewport* vp)
 {
-    // if viewport is valid and we have to ignore new settings
-    if (vp == NULL) return;
-
-    // otherwise setup new viewport
-    mViewport = new osg::Viewport(*vp);
-    assignViewport();
-
+    if (vp == NULL)
+    {
+        getOrCreateStateSet()->removeAttribute(mViewport.get());
+        mViewport = NULL;        
+    }else
+    {
+        mViewport = new osg::Viewport(*vp);
+        assignViewport();
+		noticeChangeViewport();
+    }
     dirty();
 }
 
@@ -389,26 +400,37 @@ void Unit::traverse(osg::NodeVisitor& nv)
     // check if we have to update it
     if (nv.getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
     {
-        if (mbUpdateTraversed == false)
+        if (mbUpdateTraversed) return;
+
+        const osg::Node::ParentList& parents = getParents();
+        for (osg::Node::ParentList::const_iterator it = parents.begin(); it != parents.end(); it++)
         {
-            mbUpdateTraversed = true;
-
-            update();
-            getStateSet()->runUpdateCallbacks(&nv);
-
-            osg::Group::traverse(nv);
+            Unit* unit = dynamic_cast<osgPPU::Unit*>(*it);
+            if (unit && !unit->mbUpdateTraversed) return;
         }
+
+        mbUpdateTraversed = true;
+
+        update();
+        getStateSet()->runUpdateCallbacks(&nv);
 
     }else if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
     {
-        if (mbCullTraversed == false)
+        if (mbCullTraversed) return;
+
+        const osg::Node::ParentList& parents = getParents();
+        for (osg::Node::ParentList::const_iterator it = parents.begin(); it != parents.end(); it++)
         {
-            mbCullTraversed = true;
-            osg::Group::traverse(nv);
+            Unit* unit = dynamic_cast<osgPPU::Unit*>(*it);
+            if (unit && !unit->mbCullTraversed) return;
         }
 
-    }else
-        osg::Group::traverse(nv);
+        // mark this unit as has been traversed and traverse
+        mbCullTraversed = true;        
+    }
+
+    // default traversion
+    osg::Group::traverse(nv);
 }
 
 //------------------------------------------------------------------------------
@@ -466,6 +488,14 @@ public:
             // get the output texture 0 as input
             _input.push_back(unit->getOrCreateOutputTexture(0));
 
+            // if parent unit is a UnitInOut, then collect all MRTs
+            UnitInOut* unitIO = dynamic_cast<UnitInOut*>(unit);
+            if (unitIO)
+            {
+                for (unsigned i=1; i < unitIO->getOutputDepth(); i++)
+                    _input.push_back(unitIO->getOrCreateOutputTexture(i));
+            }
+
             _inputUnitsFound = true;
 
         // if it is a processor, then get the camera attachments as inputs
@@ -507,7 +537,7 @@ void Unit::setupInputsFromParents()
     if (changedInput) noticeChangeInput();
 
     // if viewport is not defined and we need viewport from processor, then
-    if (getViewport() == NULL && (getInputTextureIndexForViewportReference() < 0 || (getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound)))
+    if (getViewport() == NULL && getInputTextureIndexForViewportReference() < 0 || (getInputTextureIndexForViewportReference() >=0 && !cp._inputUnitsFound))
     {
         // find the processor
         FindProcessorVisitor fp;
@@ -574,6 +604,23 @@ void Unit::dirty()
 }
 
 //--------------------------------------------------------------------------
+void Unit::EmptyDrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
+{
+    if (_parent->getActive())
+    {   
+        _parent->printDebugInfo(dr);
+
+        if (_parent->getBeginDrawCallback())
+            (*_parent->getBeginDrawCallback())(ri, _parent);
+
+
+        // notice that we will start rendering soon
+        if (_parent->getEndDrawCallback())
+            (*_parent->getEndDrawCallback())(ri, _parent);
+    }
+}
+
+//--------------------------------------------------------------------------
 void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Drawable* dr) const
 {
     // only if parent is valid
@@ -604,13 +651,17 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
 
         // unit should know that we are about to render it and let us know if we should render 
         if (_parent->noticeBeginRendering(ri, dr))
-        {
-            // set matricies used for the unit
+        {    
             ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
             ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
-    
-            // now render the drawable geometry
+
+            if (_parent->getBeginDrawCallback())
+                (*_parent->getBeginDrawCallback())(ri, _parent);
+
             dr->drawImplementation(ri);
+
+            if (_parent->getEndDrawCallback())
+                (*_parent->getEndDrawCallback())(ri, _parent);
         }
 
         // ok rendering is done, unit can do other stuff.
@@ -648,7 +699,7 @@ void Unit::printDebugInfo(const osg::Drawable* dr)
     if (level > osg::getNotifyLevel()) return;
 
     // debug information
-    osg::notify(level) << getName() << " (" << getOrCreateStateSet()->getBinNumber() << ") run in thread " << OpenThreads::Thread::CurrentThread() << std::endl;
+    osg::notify(level) << getName() << " run in thread " << OpenThreads::Thread::CurrentThread() << std::endl;
 
     if (getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT) || (dr && dr->getStateSet()->getAttribute(osg::StateAttribute::VIEWPORT)))
     {

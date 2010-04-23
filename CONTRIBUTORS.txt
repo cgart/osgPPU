@@ -1,9 +1,10 @@
 This is a list of all contributors to the osgPPU library.
 Currently the list is not sorted in any manner (ok maybe 
 in the time when a patch was submitted ;-) ).
+
  
  
-4 Contributors:
+8 Contributors:
 
 Firstname Surname
 ----------------------------
@@ -14,5 +15,9 @@ Christian Heine
 Sean Carmody
 Doug McCorkle
 Valery Bickov
-
- 
+Oleg Dedkow
+J.P. Delport
+Paul Martz
+Bryan Thrall
+Christian Richardt
+Allen Saucier 

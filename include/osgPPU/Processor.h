@@ -152,6 +152,17 @@ class OSGPPU_EXPORT Processor : public osg::Group {
         **/
         void useColorClamp( bool useColorClamp = true ) {mUseColorClamp = useColorClamp; mbDirty = true;}
 
+        /**
+        * Call this method whenever your main viewport of any of the used cameras
+        * or a size of used external textures has changed. Processor will notify 
+        * every unit of the viewport change. 
+        *
+        * NOTE: You can also use dirtyUnitSubgraph(), however this will run the whole
+        *       initialization process again, which costs time. A call that just viewport
+        *       changed require usually less time to complete.
+        **/
+        virtual void onViewportChange();
+
     protected:
 
         /**

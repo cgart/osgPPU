@@ -31,7 +31,6 @@
 #include <osg/MatrixTransform>
 #include <osg/Light>
 #include <osg/LightSource>
-#include <osg/PolygonOffset>
 #include <osg/CullFace>
 #include <osg/Material>
 #include <osg/PositionAttitudeTransform>
@@ -47,6 +46,8 @@
 #include <osgPPU/UnitCameraAttachmentBypass.h>
 #include <osgPPU/UnitCamera.h>
 #include <osgPPU/ShaderAttribute.h>
+#include <osgPPU/UnitDepthbufferBypass.h>
+#include <osgPPU/Camera.h>
 
 #include <osgDB/ReadFile>
 #include <osg/Program>
@@ -57,6 +58,8 @@
 
 float gBlurSigma = 3.0;
 float gBlurRadius = 7.0;
+float g_NearPlane = 0.01;
+float g_FarPlane = 50.0;
 
 //------------------------------------------------------------------------------
 // Create scene with some geometry and apply proper shader for needed objects
@@ -124,7 +127,7 @@ osg::ref_ptr<osg::Group> createScene(osg::Node*& glowedScene)
     // create subnode, which will represented the glowed scene
     osg::Group* toGlow = new osg::Group;
     toGlow->getOrCreateStateSet()->setAttributeAndModes(matirial.get(), StateAttribute::ON);
-    toGlow->addChild(transform_3);
+    toGlow->addChild(transform_3.get());
     glowedScene = toGlow;
 
 
@@ -133,7 +136,43 @@ osg::ref_ptr<osg::Group> createScene(osg::Node*& glowedScene)
 
 
 //------------------------------------------------------------------------------
-// Simple shader, which do render same color into the second MRT target if enabled
+// Shader which performs depth test when rendering an object.
+// This shader is needed in order to render the glowed objects using the depth values of
+// the main camera.
+// NOTE:
+//   Because the main camera renders the glowed object too, there could be Z-fighting artifacts
+//   between the glowed object and the main scene.
+//   In order prevent them, one can either play around with PolygonOffset parameters or render
+//   the main scene's depth buffer in two passes, once with the glowed object and once without.
+//------------------------------------------------------------------------------
+const char* depthTestShaderSrc =
+    "\n"
+    "uniform sampler2D depthBuffer;\n"
+    "uniform vec2 invViewportSize;\n"
+    "uniform float nearPlane;\n"
+    "uniform float farPlane;\n"
+    "\n"
+    "void main () {\n"
+    "\n"
+    "   // get color and depth values of the rendered object\n"
+    "   vec4 color = gl_Color;\n"
+    "\n"
+    "   // get depth value of the scene (the depth values are linearized by the hardware)\n"
+    "   vec2 texCoord = gl_FragCoord.xy * invViewportSize; \n"
+    "   float depthScene = texture2D(depthBuffer, texCoord).x;\n"
+    "\n"
+    "   // we need to linearize the depth value, in order to do depth test \n"
+    "   float depthPixel = gl_FragCoord.z;\n"
+    "\n"    
+    "   // depth test, render only if ok\n"
+    "   if (depthPixel < depthScene)\n"
+    "       gl_FragColor = color; \n"
+    "   else \n"
+    "       gl_FragColor = vec4(0.0,0.0,0.0,0.0); \n"
+    "}\n";
+
+//------------------------------------------------------------------------------
+// Simple shader which just combines two textures
 //------------------------------------------------------------------------------
 const char* shaderSrc =
     "\n"
@@ -141,28 +180,40 @@ const char* shaderSrc =
     "uniform sampler2D glow;\n"
     "void main () {\n"
     "\n"
+    "   // get color values of the view and of the glow texture\n"
     "   vec4 viewColor = texture2D(view, gl_TexCoord[0].st);\n"
     "   vec4 glowColor = texture2D(glow, gl_TexCoord[0].st);\n"
-    "   gl_FragColor = viewColor + glowColor * 2.0; \n"
+    "\n"
+    "   // just the view\n"
+     "   gl_FragColor = viewColor + glowColor * 2.0; \n"
     "}\n";
 
 
 //------------------------------------------------------------------------------
 // Create camera resulting texture
 //------------------------------------------------------------------------------
-osg::Texture* createRenderTexture(int tex_width, int tex_height)
+osg::Texture* createRenderTexture(int tex_width, int tex_height, bool depth = false, bool nearest = false)
 {
     // create simple 2D texture
     osg::Texture2D* texture2D = new osg::Texture2D;
     texture2D->setTextureSize(tex_width, tex_height);
-    texture2D->setInternalFormat(GL_RGBA);
-    texture2D->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR);
-    texture2D->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+    texture2D->setFilter(osg::Texture2D::MIN_FILTER, nearest ? osg::Texture2D::NEAREST : osg::Texture2D::LINEAR);
+    texture2D->setFilter(osg::Texture2D::MAG_FILTER, nearest ? osg::Texture2D::NEAREST : osg::Texture2D::LINEAR);
+    texture2D->setWrap(osg::Texture2D::WRAP_S,osg::Texture2D::CLAMP_TO_EDGE);
+    texture2D->setWrap(osg::Texture2D::WRAP_T,osg::Texture2D::CLAMP_TO_EDGE);
+    texture2D->setBorderColor(osg::Vec4(0.0f,0.0f,0.0f,0.0f));
+    texture2D->setResizeNonPowerOfTwoHint(false);
 
     // setup float format
-    texture2D->setInternalFormat(GL_RGBA16F_ARB);
-    texture2D->setSourceFormat(GL_RGBA);
-    texture2D->setSourceType(GL_FLOAT);
+    if (!depth)
+    {
+        texture2D->setInternalFormat(GL_RGBA16F_ARB);
+        texture2D->setSourceFormat(GL_RGBA);
+        texture2D->setSourceType(GL_FLOAT);
+    }else{
+        texture2D->setInternalFormat(GL_DEPTH_COMPONENT);
+        //texture2D->setSourceFormat(GL_DEPTH_COMPONENT);
+    }
 
     return texture2D;
 }
@@ -173,18 +224,26 @@ osg::Texture* createRenderTexture(int tex_width, int tex_height)
 // Slave camera has a smaller viewport, because we do not need high resolution
 // for objects which are just get blurred ;)
 //------------------------------------------------------------------------------
-osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_width, unsigned tex_height, unsigned windowWidth, unsigned windowHeight, osg::Camera::RenderTargetImplementation renderImplementation)
+osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_width, unsigned tex_height, unsigned windowWidth, unsigned windowHeight, osg::Camera::RenderTargetImplementation renderImplementation, osgPPU::Processor*& processor)
 {
     osg::Group* group = new osg::Group;
 
     // create two textures which will hold the usual view and glowing mask
     osg::Texture* textureView = createRenderTexture(windowWidth, windowHeight);
-    osg::Texture* textureGlow = createRenderTexture(tex_width, tex_height);
+    osg::Texture* textureDepthView = createRenderTexture(windowWidth, windowHeight, true, true);
 
+    osg::Texture* textureGlow = createRenderTexture(tex_width, tex_height);
+    
     // setup the main camera, which will render the usual scene
     camera->setViewport(new osg::Viewport(0,0,windowWidth,windowHeight));
     camera->attach(osg::Camera::COLOR_BUFFER0, textureView);
+    camera->attach(osg::Camera::DEPTH_BUFFER, textureDepthView);
     camera->setRenderTargetImplementation(renderImplementation);
+
+    // we have to disable the automatic calculation, because otherwise the depth values
+    // of the glowing object and the normal scene could be different
+    camera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
+    camera->setProjectionMatrixAsPerspective(30.0, float(windowWidth)/float(windowHeight), g_NearPlane, g_FarPlane);
 
     // create and setup slave camera, which will render only the glowed scene
     osg::Camera* slaveCamera = new osg::Camera;
@@ -196,12 +255,37 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
         slaveCamera->setRenderOrder(osg::Camera::PRE_RENDER);
         slaveCamera->attach(osg::Camera::COLOR_BUFFER0, textureGlow);
         slaveCamera->setRenderTargetImplementation(renderImplementation);
+        slaveCamera->setComputeNearFarMode(osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR);
 
+        // setup shader on the glowed scene, which will do the depth test for us
+        {
+          // create fragment shader for depth test
+          osg::Shader* fpShader = new osg::Shader(osg::Shader::FRAGMENT);
+          fpShader->setShaderSource(depthTestShaderSrc);
+
+          // create program to hold the shader and add to the glowed scene
+          osg::Program* program = new osg::Program();
+          program->addShader(fpShader);
+          glowedScene->getOrCreateStateSet()->setAttributeAndModes(program);
+          
+          // create uniform to specify the sampler parameter, so the texture unit, where the depth buffer is bound
+          glowedScene->getOrCreateStateSet()->getOrCreateUniform("depthBuffer", osg::Uniform::SAMPLER_2D)->set(1);
+          glowedScene->getOrCreateStateSet()->getOrCreateUniform("invViewportSize", osg::Uniform::FLOAT_VEC2)->set(osg::Vec2(1.0 / tex_width, 1.0 / tex_height));
+          glowedScene->getOrCreateStateSet()->getOrCreateUniform("nearPlane", osg::Uniform::FLOAT)->set(g_NearPlane);
+          glowedScene->getOrCreateStateSet()->getOrCreateUniform("farPlane", osg::Uniform::FLOAT)->set(g_FarPlane);
+
+          // bind the depth buffer texture to the glowed scene (so it will be used in depth test shader)
+          glowedScene->getOrCreateStateSet()->setTextureAttributeAndModes(1, textureDepthView);
+        }
+
+        // we need to add small polygon offset, in order to prevent z-fighting, because the glowed object is also rendered in the normal scene
+        osg::PolygonOffset* offset = new osg::PolygonOffset(-10.0, -10.0);
+        slaveCamera->getOrCreateStateSet()->setAttributeAndModes(offset);
         slaveCamera->addChild(glowedScene);
     }
 
     // setup osgPPU pipeline processor, which will use the main camera
-    osgPPU::Processor* processor = new osgPPU::Processor();
+    processor = new osgPPU::Processor();
     processor->setCamera(camera);
 
     // setup unit which will bring the color output of the first camera into the pipeline
@@ -209,17 +293,18 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
     unitCam1->setBufferComponent(osg::Camera::COLOR_BUFFER0);
     unitCam1->setName("CameraBuffer0");
     processor->addChild(unitCam1);
-
-
+    
     // setup unit, which will bring the camera and its output into the pipeline
     osgPPU::UnitCamera* unitSlaveCamera = new osgPPU::UnitCamera;
     unitSlaveCamera->setCamera(slaveCamera);
+    processor->addChild(unitSlaveCamera);
+
+    // bypass color buffer from the slave camera unit
     osgPPU::UnitCameraAttachmentBypass* unitCam2 = new osgPPU::UnitCameraAttachmentBypass();
     unitCam2->setBufferComponent(osg::Camera::COLOR_BUFFER0);
     unitCam2->setName("CameraBuffer1");
     unitSlaveCamera->addChild(unitCam2);
 
-    processor->addChild(unitSlaveCamera);
 
 
     //---------------------------------------------------------------------------------
@@ -239,10 +324,10 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
         osg::Shader* fhshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dx_fp.glsl", fragmentOptions.get());
         osg::Shader* fvshader = osgDB::readShaderFile("Data/glsl/gauss_convolution_1Dy_fp.glsl", fragmentOptions.get());
 
-	if (!vshader || !fhshader || !fvshader)
-	{
-	  printf("One of the shader files gauss_convolution_*.glsl wasn't found!\n");
-	}
+        if (!vshader || !fhshader || !fvshader)
+        {
+	        printf("One of the shader files gauss_convolution_*.glsl wasn't found!\n");
+        }
 
         // setup horizontal blur shaders
         osgPPU::ShaderAttribute* gaussx = new osgPPU::ShaderAttribute();
@@ -302,17 +387,39 @@ osg::Group* setupGlow(osg::Camera* camera, osg::Node* glowedScene, unsigned tex_
     unitOut->setViewport(new osg::Viewport(0,0, windowWidth, windowHeight) );
     unitOut->getOrCreateStateSet()->setAttributeAndModes(resultShader);
 
-    // add both camera outputs to the main unit
+    // add both camera outputs and the depth valued output to the main unit
     unitCam1->addChild(unitOut);
     blury->addChild(unitOut);
 
-    // add scnee and processor to the resulting group and return it back
+    // add scene and processor to the resulting group and return it back
     group->addChild(slaveCamera);
     group->addChild(processor);
 
     return group;
 }
 
+//--------------------------------------------------------------------------
+// Event handler to react on resize events
+//--------------------------------------------------------------------------
+class ResizeEventHandler : public osgGA::GUIEventHandler
+{
+public:
+	osgPPU::Processor* _processor;
+	osg::Camera* _camera;
+
+	ResizeEventHandler(osgPPU::Processor* proc, osg::Camera* cam) : _processor(proc), _camera(cam) {}
+
+	bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&)
+	{
+		if(ea.getEventType() == osgGA::GUIEventAdapter::RESIZE)            
+		{
+			osgPPU::Camera::resizeViewport(0,0, ea.getWindowWidth(), ea.getWindowHeight(), _camera);
+
+			_processor->onViewportChange();
+		}
+		return false;
+	}
+};
 
 //------------------------------------------------------------------------------
 // Main code
@@ -343,7 +450,9 @@ int main(int argc, char** argv)
     unsigned int windowWidth = 640;
     unsigned int windowHeight = 480;
     viewer.setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
-    viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer.getCamera()->getGraphicsContext());
+    if (window) window->setWindowName("Particular object glow fx");
+    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // if user request help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
@@ -352,8 +461,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    unsigned tex_width = 256;
-    unsigned tex_height = 256;
+    unsigned tex_width = windowWidth / 2;
+    unsigned tex_height = windowHeight / 2;
     while (arguments.read("--width", tex_width)) {}
     while (arguments.read("--height", tex_height)) {}
 
@@ -384,12 +493,13 @@ int main(int argc, char** argv)
 
 
     // setup camera and glower
-    osg::Group* group = setupGlow(viewer.getCamera(), glowedScene, tex_width, tex_height, windowWidth, windowHeight, renderImplementation);
+	osgPPU::Processor* processor = NULL;
+    osg::Group* group = setupGlow(viewer.getCamera(), glowedScene, tex_width, tex_height, windowWidth, windowHeight, renderImplementation, processor);
     group->addChild(scene.get());
     mainTransform->addChild(group);
 
     // setup scene
     viewer.setSceneData(mainTransform.get());
-
+	viewer.addEventHandler(new ResizeEventHandler(processor, viewer.getCamera()));
     return viewer.run();
 }
