@@ -17,7 +17,7 @@
 #include <cstring>
 
 //--------------------------------------------------------------------------
-bool StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mode)
+bool ppu_StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mode)
 {
     if (strcmp(str,"INHERIT")==0) mode = osg::StateAttribute::INHERIT;
     else if (strcmp(str,"ON")==0) mode = osg::StateAttribute::ON;
@@ -36,7 +36,7 @@ bool StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mod
 
 
 //--------------------------------------------------------------------------
-const char* StateSet_getModeStr(osg::StateAttribute::GLModeValue value)
+const char* ppu_StateSet_getModeStr(osg::StateAttribute::GLModeValue value)
 {
     switch(value)
     {
@@ -54,42 +54,45 @@ const char* StateSet_getModeStr(osg::StateAttribute::GLModeValue value)
 }
 
 //--------------------------------------------------------------------------
-bool Texture_matchInternalFormatStr(const char* str,int& value)
+bool ppu_Texture_matchInternalFormatStr(const char* _str,int& value)
 {
-    if (     strcmp(str,"GL_INTENSITY")==0) value = GL_INTENSITY;
-    else if (strcmp(str,"GL_LUMINANCE")==0) value = GL_LUMINANCE;
-    else if (strcmp(str,"GL_ALPHA")==0) value = GL_ALPHA;
-    else if (strcmp(str,"GL_LUMINANCE_ALPHA")==0) value = GL_LUMINANCE_ALPHA;
-    else if (strcmp(str,"GL_RGB")==0) value = GL_RGB;
-    else if (strcmp(str,"GL_RGBA")==0) value = GL_RGBA;
-    else if (strcmp(str,"GL_COMPRESSED_ALPHA_ARB")==0) value = GL_COMPRESSED_ALPHA_ARB;
-    else if (strcmp(str,"GL_COMPRESSED_LUMINANCE_ARB")==0) value = GL_COMPRESSED_LUMINANCE_ARB;
-    else if (strcmp(str,"GL_COMPRESSED_INTENSITY_ARB")==0) value = GL_COMPRESSED_INTENSITY_ARB;
-    else if (strcmp(str,"GL_COMPRESSED_LUMINANCE_ALPHA_ARB")==0) value = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
-    else if (strcmp(str,"GL_COMPRESSED_RGB_ARB")==0) value = GL_COMPRESSED_RGB_ARB;
-    else if (strcmp(str,"GL_COMPRESSED_RGBA_ARB")==0) value = GL_COMPRESSED_RGBA_ARB;
-    else if (strcmp(str,"GL_COMPRESSED_RGB_S3TC_DXT1_EXT")==0) value = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-    else if (strcmp(str,"GL_COMPRESSED_RGBA_S3TC_DXT1_EXT")==0) value = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-    else if (strcmp(str,"GL_COMPRESSED_RGBA_S3TC_DXT3_EXT")==0) value = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-    else if (strcmp(str,"GL_COMPRESSED_RGBA_S3TC_DXT5_EXT")==0) value = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-    else if (strcmp(str,"GL_ALPHA16F_ARB")==0) value = GL_ALPHA16F_ARB;
-    else if (strcmp(str,"GL_ALPHA32F_ARB")==0) value = GL_ALPHA32F_ARB;
-    else if (strcmp(str,"GL_INTENSITY16F_ARB")==0) value = GL_INTENSITY16F_ARB;
-    else if (strcmp(str,"GL_INTENSITY32F_ARB")==0) value = GL_INTENSITY32F_ARB;
-    else if (strcmp(str,"GL_RGBA16F_ARB")==0) value = GL_RGBA16F_ARB;
-    else if (strcmp(str,"GL_RGBA32F_ARB")==0) value = GL_RGBA32F_ARB;
-    else if (strcmp(str,"GL_LUMINANCE16F_ARB")==0) value = GL_LUMINANCE16F_ARB;
-    else if (strcmp(str,"GL_LUMINANCE32F_ARB")==0) value = GL_LUMINANCE32F_ARB;
-    else if (strcmp(str,"GL_LUMINANCE_ALPHA16F_ARB")==0) value = GL_LUMINANCE_ALPHA16F_ARB;
-    else if (strcmp(str,"GL_LUMINANCE_ALPHA32F_ARB")==0) value = GL_LUMINANCE_ALPHA32F_ARB;
-    else if (strcmp(str,"GL_RGB16F_ARB")==0) value = GL_RGB16F_ARB;
-    else if (strcmp(str,"GL_RGB32F_ARB")==0) value = GL_RGB32F_ARB;
+    std::string str (_str);
+    std::transform( str.begin(), str.end(), str.begin(), ::toupper );
+   
+    if      (str == std::string("GL_INTENSITY")) value = GL_INTENSITY;
+    else if (str == std::string("GL_LUMINANCE")) value = GL_LUMINANCE;
+    else if (str == std::string("GL_ALPHA")) value = GL_ALPHA;
+    else if (str == std::string("GL_LUMINANCE_ALPHA")) value = GL_LUMINANCE_ALPHA;
+    else if (str == std::string("GL_RGB")) value = GL_RGB;
+    else if (str == std::string("GL_RGBA")) value = GL_RGBA;
+    else if (str == std::string("GL_COMPRESSED_ALPHA_ARB")) value = GL_COMPRESSED_ALPHA_ARB;
+    else if (str == std::string("GL_COMPRESSED_LUMINANCE_ARB")) value = GL_COMPRESSED_LUMINANCE_ARB;
+    else if (str == std::string("GL_COMPRESSED_INTENSITY_ARB")) value = GL_COMPRESSED_INTENSITY_ARB;
+    else if (str == std::string("GL_COMPRESSED_LUMINANCE_ALPHA_ARB")) value = GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+    else if (str == std::string("GL_COMPRESSED_RGB_ARB")) value = GL_COMPRESSED_RGB_ARB;
+    else if (str == std::string("GL_COMPRESSED_RGBA_ARB")) value = GL_COMPRESSED_RGBA_ARB;
+    else if (str == std::string("GL_COMPRESSED_RGB_S3TC_DXT1_EXT")) value = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+    else if (str == std::string("GL_COMPRESSED_RGBA_S3TC_DXT1_EXT")) value = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+    else if (str == std::string("GL_COMPRESSED_RGBA_S3TC_DXT3_EXT")) value = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+    else if (str == std::string("GL_COMPRESSED_RGBA_S3TC_DXT5_EXT")) value = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+    else if (str == std::string("GL_ALPHA16F_ARB")) value = GL_ALPHA16F_ARB;
+    else if (str == std::string("GL_ALPHA32F_ARB")) value = GL_ALPHA32F_ARB;
+    else if (str == std::string("GL_INTENSITY16F_ARB")) value = GL_INTENSITY16F_ARB;
+    else if (str == std::string("GL_INTENSITY32F_ARB")) value = GL_INTENSITY32F_ARB;
+    else if (str == std::string("GL_LUMINANCE16F_ARB")) value = GL_LUMINANCE16F_ARB;
+    else if (str == std::string("GL_LUMINANCE32F_ARB")) value = GL_LUMINANCE32F_ARB;
+    else if (str == std::string("GL_LUMINANCE_ALPHA16F_ARB")) value = GL_LUMINANCE_ALPHA16F_ARB;
+    else if (str == std::string("GL_LUMINANCE_ALPHA32F_ARB")) value = GL_LUMINANCE_ALPHA32F_ARB;
+    else if (str == std::string("GL_RGB16F_ARB")) value = GL_RGB16F_ARB;
+    else if (str == std::string("GL_RGB32F_ARB")) value = GL_RGB32F_ARB;
+    else if (str == std::string("GL_RGBA16F_ARB")) value = GL_RGBA16F_ARB;
+    else if (str == std::string("GL_RGBA32F_ARB")) value = GL_RGBA32F_ARB;
     else
     {
-        osgDB::Field::FieldType type = osgDB::Field::calculateFieldType(str);
+        osgDB::Field::FieldType type = osgDB::Field::calculateFieldType(str.c_str());
         if (type==osgDB::Field::INTEGER)
         {
-            value = atoi(str);
+            value = atoi(str.c_str());
             return true;
         }
         else
@@ -102,7 +105,7 @@ bool Texture_matchInternalFormatStr(const char* str,int& value)
 }
 
 //--------------------------------------------------------------------------
-const char* Texture_getInternalFormatStr(int value)
+const char* ppu_Texture_getInternalFormatStr(int value)
 {
     switch(value)
     {
@@ -140,7 +143,7 @@ const char* Texture_getInternalFormatStr(int value)
 
 
 //--------------------------------------------------------------------------
-bool Texture_matchOutputTypeStr(const char* str, osgPPU::UnitInOut::TextureType& value)
+bool ppu_Texture_matchOutputTypeStr(const char* str, osgPPU::UnitInOut::TextureType& value)
 {
     if (     strcmp(str,"TEXTURE_2D")==0) value = osgPPU::UnitInOut::TEXTURE_2D;
     else if (strcmp(str,"TEXTURE_CUBEMAP")==0) value = osgPPU::UnitInOut::TEXTURE_CUBEMAP;
@@ -163,7 +166,7 @@ bool Texture_matchOutputTypeStr(const char* str, osgPPU::UnitInOut::TextureType&
 }
 
 //--------------------------------------------------------------------------
-const char* Texture_getOutputTextureTypeStr(osgPPU::UnitInOut::TextureType value)
+const char* ppu_Texture_getOutputTextureTypeStr(osgPPU::UnitInOut::TextureType value)
 {
     switch(value)
     {

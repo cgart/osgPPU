@@ -53,12 +53,12 @@ private:
 };
 
 
-extern bool StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mode);
-extern const char* StateSet_getModeStr(osg::StateAttribute::GLModeValue value);
-extern bool Texture_matchInternalFormatStr(const char* str,int& value);
-extern const char* Texture_getInternalFormatStr(int value);
-extern bool Texture_matchOutputTypeStr(const char* str,osgPPU::UnitInOut::TextureType& value);
-extern const char* Texture_getOutputTextureTypeStr(osgPPU::UnitInOut::TextureType value);
+extern bool ppu_StateSet_matchModeStr(const char* str,osg::StateAttribute::GLModeValue& mode);
+extern const char* ppu_StateSet_getModeStr(osg::StateAttribute::GLModeValue value);
+extern bool ppu_Texture_matchInternalFormatStr(const char* str,int& value);
+extern const char* ppu_Texture_getInternalFormatStr(int value);
+extern bool ppu_Texture_matchOutputTypeStr(const char* str,osgPPU::UnitInOut::TextureType& value);
+extern const char* ppu_Texture_getOutputTextureTypeStr(osgPPU::UnitInOut::TextureType value);
 
 
 #endif

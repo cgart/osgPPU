@@ -40,20 +40,21 @@ class OutputVisitor : public osg::NodeVisitor
         }
         ~OutputVisitor() {}
 
+        void run (osg::Group &node)
+        {
+            _visited[&node] = true;
+            node.traverse(*this);
+        }
+
         void apply (osg::Group &node)
         {
             osgPPU::Unit* unit = dynamic_cast<osgPPU::Unit*>(&node);
 
             // not an unit, then just traverse it
-            if (unit == NULL) traverse(node);
-
-            // check if it wasn't visited before
-            bool visited = false;
-            for (unsigned int i=0; i < _visited.size(); i++)
-                if (_visited[i] == unit) {visited = true; break;}
+            if (unit == NULL) node.traverse(*this);
 
             // it is a unit and not visited before
-            if (unit != NULL && !visited)
+            if (unit != NULL && !_visited[&node])
             {
                 // because a unit can be referenced more than one, this would
                 // produce wrong output to the .ppu file (see osgDB::Registry::writeObject),
@@ -68,7 +69,8 @@ class OutputVisitor : public osg::NodeVisitor
                 for (int i=0; i<counter; i++) unit->ref();
 
                 // place it
-                _visited.push_back(unit);
+                //_visited.push_back(unit);
+                _visited[&node] = true;
                 node.traverse(*this);
             }
         }
@@ -76,7 +78,7 @@ class OutputVisitor : public osg::NodeVisitor
 
     private:
         osgDB::Output* _output;
-        std::vector<osgPPU::Unit*> _visited;
+        std::map<osg::Node*, bool> _visited;
 };
 
 
@@ -243,18 +245,12 @@ public:
             bool dirty = ppu.isDirtyUnitSubgraph();
             ppu.markUnitSubgraphNonDirty();
 
-            // we can only write the unit graph if it is not dirty
-            //if (ppu.isDirtyUnitSubgraph())
-            //{
-            //    return WriteResult("osgPPU::writeObject - Unit's subgraph is still dirty, run processor first to resolve all issues");
-            //}
-
             // write out information about the pipeline
             fout.writeBeginObject(std::string(ppu.libraryName()) + std::string("::") + std::string(ppu.className()));
             fout.moveIn();
 
                 OutputVisitor ov(&fout);
-                ppu.traverse(ov);
+                ov.run(ppu);
 
                 // write processor's name
                 fout.indent() << "name " << ppu.getName() << std::endl;
