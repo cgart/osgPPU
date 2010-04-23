@@ -58,7 +58,8 @@ namespace osgPPU
 
     //-------------------------------------------------------------------------
     UnitInOutModule::UnitInOutModule() : UnitInOut(),
-        _moduleDirty(false)
+        _moduleDirty(false),
+        _module(NULL)
     {
     }
 
@@ -162,6 +163,7 @@ namespace osgPPU
     void UnitInOutModule::noticeFinishRendering(osg::RenderInfo& ri, const osg::Drawable*)
     {
         if (!_module) return;
+        _module->beginAndProcess();
         _module->end();
     }
 

@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
     // just make it singlethreaded since I get some problems if not in this mode
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     unsigned int screenWidth;
     unsigned int screenHeight;
     osg::GraphicsContext::getWindowingSystemInterface()->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), screenWidth, screenHeight);
@@ -119,23 +119,34 @@ int main(int argc, char **argv)
     osg::ref_ptr<osgPPU::UnitInOutModule> unitCuda = new osgPPU::UnitInOutModule;
     unitCuda->setName("CUDA-PPU");
 
+    bool notFound = false;
 #ifdef WIN32
 	#ifdef _DEBUG
-		if (!unitCuda->loadModule("osgppu_cudakerneld.dll"))
-			unitCuda->loadModule("../lib/Debug/osgppu_cudakerneld.dll");
+		notFound = !unitCuda->loadModule("osgppu_cudakerneld.dll");
+        if (notFound) notFound = !unitCuda->loadModule("../lib/Debug/osgppu_cudakerneld.dll");
 	#else 
-		if (!unitCuda->loadModule("osgppu_cudakernel.dll"))
-			unitCuda->loadModule("../lib/Release/osgppu_cudakernel.dll");
+        notFound = !unitCuda->loadModule("osgppu_cudakernel.dll");
+        if (notFound) notFound = !unitCuda->loadModule("../lib/Release/osgppu_cudakernel.dll");
 	#endif 
 #else
-#ifdef _DEBUG
-	if (!unitCuda->loadModule("osgppu_cudakerneld.so"))
-		unitCuda->loadModule("../lib/osgppu_cudakerneld.so");
-#else
-	if (!unitCuda->loadModule("osgppu_cudakernel.so"))
-		unitCuda->loadModule("../lib/osgppu_cudakernel.so");
+    #ifdef _DEBUG
+        notFound = !unitCuda->loadModule("libosgppu_cudakerneld.so");
+        if (notFound) notFound = !unitCuda->loadModule("osgppu_cudakerneld.so");
+        if (notFound) notFound = !unitCuda->loadModule("../lib/libosgppu_cudakerneld.so");
+        if (notFound) notFound = !unitCuda->loadModule("../lib/osgppu_cudakerneld.so");
+    #else
+        notFound = !unitCuda->loadModule("libosgppu_cudakernel.so");
+        if (notFound) notFound = !unitCuda->loadModule("osgppu_cudakernel.so");
+        if (notFound) notFound = !unitCuda->loadModule("../lib/libosgppu_cudakernel.so");
+        if (notFound) notFound = !unitCuda->loadModule("../lib/osgppu_cudakernel.so");
+    #endif
 #endif
-#endif
+
+    if (notFound)
+    {
+        osg::notify(osg::FATAL) << "Cuda running time module not found!" << std::endl;
+        return 1;
+    }
 
     // setup output unit 
     osg::ref_ptr<osgPPU::UnitOut> unitOut = new osgPPU::UnitOut;

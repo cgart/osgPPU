@@ -1,3 +1,47 @@
+2010-04-23 21:29  art
+
+	* [r263]
+	  - merged content of osgppu plugin with svn trunk
+
+2010-04-23 21:21  art
+
+	* [r262]
+	  - cuda example fix for linux system
+
+2010-04-23 21:17  art
+
+	* [r261]
+	  - merged current svn trunk into the 0.4.0 version
+	  - cuda example now works perfectly by correct release of cuda
+	  context
+	  - cuda cmake scripts were corrected
+	  - dynamic resizing feature added (same as in svn trunk)
+	  - fbos are now handled by the osgPPU and not by osg (same as svn
+	  trunk)
+
+2010-04-22 21:09  art
+
+	* [r260]
+	  
+
+2009-02-23 19:25  art
+
+	* [r204]
+	  - added forgotten lines into the camkelist.txt file
+	  - removed shader.h from cubemap example
+
+2009-02-23 19:14  art
+
+	* [r203]
+	  Release osgPPU-0.4.0
+
+2009-02-23 19:14  art
+
+	* [r201]
+	  - cuda workaround for broken compilers added
+	  - IO support for UnitInOutModule added
+	  - new .ppu file which does just load a CUDA kernel module
+
 2009-02-23 18:17  art
 
 	* [r199]

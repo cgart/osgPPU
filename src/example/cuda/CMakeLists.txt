@@ -58,6 +58,6 @@ CUDA_ADD_LIBRARY(osgppu_cudakernel
   )
 
 # Link cuda with cutil library and with internals of osgPPU
-TARGET_LINK_LIBRARIES(osgppu_cudakernel ${CUDA_CUT_TARGET_LINK} )
+#TARGET_LINK_LIBRARIES(osgppu_cudakernel ${CUDA_CUT_TARGET_LINK} )
 LINK_INTERNAL(osgppu_cudakernel osgPPU)
 
