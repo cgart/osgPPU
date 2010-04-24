@@ -52,7 +52,7 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
             CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceCount(&deviceCount));                
             if (deviceCount == 0) {                                                  
                 fprintf(stderr, "error: no devices supporting CUDA.\n");       
-                exit(EXIT_FAILURE);                                                  
+                return false;                                                  
             }                                                                        
             int dev = 0;                                                             
             if (dev > deviceCount-1) dev = deviceCount - 1;                          
@@ -60,7 +60,7 @@ class OSGPPU_CUDAK_EXPORT ProcessingModule : public UnitInOutModule::Module
             CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceProperties(&deviceProp, dev));       
             if (deviceProp.major < 1) {                                              
                 fprintf(stderr, "error: device does not support CUDA.\n");     
-                exit(EXIT_FAILURE);                                                  
+                return false;                                                  
             }                                                                        
             CUDA_SAFE_CALL(cudaSetDevice(dev));
 
