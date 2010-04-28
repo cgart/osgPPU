@@ -14,7 +14,6 @@ PROJECT(osgPPU)
 SET(CMAKE_MODULE_PATH "${osgPPU_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
 SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
-SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
 
 #######################################
 # Versions

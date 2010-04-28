@@ -112,6 +112,11 @@ ENDIF(NOT CUDA_BUILD_TYPE)
 SET(CUDA_BUILD_CUBIN TRUE CACHE BOOL "Generate and parse .cubin files in Device mode.")
 SET(CUDA_BUILD_EXAMPLES TRUE CACHE BOOL "Build CUDA examples.")
 
+IF(WIN32)
+	SET(CUDA_DIR "C:/CUDA" CACHE STRING "Path where to find the cuda installation")
+ELSE(WIN32)
+	SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
+ENDIF(WIN32)
 
 # --------------------------------------
 # Emulation if the card isn't present.
@@ -130,7 +135,7 @@ ENDIF(CUDA_BUILD_TYPE MATCHES "Emulation")
 # --------------------------------------
 IF(MSVC)
 	IF(WIN32)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -ccbin\ \"$(VCInstallDir)bin\" -DWIN32 CACHE STRING "Semi-colon delimit multiple arguments.")
+        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}  -ccbin\ \"$(VCInstallDir)bin\" -DWIN32 CACHE STRING "Semi-colon delimit multiple arguments.")
     ELSE(WIN32)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -ccbin\ \"$(VCInstallDir)bin\" CACHE STRING "Semi-colon delimit multiple arguments.")    
 	ENDIF(WIN32)
@@ -139,9 +144,8 @@ ENDIF(MSVC)
 IF(CUDA_NVCC_FLAGS)
 	 SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} CACHE STRING "Semi-colon delimit multiple arguments.")
 ELSE(CUDA_NVCC_FLAGS)
-	 SET(CUDA_NVCC_FLAGS "" CACHE STRING "Semi-colon delimit multiple arguments.")
+	 SET(CUDA_NVCC_FLAGS  "" CACHE STRING "Semi-colon delimit multiple arguments.")
 ENDIF(CUDA_NVCC_FLAGS)
-
 
 # --------------------------------------
 # Search for the cuda distribution.
@@ -152,7 +156,7 @@ IF(NOT CUDA_SDK_DIR)
     PATHS /usr/local/cuda
           ${CUDA_DIR}
           ${CMAKE_INSTALL_PREFIX}
-          ${CUDA_DIR}/cude
+          ${CUDA_DIR}/cuda
           ${CMAKE_INSTALL_PREFIX}/cuda
     PATH_SUFFIXES bin
     ENV CUDA_BIN_PATH
@@ -172,7 +176,7 @@ ENDIF (NOT CUDA_SDK_DIR)
 IF (NOT CUDA_NVCC)
   FIND_PROGRAM(CUDA_NVCC
     nvcc
-    PATHS ${CUDA_SDK_DIR}/bin $ENV{CUDA_BIN_PATH} ${CUDA_DIR}/bin ${CUDA_DIR}
+    PATHS ${CUDA_DIR}/bin ${CUDA_DIR} ${CUDA_SDK_DIR}/bin $ENV{CUDA_BIN_PATH}
     )
     
   IF(NOT CUDA_NVCC)
@@ -180,52 +184,44 @@ IF (NOT CUDA_NVCC)
   ELSE(NOT CUDA_NVCC)
     
     # setup the compiler and enable cuda example build
-    MARK_AS_ADVANCED(CUDA_NVCC)
+    #MARK_AS_ADVANCED(CUDA_NVCC)
 
     MESSAGE(STATUS "CUDA compiler found, CUDA examples would be built if not disabled by CUDA_BUILD_EXAMPLES")
     
-  ENDIF(NOT CUDA_NVCC)
-  
+  ENDIF(NOT CUDA_NVCC)  
 ENDIF(NOT CUDA_NVCC)
-
 
 # --------------------------------------
 # CUDA_NVCC_INCLUDE_ARGS
 # --------------------------------------
-IF (NOT FOUND_CUDA_NVCC_INCLUDE)
-  FIND_PATH(FOUND_CUDA_NVCC_INCLUDE
+IF (NOT CUDA_INCLUDE)
+  FIND_PATH(CUDA_INCLUDE
     device_functions.h # Header included in toolkit
-    PATHS ${CUDA_SDK_DIR}/include
-          $ENV{CUDA_INC_PATH}
-          ${CUDA_DIR}/include
+    PATHS ${CUDA_DIR}/include
           ${CUDA_DIR}
+          ${CUDA_SDK_DIR}/include
+          $ENV{CUDA_INC_PATH}
           ${CMAKE_INSTALL_PREFIX}/include
           ${CMAKE_INSTALL_PREFIX}
     )
-ENDIF(NOT FOUND_CUDA_NVCC_INCLUDE)
+ENDIF(NOT CUDA_INCLUDE)
 
 IF(CUDA_INCLUDE)
 	  SET (CUDA_NVCC_INCLUDE_ARGS "-I${CUDA_INCLUDE}")
+	  INCLUDE_DIRECTORIES( ${CUDA_INCLUDE} )
 ELSE(CUDA_INCLUDE)
 
-	 IF(NOT FOUND_CUDA_NVCC_INCLUDE AND CUDA_NVCC)
+	 IF(CUDA_NVCC)
 		 MESSAGE(FATAL_ERROR "Could not find CUDA headers although CUDA compiler was found. Please check your installation!")
-	 ELSE(NOT FOUND_CUDA_NVCC_INCLUDE AND CUDA_NVCC)
+	 ELSE(CUDA_NVCC)
 		 # Set the initial include dir.
 		 SET (CUDA_NVCC_INCLUDE_ARGS "-I${FOUND_CUDA_NVCC_INCLUDE}")
-		 SET (CUDA_INCLUDE ${FOUND_CUDA_NVCC_INCLUDE} CACHE STRING "Path where to find CUDA includes.")
 
 		 MARK_AS_ADVANCED(
-					 FOUND_CUDA_NVCC_INCLUDE
 					 CUDA_NVCC_INCLUDE_ARGS
 		 )
-	 ENDIF(NOT FOUND_CUDA_NVCC_INCLUDE AND CUDA_NVCC)
+	 ENDIF(CUDA_NVCC)
 
-ENDIF(CUDA_INCLUDE)
-
-# Setup include directories to the cuda includes, maybe need for the examples
-IF(CUDA_INCLUDE)
-	INCLUDE_DIRECTORIES( ${CUDA_INCLUDE} )
 ENDIF(CUDA_INCLUDE)
 
 
@@ -234,29 +230,29 @@ ENDIF(CUDA_INCLUDE)
 # --------------------------------------
 IF (NOT CUDA_TARGET_LINK)
 
-  FIND_LIBRARY(FOUND_CUDART
+  FIND_LIBRARY(CUDA_LIB_RT
     cudart
-    PATHS ${CUDA_SDK_DIR}/lib64 
+    PATHS ${CUDA_DIR}/lib64
+          ${CUDA_DIR}/lib
+          ${CUDA_DIR}
+		  ${CUDA_SDK_DIR}/lib64 
           ${CUDA_SDK_DIR}/lib
           $ENV{CUDA_LIB_PATH}
           ${CMAKE_INSTALL_PREFIX}/lib64
           ${CMAKE_INSTALL_PREFIX}/lib
           ${CMAKE_INSTALL_PREFIX}/cuda/lib64
           ${CMAKE_INSTALL_PREFIX}/cuda/lib
-          ${CUDA_DIR}/lib64
-          ${CUDA_DIR}/lib
-          ${CUDA_DIR}
     DOC "\"cudart\" library"
     )
 
   # Check to see if cudart library was found.
-  IF(NOT FOUND_CUDART)
+  IF(NOT CUDA_LIB_RT)
     MESSAGE(STATUS "Could not find cudart library (cudart)")
-  ENDIF(NOT FOUND_CUDART)
+  ENDIF(NOT CUDA_LIB_RT)
 
   # 1.1 toolkit on linux doesn't appear to have a separate library on
   # some platforms.
-  FIND_LIBRARY(FOUND_CUDA
+  FIND_LIBRARY(CUDA_LIB
     cuda
     PATHS ${CUDA_SDK_DIR}/lib64 
           ${CUDA_SDK_DIR}/lib
@@ -277,123 +273,23 @@ IF (NOT CUDA_TARGET_LINK)
     )
 
   # Add cuda library to the link line only if it is found.
-  IF (FOUND_CUDA)
-    SET(CUDA_TARGET_LINK ${FOUND_CUDA})
-  ENDIF(FOUND_CUDA)
+  IF (CUDA_LIB)
+    SET(CUDA_TARGET_LINK ${CUDA_LIB})
+  ENDIF(CUDA_LIB)
 
   # Always add cudart to the link line.
-  IF(FOUND_CUDART)
+  IF(CUDA_LIB_RT)
     SET(CUDA_TARGET_LINK
-      ${CUDA_TARGET_LINK} ${FOUND_CUDART}
+      ${CUDA_TARGET_LINK} ${CUDA_LIB_RT}
       )
     MARK_AS_ADVANCED(
       CUDA_TARGET_LINK
-      CUDA_LIB
-      FOUND_CUDA
-      FOUND_CUDART
       )
-  ELSE(FOUND_CUDART)
+  ELSE(CUDA_LIB_RT)
     MESSAGE(STATUS "Could not find cuda libraries.")
-  ENDIF(FOUND_CUDART)
+  ENDIF(CUDA_LIB_RT)
 
 ENDIF(NOT CUDA_TARGET_LINK)
-
-
-# --------------------------------------
-# CUDA_CUT_INCLUDE
-# --------------------------------------
-# IF(NOT CUDA_CUT_INCLUDE)
-#   FIND_PATH(FOUND_CUT_INCLUDE
-#     cutil.h
-#     PATHS ${CUDA_SDK_DIR}/local/NVSDK0.2/common/inc
-#           ${CUDA_SDK_DIR}/NVSDK0.2/common/inc
-#           ${CUDA_SDK_DIR}/NV_CUDA_SDK/common/inc
-#           $ENV{HOME}/NVIDIA_CUDA_SDK/common/inc
-#           $ENV{HOME}/NVIDIA_CUDA_SDK_MACOSX/common/inc
-#           $ENV{NVSDKCUDA_ROOT}/common/inc
-#           ${CMAKE_INSTALL_PREFIX}/include
-#           ${CMAKE_INSTALL_PREFIX}/cuda/include
-# 			 ${CUDA_DIR}/local/NVSDK0.2/common/inc
-#           ${CUDA_DIR}/NVSDK0.2/common/inc
-#           ${CUDA_DIR}/NV_CUDA_SDK/common/inc
-#           ${CUDA_DIR}/include
-#           ${CUDA_DIR}
-#     DOC "Location of cutil.h"
-#     )
-#   IF(FOUND_CUT_INCLUDE)
-#     SET(CUDA_CUT_INCLUDE ${FOUND_CUT_INCLUDE})
-#     MARK_AS_ADVANCED(
-#       FOUND_CUT_INCLUDE
-#       )
-#   ENDIF(FOUND_CUT_INCLUDE)
-# ENDIF(NOT CUDA_CUT_INCLUDE)
-
-
-# --------------------------------------
-# CUDA_CUT_TARGET_LINK
-# --------------------------------------
-# IF(NOT CUDA_CUT_TARGET_LINK)
-# 	FIND_LIBRARY(FOUND_CUT
-# 		  cutil
-# 		  cutil32
-# 		  PATHS ${CUDA_SDK_DIR}/local/NVSDK0.2/lib
-# 				  ${CUDA_SDK_DIR}/NVSDK0.2/lib
-# 				  ${CUDA_SDK_DIR}/NV_CUDA_SDK/lib
-# 				  $ENV{HOME}/NVIDIA_CUDA_SDK/lib
-# 				  $ENV{HOME}/NVIDIA_CUDA_SDK_MACOSX/lib
-# 				  $ENV{NVSDKCUDA_ROOT}/common/lib
-# 				  ${CMAKE_INSTALL_PREFIX}/lib
-# 				  ${CMAKE_INSTALL_PREFIX}/cuda/lib
-# 				  ${CUDA_DIR}/local/NVSDK0.2/lib
-# 				  ${CUDA_DIR}/NVSDK0.2/lib
-# 				  ${CUDA_DIR}/NV_CUDA_SDK/lib
-# 				  ${CUDA_DIR}/lib
-# 				  ${CUDA_DIR}
-# 		  NO_DEFAULT_PATH
-# 		  NO_CMAKE_ENVIRONMENT_PATH
-# 		  NO_CMAKE_PATH
-# 		  NO_SYSTEM_ENVIRONMENT_PATH
-# 		  NO_CMAKE_SYSTEM_PATH
-# 		  DOC "Location of cutil library"
-# 		  )
-# 	IF(FOUND_CUT)
-# 		  SET(CUDA_CUT_TARGET_LINK ${FOUND_CUT})
-# 		  MARK_AS_ADVANCED(
-# 		 FOUND_CUT
-# 		 )
-# 	ENDIF(FOUND_CUT)
-# 
-# 	 # Add variables for cufft and cublas target link
-# 	 FIND_LIBRARY(FOUND_CUFFTEMU
-# 	cufftemu
-# 	PATHS ${CUDA_SDK_DIR}/lib $ENV{CUDA_LIB_PATH}
-# 	DOC "\"cufftemu\" library"
-# 	)
-# 	 FIND_LIBRARY(FOUND_CUBLASEMU
-# 	cublasemu
-# 	PATHS ${CUDA_SDK_DIR}/lib $ENV{CUDA_LIB_PATH}
-# 	DOC "\"cublasemu\" library"
-# 	)
-# 	 FIND_LIBRARY(FOUND_CUFFT
-# 	cufft
-# 	PATHS ${CUDA_SDK_DIR}/lib $ENV{CUDA_LIB_PATH}
-# 	DOC "\"cufft\" library"
-# 	)
-# 	 FIND_LIBRARY(FOUND_CUBLAS
-# 	cublas
-# 	PATHS ${CUDA_SDK_DIR}/lib $ENV{CUDA_LIB_PATH}
-# 	DOC "\"cublas\" library"
-# 	)
-# 
-# 	 IF (CUDA_BUILD_TYPE MATCHES "Emulation")
-# 	    SET(CUFFT_TARGET_LINK  ${FOUND_CUFFTEMU})
-# 	    SET(CUBLAS_TARGET_LINK ${FOUND_CUBLASEMU})
-# 	 ELSE(CUDA_BUILD_TYPE MATCHES "Emulation")
-# 	    SET(CUFFT_TARGET_LINK  ${FOUND_CUFFT})
-# 	    SET(CUBLAS_TARGET_LINK ${FOUND_CUBLAS})
-# 	 ENDIF(CUDA_BUILD_TYPE MATCHES "Emulation")
-# 
-# ENDIF(NOT CUDA_CUT_TARGET_LINK)
 
 
 
