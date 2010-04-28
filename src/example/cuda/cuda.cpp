@@ -129,7 +129,7 @@ int main(int argc, char **argv)
         if (notFound) notFound = !unitCuda->loadModule("../lib/Release/osgppu_cudakernel.dll");
 	#endif 
 #else
-    #ifdef _DEBUG
+    #ifndef NDEBUG
         notFound = !unitCuda->loadModule("libosgppu_cudakerneld.so");
         if (notFound) notFound = !unitCuda->loadModule("osgppu_cudakerneld.so");
         if (notFound) notFound = !unitCuda->loadModule("../lib/libosgppu_cudakerneld.so");

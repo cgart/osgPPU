@@ -215,30 +215,34 @@ namespace osgPPU
         }
 
         popFrameBufferObject(*info.getState());
-        
+
+
         // return false, so that parent drawable will not be rendered
         // this unit does the handling of drawables manually
         return false;
     }
 
     //--------------------------------------------------------------------------
-    void UnitInMipmapOut::noticeFinishRendering(osg::RenderInfo &renderInfo, const osg::Drawable* drawable)
+    void UnitInMipmapOut::noticeFinishRendering(osg::RenderInfo &info, const osg::Drawable* drawable)
     {
         // this method will be called everytime when a drawable of this unit
         // is rendered. Hence we check here if we are using hardware mipmap 
         // generation and apply this if neccessary
 
         // if we have used a shader to generate mipmaps, then we can safely return
-        if (mUseShader) return;
+        if (mUseShader)
+        {
+            return;
+        }
 
         // get the fbo extensions
-        osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(renderInfo.getContextID(),true);
+        osg::FBOExtensions* fbo_ext = osg::FBOExtensions::instance(info.getContextID(),true);
         
         // we don't use shader, that means that the mipmaps are generated in hardware, hence do this
         std::map<int, osg::ref_ptr<osg::Texture> >::iterator it = mOutputTex.begin();
         for (; it != mOutputTex.end(); it++)
         {
-            renderInfo.getState()->applyTextureAttribute(0, it->second.get());
+            info.getState()->applyTextureAttribute(0, it->second.get());
             fbo_ext->glGenerateMipmapEXT(it->second->getTextureTarget());
         }
     }

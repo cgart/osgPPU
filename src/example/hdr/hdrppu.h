@@ -34,12 +34,12 @@ class HDRRendering
         // Setup default hdr values
         HDRRendering()
         {
-            mMidGrey = 0.45;
+            mMidGrey = 0.045;
             mHDRBlurSigma = 4.0;
             mHDRBlurRadius = 7.0;
             mGlareFactor = 2.5;
-            mMinLuminance = 0.2;
-            mMaxLuminance = 5.0;
+            mMinLuminance = 0.3;
+            mMaxLuminance = 5.5;
             mAdaptFactor = 0.01;
         }
 
@@ -115,6 +115,7 @@ class HDRRendering
                 // Here no new textures are generated, but hte input texture is get
                 // additional mipmap levels, where we store our results
                 sceneLuminance->generateMipmapForInputTexture(0);
+                sceneLuminance->setUseShader(true);
             }
             pixelLuminance->addChild(sceneLuminance);
 

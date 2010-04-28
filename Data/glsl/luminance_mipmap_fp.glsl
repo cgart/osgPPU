@@ -3,6 +3,10 @@
  * see http://msdn2.microsoft.com/en-us/library/bb173484(VS.85).aspx
  */
 
+// This extension support is required for proper handling of texture2DLod function
+#extension GL_EXT_gpu_shader4  : enable
+#extension GL_ATI_shader_texture_lod : enable
+
 // -------------------------------------------------------
 // Texture units used for texturing
 // -------------------------------------------------------
@@ -58,7 +62,7 @@ void main(void)
         
         // get texel from the previous mipmap level
         //c[i] = texelFetch2D(texUnit0, ivec2(size * st[i]), (int)osgppu_MipmapLevel - 1).r;
-        c[i] = texture2D(texUnit0, st[i], osgppu_MipmapLevel - 1.0).r;
+        c[i] = texture2DLod(texUnit0, st[i], osgppu_MipmapLevel - 1.0).r;
     }
 
     // if we compute the first mipmap level, then just compute the sum
@@ -69,6 +73,9 @@ void main(void)
         res += log(epsilon + c[1]);
         res += log(epsilon + c[2]);
         res += log(epsilon + c[3]);
+
+        // we prevent negative values by checking if computed log value is below 0
+        res = max(res, 0.0);
 
     // for the rest we just compute the sum of underlying values
     }else
@@ -85,8 +92,8 @@ void main(void)
     // if we are in the last mipmap level
     if (osgppu_MipmapLevelNum - osgppu_MipmapLevel < 2.0)
     {
-        // exponentiate
-        res = exp(res);
+        // exponentiate (substract 1 to correct the zero point)
+        res = exp(res) - 1.0;
     }
 
     // result
