@@ -3,6 +3,11 @@
  * see http://msdn2.microsoft.com/en-us/library/bb173484(VS.85).aspx
  */
 
+// This extension support is required for proper handling of texture2DLod function
+#extension GL_EXT_gpu_shader4  : enable
+#extension GL_ATI_shader_texture_lod : enable
+
+
 // -------------------------------------------------------
 // Texture units used for texturing
 // -------------------------------------------------------
@@ -33,7 +38,7 @@ const float TauRod = 0.04;
 void main(void)
 {
     // get current luminance, this one is stored in the last mipmap level
-    float current = texture2D(texLuminance, vec2(0.5,0.5), 100.0).x;
+    float current = texture2DLod(texLuminance, vec2(0.5,0.5), 100.0).x;
     
     // get old adapted luminance value
     float old = texture2D(texAdaptedLuminance, vec2(0.5,0.5)).w;

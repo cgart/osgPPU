@@ -406,7 +406,7 @@ int main(int argc, char **argv)
     viewer->setUpViewInWindow((screenWidth-windowWidth)/2, (screenHeight-windowHeight)/2, windowWidth, windowHeight);
     osgViewer::GraphicsWindow* window = dynamic_cast<osgViewer::GraphicsWindow*>(viewer->getCamera()->getGraphicsContext());
     if (window) window->setWindowName("HDR Example");
-    //viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
     // setup scene
     osg::Group* node = new osg::Group();
