@@ -74,9 +74,6 @@ void main(void)
         res += log(epsilon + c[2]);
         res += log(epsilon + c[3]);
 
-        // we prevent negative values by checking if computed log value is below 0
-        res = max(res, 0.0);
-
     // for the rest we just compute the sum of underlying values
     }else
     {
@@ -92,8 +89,8 @@ void main(void)
     // if we are in the last mipmap level
     if (osgppu_MipmapLevelNum - osgppu_MipmapLevel < 2.0)
     {
-        // exponentiate (substract 1 to correct the zero point)
-        res = exp(res) - 1.0;
+        // exponentiate
+        res = exp(res);
     }
 
     // result
