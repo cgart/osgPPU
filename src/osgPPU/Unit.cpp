@@ -156,6 +156,9 @@ osg::Drawable* Unit::createTexturedQuadDrawable(const osg::Vec3& corner,const os
 
     osg::Geometry* geom = new osg::Geometry;
 
+    /// To exclude drawable from near-far computation.
+    geom->setComputeBoundingBoxCallback(new osg::Drawable::ComputeBoundingBoxCallback());
+
     // Vertex coordinates
     osg::Vec3Array* coords = new osg::Vec3Array(4);
     (*coords)[0] = corner+heightVec;
@@ -719,6 +722,8 @@ void Unit::DrawCallback::drawImplementation (osg::RenderInfo& ri, const osg::Dra
         {    
             ri.getState()->applyProjectionMatrix(_parent->sProjectionMatrix.get());
             ri.getState()->applyModelViewMatrix(_parent->sModelviewMatrix.get());
+
+            ri.getState()->applyModelViewAndProjectionUniformsIfRequired(); // (AI)
 
             if (_parent->getBeginDrawCallback())
                 (*_parent->getBeginDrawCallback())(ri, _parent);
