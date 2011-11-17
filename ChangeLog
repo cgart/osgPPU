@@ -1,5242 +1,1575 @@
-2010-01-26 15:06  art
-
-	* [r245]
-	  From
-	  Christian
-	  Richardt: -
-	  
-	  fix
-	  a
-	  few
-	  shaders
-	  in
-	  order
-	  to
-	  get
-	  it
-	  working
-	  on
-	  my
-	  ATI
-	  card.
-
-2010-01-05 07:54  art
-
-	* [r244]
-	  From
-	  Bryan
-	  Thrall: -
-	  The
-	  last
-	  two
-	  paths
-	  in
-	  OSG_SEARCH_PATHS
-	  in
-	  osgPPU's
-	  FindOSG.cmake
-	  don't
-	  properly
-	  escape
-	  backslashes,
-	  causing
-	  CMake
-	  (I'm
-	  using
-	  version
-	  2.6)
-	  to
-	  error
-	  when
-	  trying
-	  to
-	  configure
-	  on
-	  Windows
-	  and
-	  osgPPU
-	  is
-	  not
-	  right
-	  next
-	  to
-	  OSG:
-
-2009-12-17 10:24  art
-
-	* [r243]
-	  -
-	  changed
-	  list
-	  of
-	  contributors
-
-2009-12-17 10:23  art
-
-	* [r242]
-	  From
-	  Paul
-	  Martz:
-	  -
-	  modified
-	  the
-	  FindOSG.cmake
-	  script
-	  so
-	  that
-	  it
-	  looks
-	  in
-	  MS
-	  Windows
-	  standard
-	  OSG
-	  install
-	  locations
-
-2009-12-04 13:29  art
-
-	* [r241]
-	  
-
-2009-12-04 13:20  art
-
-	* [r240]
-	  From
-	  J.P.
-	  Delport:
-	  -
-	  Implementing
-	  TextureRectangle
-	  support
-	  for
-	  osgPPU,
-	  as
-	  we
-	  use
-	  them
-	  in
-	  other
-	  non-osgPPU
-	  stages
-	  of
-	  our
-	  pipeline.
-	  The
-	  main
-	  difference
-	  is
-	  the
-	  setup
-	  of
-	  the
-	  quad
-	  to
-	  be
-	  rendered:
-	  if
-	  the
-	  input
-	  texture
-	  is
-	  a
-	  rect,
-	  then
-	  the
-	  quad
-	  coords
-	  must
-	  be
-	  set
-	  up
-	  correctly.
-
-2009-12-03 13:15  art
-
-	* [r239]
-	  
-
-2009-12-01 15:08  art
-
-	* [r238]
-	  -
-	  changes
-	  to
-	  reflect
-	  current
-	  osg
-	  svn
-	  repository
-	  (mostly
-	  gl..EXT
-	  has
-	  been
-	  removed
-	  by
-	  (gl..)
-
-2009-11-04 20:50  art
-
-	* [r237]
-	  -
-	  bugs
-	  in
-	  capture
-	  unit
-	  solved -
-	  can
-	  now
-	  capture
-	  just
-	  one
-	  frame
-
-2009-10-30 18:53  art
-
-	* [r236]
-	  -
-	  HDR
-	  example
-	  almost
-	  supports
-	  resizing
-	  (it
-	  seems
-	  that
-	  OSG
-	  has
-	  a
-	  bug
-	  when
-	  resizing
-	  camera's
-	  FBO
-	  texture,
-	  have
-	  to
-	  proove
-	  that
-	  later) -
-	  small
-	  bugfixes -
-	  UnitInResampleOut
-	  should
-	  resize
-	  correctly
-	  even
-	  if
-	  it
-	  was
-	  marked
-	  as
-	  dirty
-	  in
-	  several
-	  frames.
-	  Before
-	  it
-	  has
-	  recized
-	  itself
-	  every
-	  time
-	  with
-	  resize
-	  factor
-	  and
-	  could
-	  cause
-	  to
-	  multiple
-	  resizement
-	  when
-	  multiple
-	  times
-	  marked
-	  as
-	  dirty
-
-2009-10-27 08:57  art
-
-	* [r235]
-	  -
-	  improve
-	  the
-	  onViewportChange
-	  functionality
-	  in
-	  the
-	  processor -
-	  dynamic
-	  resizing
-	  of
-	  osgppu
-	  pipeline
-	  do
-	  almost
-	  work
-	  now -
-	  HDR
-	  example
-	  don't
-	  work
-	  with
-	  resizing
-
-2009-10-26 15:28  art
-
-	* [r234]
-	  -
-	  unneeded
-	  visitors
-	  removed -
-	  Changes
-	  in
-	  UnitBypassRepeat
-	  iterative
-	  traversion
-	  (there
-	  was
-	  a
-	  bug)
-
-2009-10-26 11:07  art
-
-	* [r233]
-	  -
-	  added
-	  error
-	  message
-	  if
-	  file
-	  not
-	  found
-
-2009-10-23 19:29  art
-
-	* [r232]
-	  -
-	  UnitInHistoryOut
-	  warnings
-	  added
-	  that
-	  currently
-	  not
-	  implemented
-
-2009-10-23 19:23  art
-
-	* [r231]
-	  -
-	  window
-	  title
-	  in
-	  examples
-	  added -
-	  new
-	  example
-	  showing
-	  UnitBypassRepeat
-	  in
-	  action
-	  (diffusion) -
-	  motionblur
-	  example,
-	  simpel
-	  motionblur
-	  by
-	  loading
-	  .ppu
-	  file -
-	  a
-	  lot
-	  of
-	  bug
-	  fixes -
-	  new
-	  images
-	  of
-	  Lenna
-
-2009-10-23 19:22  art
-
-	* [r230]
-	  -
-	  new
-	  unit:
-	  UnitBypassRepeat
-	  which
-	  can
-	  iteratively
-	  repeat
-	  its
-	  subgraph
-	  (very
-	  usefull
-	  for
-	  iterative
-	  algrithms) -
-	  a
-	  lot
-	  of
-	  bug
-	  fixes -
-	  comment
-	  fixes
-
-2009-10-23 15:03  art
-
-	* [r229]
-	  -
-	  when
-	  looking
-	  for
-	  CUDA
-	  installation
-	  first
-	  look
-	  in
-	  lib64
-	  then
-	  lib
-	  directories.
-	  Just
-	  assume,
-	  that
-	  on
-	  32bit
-	  system
-	  there
-	  is
-	  no
-	  lib64.
-	  On
-	  64bit
-	  systems
-	  there
-	  are
-	  both,
-	  hence
-	  first
-	  one
-	  should
-	  be
-	  used.
-
-2009-10-23 12:44  art
-
-	* [r228]
-	  From
-	  J.P.
-	  Delport:
-	  -
-	  CMake
-	  path
-	  changes
-	  to
-	  support
-	  Debian64
-	  (lib64
-	  added)
-
-2009-10-13 17:55  art
-
-	* [r227]
-	  -
-	  reenable
-	  multithreading
-	  in
-	  hdr
-	  example
-
-2009-10-13 17:46  art
-
-	* [r226]
-	  -
-	  handling
-	  of
-	  mipmaps
-	  was
-	  wrong
-	  in
-	  previous
-	  version -
-	  rewritten
-	  the
-	  units
-	  handling
-	  with
-	  mipmaps
-	  in
-	  order
-	  to
-	  be
-	  visible
-	  when
-	  running
-	  in
-	  debug
-	  mode
-	  as
-	  also
-	  to
-	  render
-	  correctly -
-	  hdr
-	  example
-	  should
-	  work
-	  now
-	  more
-	  correct
-	  then
-	  before
-
-2009-10-12 12:43  art
-
-	* [r225]
-	  -
-	  support
-	  for
-	  osg
-	  2.9.6 -
-	  small
-	  changes
-	  in
-	  glow
-	  example
-
-2009-08-11 16:42  art
-
-	* [r224]
-	  -
-	  Units
-	  are
-	  now
-	  handling
-	  FBO
-	  support
-	  by
-	  them
-	  self -
-	  This
-	  is
-	  a
-	  neccessary
-	  step
-	  to
-	  allow
-	  an
-	  inbetween
-	  computation
-	  of
-	  Units
-	  in
-	  the
-	  scene
-	  graph -
-	  see
-	  thread
-	  "Running
-	  the
-	  processor
-	  between
-	  pre-render
-	  and
-	  main
-	  render"
-	  on
-	  the
-	  mailing
-	  list
-	  or
-	  forum
-
-2009-08-10 11:26  art
-
-	* [r223]
-	  -
-	  UnitInHistoryOut:
-	  class
-	  is
-	  not
-	  used
-	  now,
-	  however
-	  error
-	  when
-	  compiling,
-	  hence
-	  corrected
-	  this
-	  error
-
-2009-07-14 23:35  art
-
-	* [r222]
-	  
-
-2009-05-21 09:56  art
-
-	* [r221]
-	  -
-	  glow
-	  example
-	  changed
-	  to
-	  support
-	  depth
-
-2009-05-21 00:09  art
-
-	* [r220]
-	  -
-	  added
-	  history
-	  class -
-	  changed
-	  glow
-	  example
-	  to
-	  support
-	  depth
-	  values,
-	  however
-	  still
-	  in
-	  progress
-
-2009-03-27 12:02  art
-
-	* [r219]
-	  
-
-2009-03-26 17:38  art
-
-	* [r218]
-	  -
-	  so
-	  now
-	  policy
-	  should
-	  be
-	  handled
-	  properly
-
-2009-03-26 17:30  art
-
-	* [r217]
-	  -
-	  removed
-	  the
-	  policy,
-	  because
-	  it
-	  doesn't
-	  work
-	  on
-	  older
-	  version
-	  of
-	  CMake
-	  (TODO:
-	  correct
-	  policy!!!)
-
-2009-03-26 17:29  art
-
-	* [r216]
-	  -
-	  changes
-	  to
-	  the
-	  CMake
-	  system
-	  to
-	  support
-	  package
-	  building -
-	  also
-	  now
-	  includes
-	  the
-	  Config.h
-	  intoi
-	  installation
-	  path
-
-2009-03-26 15:47  art
-
-	* [r215]
-	  -
-	  small
-	  changed
-	  to
-	  FindCUDA
-	  to
-	  support
-	  linux
-	  non-cuda
-	  environment
-
-2009-03-26 15:32  art
-
-	* [r214]
-	  -
-	  first
-	  try
-	  to
-	  setup
-	  packaging
-	  support
-	  as
-	  for
-	  openscenegraph
-
-2009-03-26 14:03  art
-
-	* [r213]
-	  -
-	  corrected
-	  the
-	  osgversion
-	  command
-	  execution
-
-2009-03-26 13:59  art
-
-	* [r212]
-	  -
-	  corrected
-	  the
-	  osgversion
-	  command
-	  execution
-
-2009-03-26 13:39  art
-
-	* [r211]
-	  -
-	  changed
-	  CMake
-	  files
-	  to
-	  remove
-	  all
-	  unneccesary
-	  stuff -
-	  removed
-	  cuda
-	  util
-	  libraries,
-	  because
-	  they
-	  are
-	  curently
-	  not
-	  needed
-
-2009-03-25 17:48  art
-
-	* [r210]
-	  From
-	  Oleg
-	  Dedkow: 1)
-	  You
-	  have
-	  to
-	  add
-	  the
-	  following
-	  value -ccbin
-	  "$(VCInstallDir)bin"
-	  -DWIN32 to
-	  the
-	  CUDA_NVCC_FLAGS
-	  variable.
-	  2)
-	  The
-	  auto-generated
-	  "cudakernel"
-	  project
-	  does
-	  not
-	  contain
-	  the "Export.h"
-	  file.
-	  3)
-	  The
-	  "cudakernel"
-	  project
-	  does
-	  not
-	  contain
-	  references
-	  to
-	  the
-	  following needed
-	  libraries: "osg.lib",
-	  "OpenThreads.lib"
-	  and
-	  "osgPPU.lib" (Debug:
-	  "osgd.lib",
-	  "OpenThreadsd.lib"
-	  and
-	  "osgPPUd.lib")
-	  
-
-2009-03-25 14:22  art
-
-	* [r209]
-	  -
-	  changes
-	  to
-	  test
-	  on
-	  a
-	  Windows
-	  machine
-	  if
-	  cuda
-	  examples
-	  compiles
-	  correctly
-
-2009-03-23 14:50  art
-
-	* [r208]
-	  -
-	  contributor
-	  list
-	  and
-	  changelog
-	  changes
-
-2009-03-23 14:46  art
-
-	* [r207]
-	  -
-	  small
-	  bugfixes
-	  in
-	  the
-	  examples
-
-2009-03-23 14:45  art
-
-	* [r206]
-	  From
-	  Oleg
-	  Dedkow: The
-	  recent
-	  NVCC
-	  version
-	  (V2.1
-	  beta
-	  for
-	  64-Bit
-	  Windows
-	  Vista)
-	  cannot
-	  be
-	  used
-	  from
-	  VS
-	  2008
-	  environment
-	  to
-	  compile
-	  "cu"
-	  files
-	  containing
-	  both
-	  CUDA
-	  functions
-	  and
-	  C++
-	  classes.
-	  The
-	  file
-	  "kernel.cu"
-	  has
-	  been
-	  splitted
-	  in
-	  two
-	  parts:
-	  CUDA
-	  and
-	  C++
-	  respectively.
-	  This
-	  should
-	  solve
-	  the
-	  problem
-	  of
-	  compiling
-	  the
-	  cuda
-	  example
-	  on
-	  64Bit
-	  Windows
-	  systems.
-
-2009-02-23 19:26  art
-
-	* [r205]
-	  -
-	  full
-	  support
-	  for
-	  osg
-	  2.8 -
-	  New
-	  Modules:
-	  
-	  
-	  
-	  --
-	  UnitInOutModule
-	  processing
-	  units
-	  can
-	  now
-	  be
-	  loaded
-	  from
-	  .so/.dll
-	  modules
-	  
-	  
-	  --
-	  UnitCamera
-	  -
-	  bring
-	  additional
-	  cameras
-	  into
-	  the
-	  osgppu
-	  pipeline
-	  (usefull
-	  for
-	  multiple
-	  cameras
-	  being
-	  processed
-	  by
-	  osgPPU) -
-	  deprecated
-	  class
-	  "Shader"
-	  removed
-	  (use
-	  ShaderAttribute
-	  instead) -
-	  small
-	  build
-	  fixes
-	  (changed
-	  Cmake
-	  files) -
-	  examples
-	  do
-	  build
-	  now
-	  with
-	  osgppu_
-	  prefix -
-	  support
-	  for
-	  .so
-	  version
-	  build
-	  extensions
-	  (i.e.
-	  libosgPPU.so.0.4.0) -
-	  new
-	  examples:
-	  
-	  
-	  --
-	  ssao
-	  -
-	  simple
-	  screen
-	  space
-	  ambient
-	  occlusion
-	  
-	  
-	  --
-	  glow
-	  -
-	  simple
-	  example
-	  shows
-	  how
-	  to
-	  use
-	  osgPPU
-	  to
-	  let
-	  certain
-	  objects
-	  glow)
-	  
-	  
-	  --
-	  cuda
-	  -
-	  shows
-	  how
-	  to
-	  compile
-	  and
-	  use
-	  CUDA
-	  kernels
-	  together
-	  in
-	  ppu
-	  pipeline
-	  
-	  
-	  --
-	  CUDA
-	  support
-	  -
-	  bring
-	  cuda
-	  kernels
-	  into
-	  osgPPU
-	  pipeline,
-	  by
-	  loading
-	  CUDA-kernel
-	  through
-	  UnitInOutModule
-	  unit
-	  (CUDA
-	  kernels
-	  has
-	  to
-	  be
-	  compiled
-	  externally
-	  into
-	  an
-	  .so/.dll
-	  file) -
-	  full
-	  support
-	  for
-	  "NodeKit"
-	  definition
-	  ;)
-
-2009-02-23 19:14  art
-
-	* [r201]
-	  -
-	  cuda
-	  workaround
-	  for
-	  broken
-	  compilers
-	  added -
-	  IO
-	  support
-	  for
-	  UnitInOutModule
-	  added -
-	  new
-	  .ppu
-	  file
-	  which
-	  does
-	  just
-	  load
-	  a
-	  CUDA
-	  kernel
-	  module
-	  
-
-2009-02-23 18:17  art
-
-	* [r199]
-	  -
-	  remove
-	  deprecated
-	  classes
-	  compeltly
-
-2009-02-05 01:00  art
-
-	* [r196]
-	  -
-	  example
-	  showing
-	  glow
-	  effect
-	  complete -
-	  maybe
-	  we
-	  could
-	  add
-	  more
-	  functionality
-	  into
-	  this
-	  effect,
-	  however
-	  it
-	  is
-	  not
-	  relly
-	  needed
-	  ;)
-
-2009-02-05 00:10  art
-
-	* [r195]
-	  -
-	  new
-	  example
-	  showing
-	  glow
-	  effect
-	  in
-	  action -
-	  an
-	  object
-	  is
-	  rendered
-	  by
-	  a
-	  slave
-	  camera
-	  and
-	  blurred
-	  by
-	  gauss
-	  blur
-	  function -
-	  example
-	  is
-	  still
-	  not
-	  complete
-	  and
-	  has
-	  to
-	  be
-	  completed
-	  soon
-
-2009-02-02 15:29  art
-
-	* [r194]
-	  -
-	  append
-	  so
-	  versioned
-	  dll
-	  names
-	  as
-	  in
-	  the
-	  main
-	  osg
-	  cmake
-	  file
-
-2009-02-02 15:13  art
-
-	* [r193]
-	  -
-	  prevent
-	  warnings
-	  in
-	  windows
-	  cmake
-	  2.6
-	  -
-	  project
-	  is
-	  now
-	  compilable
-	  and
-	  usable
-	  under
-	  windows
-
-2009-01-30 21:46  art
-
-	* [r192]
-	  
-
-2009-01-30 21:44  art
-
-	* [r191]
-	  -
-	  warning
-	  about
-	  possible
-	  wrong
-	  parentheses
-	  corrected
-
-2009-01-29 15:44  art
-
-	* [r189]
-	  -
-	  renamed
-	  execution
-	  files
-	  of
-	  exampels
-	  with
-	  osgppu_
-	  prefix -
-	  error
-	  caused
-	  to
-	  hang
-	  when
-	  loading
-	  .ppu
-	  files
-	  is
-	  fixed -
-	  error
-	  messages
-	  added
-	  to
-	  the
-	  examples
-	  to
-	  let
-	  the
-	  user
-	  know,
-	  that
-	  files
-	  where
-	  not
-	  loaded -
-	  .ppu
-	  pipeline
-	  files
-	  updates
-
-2009-01-29 14:56  art
-
-	* [r188]
-	  -
-	  enable
-	  Device
-	  mode
-	  for
-	  cuda
-	  compilation
-	  per
-	  default,
-	  only
-	  if
-	  cuda
-	  compiler
-	  was
-	  found
-
-2009-01-29 13:34  art
-
-	* [r187]
-	  -
-	  move
-	  authors.txt
-	  to
-	  contributors.txt -
-	  added
-	  soversion
-	  to
-	  the
-	  libosgppu
-	  shared
-	  library
-
-2009-01-14 11:06  art
-
-	* [r186]
-	  From
-	  Valery
-	  Bickov:
-	  
-	  
-	  -
-	  modified
-	  OsgPPUMacroUtils.cmake
-	  for
-	  correct
-	  variable
-	  names
-	  
-
-2009-01-02 17:43  art
-
-	* [r185]
-	  From
-	  Bob
-	  Kuehne: "this
-	  brings
-	  it
-	  in-sync
-	  with
-	  the
-	  out-of-source
-	  stuff
-	  that
-	  i
-	  helped
-	  osg
-	  do
-	  a
-	  while
-	  ago"
-
-2008-12-28 16:58  art
-
-	* [r184]
-	  -
-	  include
-	  cstring
-	  in
-	  Base.cpp
-	  of
-	  osgPlugins
-	  osgPPU
-
-2008-12-20 10:07  art
-
-	* [r183]
-	  -
-	  just
-	  changed
-	  the
-	  resolution
-	  slightly
-	  to
-	  increase
-	  the
-	  performance
-
-2008-12-19 15:06  art
-
-	* [r182]
-	  -
-	  SSAO
-	  added
-	  simple
-	  example
-
-2008-12-17 10:21  art
-
-	* [r181]
-	  -
-	  Each
-	  visitor
-	  do
-	  now
-	  returns
-	  its
-	  name
-	  as
-	  a
-	  string -
-	  Solve
-	  the
-	  problem
-	  of
-	  unit
-	  cycles
-	  which
-	  come
-	  from
-	  some
-	  undefined
-	  visitor
-	  running
-	  over
-	  the
-	  pipeline
-
-2008-12-04 22:42  art
-
-	* [r180]
-	  -
-	  Small
-	  change
-	  in
-	  the
-	  UnitCaputre,
-	  the
-	  results
-	  were
-	  broken
-
-2008-12-03 22:42  art
-
-	* [r179]
-	  -
-	  UnitBypass
-	  small
-	  changes
-
-2008-12-03 22:39  art
-
-	* [r177]
-	  -
-	  merge
-	  sandbox
-	  with
-	  trunk -
-	  now
-	  support
-	  for
-	  CUDA
-	  implemented -
-	  using
-	  PixelDataBufferObjects
-	  to
-	  map
-	  OpenGL
-	  textures
-	  into
-	  the
-	  buffer -
-	  buffer
-	  can
-	  be
-	  then
-	  used
-	  in
-	  an
-	  external
-	  modules
-	  loaded
-	  by
-	  UnitInOutModule -
-	  CUDA
-	  2.0
-	  example
-	  showing
-	  how
-	  to
-	  create
-	  and
-	  load
-	  an
-	  osgPPU
-	  Module
-	  to
-	  run
-	  a
-	  simple
-	  blur-cuda
-	  kernel
-	  on
-	  the
-	  input
-
-2008-11-19 16:05  art
-
-	* [r165]
-	  -
-	  UnitCamera
-	  -
-	  new
-	  unit
-	  to
-	  bring
-	  an
-	  external
-	  camera
-	  into
-	  the
-	  pipeline
-
-2008-11-19 15:44  art
-
-	* [r164]
-	  -
-	  camera
-	  attachment
-	  bypass
-	  added -
-	  now
-	  one
-	  can
-	  specify
-	  any
-	  camera
-	  to
-	  bring
-	  it
-	  into
-	  the
-	  osgppu
-	  pipeline
-
-2008-11-11 15:44  art
-
-	* [r163]
-	  -
-	  SSAO
-	  example
-	  deactivated
-
-2008-11-11 15:42  art
-
-	* [r162]
-	  From
-	  Jean-Sebastien
-	  Guay: On
-	  Windows,
-	  we
-	  need
-	  to
-	  have
-	  the
-	  'd'
-	  suffix
-	  on
-	  the
-	  plugin
-	  DLL
-	  too,
-	  and
-	  the
-	  code
-	  in
-	  CMakeModules/OsgPPUMacroUtils.cmake
-	  (SETUP_PLUGIN)
-	  just
-	  removed
-	  the
-	  suffix
-	  in
-	  the
-	  NOT
-	  MSVC
-	  case,
-	  but
-	  never
-	  added
-	  it
-	  in
-	  the
-	  else...
-	  so
-	  I
-	  added
-	  that.
-
-2008-10-27 15:34  art
-
-	* [r161]
-	  -
-	  make
-	  child
-	  units
-	  of
-	  the
-	  texture
-	  unit
-	  dirty
-	  after
-	  the
-	  texture
-	  was
-	  applied.
-	  This
-	  will
-	  force
-	  the
-	  child
-	  units
-	  to
-	  reload
-	  the
-	  input
-	  texture
-	  and
-	  to
-	  resetup
-	  its
-	  properties
-
-2008-10-20 11:59  art
-
-	* [r159]
-	  -
-	  critical
-	  bug
-	  in
-	  visitor
-	  corrected
-	  which
-	  hasn't
-	  incremented
-	  render
-	  bin
-	  numbers
-
-2008-10-13 10:14  art
-
-	* [r158]
-	  -
-	  From
-	  "Doug
-	  McCorkle":
-	  
-	  
-	  specify
-	  enabling/disabling
-	  of
-	  color
-	  clamping
-	  function
-	  in
-	  the
-	  processor.
-	  This
-	  is
-	  usefull
-	  in
-	  environments
-	  where
-	  color
-	  clamping
-	  is
-	  not
-	  supported
-	  or
-	  is
-	  not
-	  liked
-	  to
-	  be
-	  used.
-
-2008-10-09 21:59  art
-
-	* [r156]
-	  -
-	  v0.3
-	  tagged
-
-2008-10-09 16:05  art
-
-	* [r155]
-	  -
-	  RemoveUnit
-	  procedure
-	  corrected.
-	  Now
-	  the
-	  remove
-	  process
-	  is
-	  correct
-	  and
-	  can
-	  be
-	  safely
-	  used
-
-2008-10-09 00:14  art
-
-	* [r154]
-	  -
-	  just
-	  little
-	  bit
-	  more
-	  Debug
-	  information
-	  when
-	  requested
-
-2008-10-07 20:27  art
-
-	* [r153]
-	  -
-	  remove
-	  M_LN2
-	  constant
-	  out
-	  from
-	  the
-	  Mipmap
-	  Units
-	  and
-	  replaced
-	  by
-	  a
-	  direct
-	  computation
-
-2008-10-07 13:45  art
-
-	* [r152]
-	  -
-	  removed
-	  one
-	  of
-	  the
-	  deprecated
-	  messages
-
-2008-10-06 19:17  art
-
-	* [r151]
-	  -
-	  Some
-	  small
-	  changes
-	  before
-	  v0.3 -
-	  shaders
-	  for
-	  SSAO
-	  added
-	  however
-	  the
-	  example
-	  isn't
-	  activated
-	  at
-	  now
-
-2008-10-06 09:41  art
-
-	* [r150]
-	  -
-	  Windows-Build
-	  fixes
-	  (was
-	  missing
-	  OpenThreads
-	  library) -
-	  Visitor
-	  with
-	  OSGPPU_EXPORT
-	  exported
-	  (is
-	  needed
-	  for
-	  win32
-	  build) -
-	  Shaders
-	  corrected
-	  for
-	  very
-	  strict
-	  drivers
-
-2008-10-05 23:51  art
-
-	* [r149]
-	  -
-	  Multithreading
-	  issues
-	  corrected -
-	  new
-	  Visitor
-	  types
-	  defined,
-	  for
-	  simpler
-	  access -
-	  new
-	  example
-	  SSAO
-	  (however
-	  not
-	  fully
-	  implemented) -
-	  all
-	  problems
-	  in
-	  examples
-	  corrected
-
-2008-10-04 12:25  art
-
-	* [r148]
-	  -
-	  viewer
-	  run
-	  in
-	  single
-	  threaded
-	  mode
-
-2008-10-04 09:04  art
-
-	* [r147]
-	  From
-	  Adrian
-	  Egli: added
-	  parentheses
-	  in
-	  ShaderAttribute.cpp
-	  to
-	  reflect
-	  correct
-	  behaviour
-
-2008-10-02 14:08  art
-
-	* [r146]
-	  -
-	  new
-	  class
-	  UniCameraAttachmentBypass
-	  added,
-	  which
-	  brings
-	  different
-	  camera
-	  attachment
-	  sinto
-	  the
-	  pipeline -
-	  UnitDepthbuffeerBypass
-	  was
-	  reimplemented
-	  as
-	  derived
-	  class
-	  from
-	  UnitCamerAttachmentBypass -
-	  new
-	  example
-	  for
-	  Screen-Space
-	  Ambient
-	  Occlusion
-	  is
-	  in
-	  progress
-	  (it
-	  still
-	  doesn';t
-	  work
-	  properly)
-
-2008-09-19 10:03  art
-
-	* [r145]
-	  
-
-2008-09-18 09:45  art
-
-	* [r144]
-	  
-
-2008-09-10 11:18  art
-
-	* [r143]
-	  -
-	  From:
-	  Christian
-	  Heine
-	  -
-	  includes
-	  files
-	  to
-	  improve
-	  compatibility
-	  with
-	  new
-	  compiler
-	  version
-
-2008-08-27 18:31  art
-
-	* [r142]
-	  -
-	  ChangeLog
-
-2008-08-27 18:31  art
-
-	* [r141]
-	  
-
-2008-08-27 18:16  art
-
-	* [r140]
-	  -
-	  video
-	  processing
-	  example
-	  added -
-	  UnitInOut
-	  :
-	  subloadCallback
-	  slightly
-	  changed
-	  to
-	  support
-	  also
-	  empty
-	  modes
-
-2008-08-05 18:34  art
-
-	* [r139]
-	  -
-	  completlye
-	  change
-	  on
-	  ShaderAttribute
-	  is
-	  done
-	  now -
-	  Shader
-	  is
-	  deprecated
-	  and
-	  shouldn't
-	  be
-	  used
-	  anymore -
-	  next
-	  release
-	  is
-	  coming
-	  soon
-	  
-
-2008-08-04 19:27  art
-
-	* [r138]
-	  -
-	  osgPPU::Shader
-	  is
-	  deprecated
-	  now -
-	  osgPPU::ShaderAttribute
-	  now
-	  works
-	  fine.
-	  Some
-	  tests
-	  required. -
-	  all
-	  *.ppu
-	  files
-	  were
-	  updated -
-	  all
-	  examples
-	  were
-	  updated
-
-2008-07-27 15:35  art
-
-	* [r137]
-	  -
-	  ShaderAttribute
-	  continued
-	  work
-	  on
-	  it
-
-2008-07-21 18:06  art
-
-	* [r136]
-	  -
-	  ShaderAttribute
-	  class
-	  (in
-	  development)
-	  added
-
-2008-07-15 12:43  art
-
-	* [r135]
-	  -
-	  small
-	  changes
-	  in
-	  MRT
-	  support.
-	  Now
-	  no
-	  use
-	  of
-	  GLenums
-	  anymore
-	  but
-	  direct
-	  setting
-	  up
-	  through
-	  Camera::BufferAttachment
-
-2008-07-14 14:03  art
-
-	* [r134]
-	  -
-	  Render-to-3d-texture
-	  corrected
-	  -
-	  mrt
-	  support
-	  should
-	  be
-	  now
-	  correct
-
-2008-07-09 13:40  art
-
-	* [r133]
-	  -
-	  Support
-	  for
-	  MRT
-	  for
-	  3D
-	  textures
-	  as
-	  output
-	  textures
-	  added.
-	  The
-	  supprot
-	  should
-	  be
-	  tested!
-
-2008-07-08 19:21  art
-
-	* [r132]
-	  -
-	  forgot
-	  to
-	  add
-	  the
-	  Image
-	  ;)
-
-2008-07-08 19:20  art
-
-	* [r131]
-	  -
-	  Render-to-Cubemap/3DTexture
-	  parameters
-	  to
-	  the
-	  osgPPU
-	  .ppu
-	  Plugin
-	  added.
-
-2008-07-08 19:14  art
-
-	* [r130]
-	  -
-	  forgott
-	  to
-	  add
-	  the
-	  files
-	  ;)
-
-2008-07-08 19:14  art
-
-	* [r129]
-	  -
-	  Render-to-3D-texture
-	  support
-	  added.
-	  -
-	  Simple
-	  example
-	  demonstrating
-	  how
-	  to
-	  use
-	  osgPPU
-	  to
-	  render
-	  to
-	  certain
-	  slices
-	  of
-	  the
-	  3D
-	  texture
-	  is
-	  shown.
-
-2008-07-08 17:29  art
-
-	* [r128]
-	  -
-	  cubemap
-	  example
-	  missing
-	  Data
-	  added
-
-2008-07-08 12:25  art
-
-	* [r127]
-	  -
-	  Render-to-CubeMap
-	  example
-	  added -
-	  the
-	  example
-	  should
-	  be
-	  extended
-	  to
-	  really
-	  changed
-	  the
-	  color
-	  values
-	  of
-	  hte
-	  input
-	  cubemap
-	  texture.
-	  However
-	  this
-	  requires
-	  transformation
-	  of
-	  texel
-	  coordinates
-	  from
-	  the
-	  cubespace
-	  into
-	  2d
-	  space.
-	  Hence
-	  this
-	  is
-	  just
-	  a
-	  color
-	  example
-	  ;) -
-	  UnitInOut
-	  do
-	  now
-	  support
-	  renderin
-	  to
-	  cubemaps
-
-2008-07-04 12:55  art
-
-	* [r126]
-	  From
-	  Sean
-	  Carmody
-	  -
-	  support
-	  for
-	  output
-	  to
-	  CubeMaps
-	  from
-	  out
-	  of
-	  UnitInOut
-	  units
-	  -
-	  implementation
-	  was
-	  extended
-	  for
-	  future
-	  implementation
-	  of
-	  non-2d-output
-	  texture
-	  types
-	  -
-	  small
-	  changes
-	  in
-	  the
-	  interface:
-	  all
-	  set-methods
-	  about
-	  output
-	  texture
-	  are
-	  now
-	  moved
-	  to
-	  UnitInOut
-	  from
-	  Unit
-
-2008-07-01 11:36  art
-
-	* [r125]
-	  From
-	  Bob
-	  Kuehne: fixed
-	  PPU
-	  to
-	  work
-	  with
-	  the
-	  new
-	  birfucated
-	  osg/include
-	  header structure.
-	  three
-	  changes
-	  to
-	  a
-	  FindOSG.cmake
-	  module,
-	  and
-	  then
-	  to
-	  the parent
-	  CMakeLists.txt
-	  which
-	  uses
-	  that
-	  to
-	  setup
-	  include
-	  paths.
-
-2008-05-14 15:33  art
-
-	* [r124]
-	  -
-	  Version
-	  0.2
-	  tagged
-
-2008-05-14 10:28  art
-
-	* [r123]
-	  -
-	  Removed
-	  uneccesarry
-	  files -
-	  changed
-	  the
-	  documentation
-	  little
-	  bit
-	  to
-	  deprectate
-	  the
-	  current
-	  interface
-	  of
-	  the
-	  Shader
-	  class
-
-2008-05-13 09:36  art
-
-	* [r122]
-	  -
-	  osg::ref_ptr
-	  for
-	  the
-	  Camera
-	  object
-	  in
-	  the
-	  Processor
-	  class
-	  changed
-	  to
-	  osg::observer_ptr
-	  to
-	  overcome
-	  possible
-	  memory
-	  leaks,
-	  thanks
-	  to
-	  Stephane
-	  for
-	  that. -
-	  smal
-	  doc
-	  and
-	  build
-	  fixes
-
-2008-05-08 11:29  art
-
-	* [r121]
-	  -
-	  CMake
-	  build
-	  system
-	  changed
-	  to
-	  automatically
-	  detect
-	  the
-	  installed
-	  osg
-	  version
-	  and
-	  to
-	  install
-	  the
-	  plugins
-	  under
-	  this
-	  directory. -
-	  thanks
-	  to
-	  Robert
-	  Osfield
-	  for
-	  his
-	  suggestions
-
-2008-05-07 20:21  art
-
-	* [r120]
-	  -
-	  Disable
-	  the
-	  FBO
-	  clearing
-	  of
-	  undefined
-	  texture
-	  values,
-	  now
-	  a
-	  simple
-	  temporary
-	  image
-	  is
-	  used
-	  to
-	  upload
-	  0
-	  values
-	  to
-	  fresh
-	  output
-	  textures
-
-2008-05-07 19:58  art
-
-	* [r119]
-	  
-
-2008-05-07 19:57  art
-
-	* [r118]
-	  From
-	  Stephane
-	  Lamoliatte: -
-	  updated
-	  the
-	  main
-	  CMake
-	  file
-	  to
-	  allow
-	  the
-	  user
-	  to
-	  use
-	  the
-	  float
-	  or
-	  double
-	  type
-	  for
-	  BoundingBox
-	  /
-	  BoundingSphere
-	  /
-	  Matrix
-	  /
-	  Plane. -
-	  updated
-	  CMake
-	  modules
-	  to
-	  install
-	  the
-	  library
-	  in
-	  the
-	  bin
-	  directory
-	  for
-	  Visual
-	  Studio
-	  (the
-	  same
-	  behaviour
-	  as
-	  OpenSceneGraph) -
-	  removed
-	  compiler
-	  errors
-	  in
-	  Visual
-	  Studio
-	  2005
-	  (Visitor.cpp
-	  /
-	  Visitor.h)
-	  using
-	  the
-	  ref_ptr<CleanTraverseMaskVisitor> -
-	  updated
-	  the
-	  CMake
-	  file
-	  of
-	  the
-	  osgPPU
-	  plug'in
-	  to
-	  take
-	  into
-	  account
-	  "Base.h" -
-	  updated
-	  the
-	  CMake
-	  file
-	  of
-	  the
-	  dof
-	  example
-	  to
-	  take
-	  into
-	  account
-	  "dofppu.h" -
-	  modified
-	  the
-	  dof
-	  and
-	  hdr
-	  example
-	  code
-	  to
-	  center
-	  the
-	  viewer
-	  window
-	  on
-	  the
-	  main
-	  screen -
-	  modified
-	  the
-	  dof
-	  and
-	  hdr
-	  example
-	  code
-	  to
-	  load
-	  shader
-	  using
-	  the
-	  osgbd_glsl
-	  plug'in
-	  (now
-	  add
-	  the
-	  bin
-	  directory
-	  to
-	  the
-	  OSG_FILE_PATH
-	  before
-	  running
-	  example) -
-	  removed
-	  the
-	  empty
-	  lib
-	  directory
-
-2008-05-07 19:56  art
-
-	* [r117]
-	  -
-	  remove
-	  Data
-
-2008-05-07 19:10  art
-
-	* [r116]
-	  -
-	  support
-	  for
-	  FBO
-	  clearing
-	  of
-	  outpu
-	  ttexture
-	  added,
-	  however
-	  still
-	  not
-	  well
-	  tested,
-	  hence
-	  currently
-	  disabled
-
-2008-05-07 18:02  art
-
-	* [r115]
-	  -
-	  UnitInOut
-	  now
-	  do
-	  allocate
-	  the
-	  output
-	  texture
-	  by
-	  itself. -
-	  the
-	  output
-	  texture
-	  is
-	  filled
-	  with
-	  0
-	  values
-	  in
-	  the
-	  beginning
-	  preventing
-	  of
-	  getting
-	  unitialized
-	  values
-	  out
-	  of
-	  the
-	  texture -
-	  TODO:
-	  implement
-	  texture
-	  clearing
-	  with
-	  FBO
-	  to
-	  support
-	  much
-	  faster
-	  creation -
-	  during
-	  the
-	  initialization
-	  of
-	  UnitInOut
-	  a
-	  small
-	  stall
-	  can
-	  be
-	  percieved
-	  due
-	  to
-	  uploading
-	  of
-	  high
-	  amount
-	  of
-	  data
-	  to
-	  the
-	  GPU
-
-2008-05-07 17:42  art
-
-	* [r114]
-	  -
-	  to
-	  reflect
-	  the
-	  changes
-	  of
-	  the
-	  previous
-	  patch
-	  from
-	  bob
-	  Kuehne
-	  the
-	  Data
-	  directory
-	  is
-	  
-	  now
-	  located
-	  under
-	  src/examples/Data.
-	  During
-	  hte
-	  configuration
-	  of
-	  the
-	  build
-	  process
-	  all
-	  the
-	  data
-	  is
-	  copied
-	  into
-	  the
-	  bin/Data/
-	  which -
-	  lib
-	  and
-	  bin
-	  direcotries
-	  are
-	  removed,
-	  you
-	  will
-	  find
-	  them
-	  after
-	  the
-	  build
-	  process
-	  in
-	  your
-	  current
-	  build
-	  directory -
-	  moved
-	  scripts
-	  to
-	  the
-	  doc
-	  directory
-	  to
-	  cleanup
-	  the
-	  main
-	  directory
-
-2008-05-07 17:25  art
-
-	* [r113]
-	  -
-	  rearranged
-	  the
-	  Data
-	  directory
-
-2008-05-07 17:16  art
-
-	* [r112]
-	  -
-	  mv
-	  Data
-	  directory
-	  to
-	  the
-	  src/examples/
-
-2008-05-07 08:57  art
-
-	* [r111]
-	  -
-	  just
-	  few
-	  changes
-	  of
-	  the
-	  Visitor
-	  to
-	  the
-	  previous
-	  version
-
-2008-05-06 22:59  art
-
-	* [r110]
-	  -
-	  moved
-	  the
-	  drawImplementation
-	  method
-	  out
-	  of
-	  the
-	  Unit.h
-	  file
-	  into
-	  Unit.cpp
-
-2008-05-06 22:08  art
-
-	* [r109]
-	  -
-	  From
-	  Bob
-	  Kuehne: the
-	  patch
-	  is
-	  to
-	  allow
-	  separation
-	  of
-	  build
-	  
-	  directory
-	  and
-	  all
-	  products
-	  (objects,
-	  apps,
-	  libraries)
-	  from
-	  the
-	  source
-	  
-	  directory.
-	  osg
-	  and
-	  many
-	  other
-	  related
-	  projects
-	  which
-	  use
-	  cmake
-	  work
-	  
-	  this
-	  way,
-	  so
-	  as
-	  to
-	  keep
-	  the
-	  source
-	  distribution
-	  'pure'
-	  and
-	  free
-	  of
-	  
-	  generated
-	  files.
-	  please
-	  take
-	  a
-	  look,
-	  and
-	  integrate
-	  if
-	  you
-	  approve
-	  -
-	  
-	  this
-	  will
-	  bring
-	  ppu
-	  to
-	  the
-	  same
-	  baseline
-	  operation
-	  as
-	  what
-	  osg
-	  
-	  currently
-	  provides
-	  wrt
-	  cmake
-	  systems.
-
-2008-05-06 21:33  art
-
-	* [r108]
-	  -
-	  From
-	  Stephane
-	  Lamoliatte: -
-	  fix
-	  some
-	  compiler
-	  bugs
-	  that
-	  met
-	  on
-	  Visual
-	  Studio
-	  2005
-	  : -
-	  I
-	  change
-	  the
-	  call
-	  of
-	  the
-	  round
-	  function
-	  by
-	  osg::round
-	  because
-	  there
-	  is
-	  no
-	  standard
-	  round
-	  function
-	  in
-	  Visual
-	  studio -
-	  There
-	  was
-	  some
-	  encapsulation
-	  problem
-	  with
-	  the
-	  Unit
-	  class
-	  :
-	  
-	  
-	  
-	  Unit
-	  has
-	  Visitor
-	  for
-	  friend.
-	  CleanMaskVisitor
-	  and
-	  SetMaximumInputsVisitor
-	  were
-	  Visitor
-	  internal
-	  classes.
-	  In
-	  Visual
-	  studio
-	  CleanMaskVisitor
-	  and
-	  SetMaximumInputsVisitor
-	  
-	  cannot
-	  access
-	  to
-	  Unit
-	  private
-	  variables.
-	  
-	  
-	  
-	  So,
-	  with
-	  the
-	  patch,
-	  Unit
-	  has
-	  CleanMaskVisitor
-	  and
-	  SetMaximumInputsVisitor
-	  for
-	  friend.
-	  And
-	  these
-	  two
-	  classes
-	  are
-	  not
-	  contained
-	  by
-	  Visitor. -
-	  I
-	  add
-	  some
-	  lines
-	  in
-	  FindOpenThreads.cmake
-	  to
-	  make
-	  it
-	  compatible
-	  with
-	  my
-	  environment
-	  variables
-	  (I
-	  copy/paste
-	  FindOSG.cmake). -
-	  I
-	  remove
-	  some
-	  useless
-	  precompiler
-	  directive
-	  in
-	  IO_Unit.cpp -
-	  I
-	  modify
-	  some
-	  boolean
-	  stuff
-	  in
-	  IO_Unit.cpp
-	  to
-	  avoid
-	  strange
-	  warnings
-	  about
-	  int/boolean
-	  conversion.
-
-2008-05-05 22:25  art
-
-	* [r107]
-	  -
-	  updated
-	  the
-	  ReadWriterPPU
-	  to
-	  reflect
-	  the
-	  ColorAttribute
-	  support
-	  in
-	  the
-	  units
-
-2008-05-02 16:01  art
-
-	* [r106]
-	  -
-	  problem
-	  with
-	  the
-	  blending
-	  correct,
-	  now
-	  any
-	  unit
-	  texture
-	  clamps
-	  to
-	  the
-	  edge -
-	  TODO:
-	  correct
-	  implementation
-	  of
-	  removeUnit
-	  methods,
-	  since
-	  this
-	  one
-	  crashes
-
-2008-05-02 15:19  art
-
-	* [r105]
-	  -
-	  new
-	  StateAttribute
-	  -
-	  ColorAttribute
-	  added -
-	  it
-	  allows
-	  time
-	  specific
-	  configuration
-	  of
-	  the
-	  glColor
-	  value -
-	  the
-	  color
-	  is
-	  used
-	  to
-	  render
-	  the
-	  units. -
-	  this
-	  allows
-	  to
-	  implement
-	  blending
-	  on
-	  the
-	  units -
-	  hdr
-	  example
-	  the
-	  fadeIn/fadeOut
-	  effects
-	  added
-
-2008-05-02 09:49  art
-
-	* [r104]
-	  -
-	  each
-	  unit
-	  is
-	  now
-	  sorted
-	  into
-	  the
-	  same
-	  renderbin
-	  as
-	  the
-	  processor
-	  and
-	  get
-	  it
-	  sort
-	  index
-	  based
-	  on
-	  the
-	  graph
-	  counted
-	  upwards
-	  from
-	  the
-	  processor
-	  index -
-	  solved
-	  problem
-	  with
-	  wrongly
-	  sorted
-	  units -
-	  visitor
-	  do
-	  perform
-	  now
-	  a
-	  traversion
-	  during
-	  the
-	  initialization
-	  on
-	  units
-	  children
-	  in
-	  reverse
-	  order,
-	  which
-	  is
-	  needed
-	  for
-	  correct
-	  sorting -
-	  I
-	  think
-	  there
-	  are
-	  still
-	  some
-	  problems
-	  with
-	  the
-	  sorting
-	  during
-	  hte
-	  execution,
-	  however
-	  the
-	  results
-	  seems
-	  to
-	  be
-	  correct
-
-2008-04-30 15:35  art
-
-	* [r103]
-	  -
-	  new
-	  method
-	  Processor::removeUnit
-	  added. -
-	  from
-	  now
-	  on
-	  a
-	  unit
-	  can
-	  be
-	  removed
-	  out
-	  of
-	  the
-	  unit
-	  graph,
-	  however
-	  the
-	  method
-	  is
-	  not
-	  well
-	  tested,
-	  tests
-	  and
-	  patches
-	  are
-	  welcome
-
-2008-04-25 14:21  art
-
-	* [r102]
-	  -
-	  missing
-	  of
-	  files
-	  of
-	  DoF
-	  example
-	  added,
-	  now
-	  it
-	  should
-	  work
-	  just
-	  fine
-
-2008-04-25 08:41  art
-
-	* [r101]
-	  -
-	  DoF
-	  example
-	  was
-	  not
-	  completely
-	  commited,
-	  hence
-	  deactivate
-	  it
-	  until
-	  commitment
-	  is
-	  complete
-
-2008-04-24 23:27  art
-
-	* [r100]
-	  -
-	  Depth
-	  of
-	  Field
-	  example
-	  added -
-	  The
-	  example
-	  shows
-	  a
-	  simple
-	  depth
-	  of
-	  field
-	  faked
-	  implementation,
-	  showing
-	  also
-	  the
-	  UnitDepthbufferBypass
-	  in
-	  action
-
-2008-04-24 20:58  art
-
-	* [r99]
-	  -
-	  New
-	  UnitDepthbufferBypass
-	  added -
-	  The
-	  unit
-	  is
-	  capable
-	  of
-	  bypassing
-	  the
-	  depth
-	  buffer
-	  attachment
-	  of
-	  the
-	  camera
-	  to
-	  the
-	  output. -
-	  It
-	  performs
-	  no
-	  rendering
-	  and
-	  therefor
-	  is
-	  very
-	  efficient
-
-2008-04-24 14:35  art
-
-	* [r98]
-	  -
-	  Offline
-	  Mode
-	  removed
-	  out
-	  of
-	  the
-	  Unit,
-	  since
-	  it
-	  is
-	  not
-	  needed
-	  anymore
-
-2008-04-23 16:22  art
-
-	* [r97]
-	  
-
-2008-04-23 15:56  art
-
-	* [r96]
-	  -
-	  Index
-	  completely
-	  removed
-	  out
-	  of
-	  the
-	  Unit
-	  class -
-	  Pipeline
-	  class
-	  removed
-	  since
-	  it
-	  seems
-	  not
-	  to
-	  be
-	  used
-	  at
-	  all -
-	  Processor
-	  class
-	  does
-	  now
-	  sorted
-	  into
-	  the
-	  same
-	  bin
-	  with
-	  binnum
-	  100,
-	  maybe
-	  this
-	  can
-	  be
-	  changed
-	  in
-	  future
-	  versions -
-	  Small
-	  changes
-	  to
-	  the
-	  interface
-	  and
-	  documentation
-
-2008-04-23 11:25  art
-
-	* [r95]
-	  -
-	  small
-	  doc
-	  and
-	  interfaces
-	  fixes
-
-2008-04-22 22:20  art
-
-	* [r94]
-	  -
-	  changelog
-	  and
-	  minor
-	  changes
-
-2008-04-22 22:17  art
-
-	* [r93]
-	  -
-	  sandbox
-	  merged
-	  with
-	  trunk -
-	  completly
-	  changed
-	  the
-	  way
-	  how
-	  Units
-	  are
-	  managed. -
-	  Unit
-	  and
-	  Processor
-	  are
-	  now
-	  derived
-	  from
-	  osg::Group
-	  which
-	  enables
-	  to
-	  combine
-	  them
-	  in
-	  a
-	  graph
-	  in
-	  an
-	  usual
-	  fashion -
-	  The
-	  subgraph
-	  under
-	  the
-	  processor
-	  represents
-	  the
-	  unit
-	  pipeline -
-	  No
-	  State
-	  is
-	  dierectly
-	  involved
-	  anymore,
-	  the
-	  state
-	  is
-	  acquired
-	  automatically
-	  during
-	  the
-	  rendering -
-	  Each
-	  parent
-	  node
-	  do
-	  provide
-	  its
-	  output
-	  to
-	  the
-	  children -
-	  Each
-	  child
-	  collects
-	  its
-	  inputs
-	  from
-	  all
-	  direct
-	  parents
-	  and
-	  hence
-	  setup
-	  itself
-	  in
-	  this
-	  way -
-	  Cycles
-	  in
-	  the
-	  unit
-	  graph
-	  are
-	  allowed,
-	  giving
-	  the
-	  possibility
-	  of
-	  reusing
-	  computed
-	  data
-	  in
-	  the
-	  next
-	  frames -
-	  Cycles
-	  are
-	  resolved
-	  by
-	  adding
-	  special
-	  kind
-	  of
-	  node
-	  BarrierNodes,
-	  which
-	  disables
-	  the
-	  traversion
-	  at
-	  them -
-	  Processor
-	  uses
-	  now
-	  a
-	  special
-	  kind
-	  of
-	  Visitor
-	  to
-	  Setup,
-	  Initialize,
-	  Resolve
-	  Cycle,
-	  Optimize,
-	  Update
-	  and
-	  Draw
-	  the
-	  subgraph
-	  of
-	  units -
-	  The
-	  .ppu
-	  files
-	  has
-	  not
-	  to
-	  contain
-	  fixed
-	  Viewports,
-	  allowing
-	  reusing
-	  of
-	  the
-	  same
-	  .ppu
-	  file
-	  for
-	  different
-	  camera
-	  resolutions -
-	  New
-	  UnitTexture
-	  unit
-	  allowing
-	  passing
-	  an
-	  external
-	  texture
-	  as
-	  input
-	  into
-	  the
-	  ppu
-	  graph -
-	  Shader
-	  uniforms
-	  are
-	  setted
-	  up
-	  automatically
-	  based
-	  on
-	  the
-	  input
-	  textures -
-	  The
-	  .ppu
-	  file
-	  can
-	  now
-	  write
-	  and
-	  read
-	  every
-	  kind
-	  of
-	  Unit
-	  including
-	  external
-	  texture
-	  referencies -
-	  All
-	  examples
-	  were
-	  updated
-	  and
-	  changed
-	  to
-	  the
-	  new
-	  interface
-
-2008-04-03 17:19  art
-
-	* [r77]
-	  -
-	  Depth
-	  Of
-	  Filed
-	  example
-	  just
-	  added,
-	  but
-	  it
-	  does
-	  not
-	  work
-	  at
-	  now -
-	  inprogress
-	  branch
-	  directory
-	  added.
-	  I
-	  need
-	  this
-	  to
-	  work
-	  on
-	  before
-	  submitting
-	  to
-	  the
-	  trunk
-	  directory
-
-2008-04-03 17:14  art
-
-	* [r76]
-	  
-
-2008-03-28 10:16  art
-
-	* [r74]
-	  -
-	  Small
-	  changes
-	  to
-	  the
-	  CMakeLists
-	  of
-	  the
-	  examples,
-	  now
-	  pthread
-	  library
-	  is
-	  linked
-	  only
-	  if
-	  static
-	  build
-
-2008-03-27 13:27  art
-
-	* [r70]
-	  -
-	  Simple
-	  changes
-	  in
-	  the
-	  text
-	  unit
-	  (there
-	  still
-	  some
-	  strange
-	  bugs,
-	  however
-	  for
-	  now
-	  it
-	  seems
-	  to
-	  work) -
-	  Readme
-	  file
-	  changed -
-	  I
-	  am
-	  gonna
-	  go
-	  now
-	  to
-	  tag
-	  a
-	  first
-	  developer
-	  release
-	  version
-
-2008-03-05 17:11  art
-
-	* [r69]
-	  -
-	  Small
-	  change
-	  in
-	  the
-	  Unit.h
-	  
-
-2008-02-29 19:52  art
-
-	* [r68]
-	  -
-	  changelog
-
-2008-02-29 19:45  art
-
-	* [r67]
-	  -
-	  changelog
-
-2008-02-29 19:45  art
-
-	* [r66]
-	  -
-	  motionblur.ppu
-	  added
-	  under
-	  bin/Data/.
-	  Now
-	  you
-	  can
-	  use
-	  viewer
-	  to
-	  check
-	  this
-	  effect.
-
-2008-02-29 19:23  art
-
-	* [r65]
-	  -
-	  Unit::getOrCreateOutputTexture()
-	  method
-	  added.
-	  This
-	  allows
-	  to
-	  preallocate
-	  the
-	  output
-	  texture
-	  even
-	  if
-	  the
-	  Unit
-	  was
-	  not
-	  initialiyed
-	  before. -
-	  Unit::addInputPPU
-	  does
-	  now
-	  work
-	  intuitively
-	  correct.
-	  You
-	  can
-	  now
-	  also
-	  add
-	  input
-	  PPUs
-	  without
-	  initialiying
-	  them
-	  first.
-
-2008-02-29 16:29  art
-
-	* [r64]
-	  -
-	  Small
-	  bugfixies
-
-2008-02-28 15:14  art
-
-	* [r63]
-	  -
-	  Units
-	  are
-	  now
-	  executed
-	  also
-	  if
-	  no
-	  input
-	  was
-	  specified -
-	  True
-	  MRT
-	  support
-	  added:
-	  --
-	  UnitInOut
-	  is
-	  now
-	  capable
-	  of
-	  rendering
-	  to
-	  all
-	  of
-	  its
-	  outputs. --
-	  The
-	  behaviour
-	  was
-	  tested
-	  by
-	  creating
-	  an
-	  only
-	  offline
-	  unit
-	  pipeline
-	  with
-	  3d
-	  texture
-	  as
-	  output
-	  and
-	  specifying
-	  the
-	  zoffsets
-	  explicitely
-
-2008-02-27 17:38  art
-
-	* [r62]
-	  -
-	  There
-	  was
-	  a
-	  seg
-	  fault
-	  if
-	  a
-	  pipeline
-	  containing
-	  only
-	  offline
-	  units
-	  were
-	  added,
-	  this
-	  is
-	  fixed
-	  now. -
-	  Some
-	  compiler
-	  warnings
-	  fixed -
-	  Small
-	  bugfixes
-
-2008-02-25 19:38  art
-
-	* [r61]
-	  -
-	  Bug
-	  with
-	  still
-	  bounded
-	  texture
-	  after
-	  a
-	  PPU
-	  run
-	  is
-	  fixed
-
-2008-02-25 17:38  art
-
-	* [r60]
-	  -
-	  Just
-	  a
-	  small
-	  change
-	  in
-	  UnitInOut
-	  and
-	  UnitText
-
-2008-02-25 17:03  art
-
-	* [r59]
-	  -
-	  Different
-	  changes
-	  in
-	  the
-	  CMakeFiles
-	  to
-	  support
-	  static
-	  build
-	  of
-	  osgPPU -
-	  Viewport
-	  of
-	  the
-	  Unit
-	  is
-	  now
-	  not
-	  applied
-	  directly
-	  but
-	  through
-	  the
-	  StateSet -
-	  Some
-	  small
-	  optimizations
-
-2008-01-30 20:48  art
-
-	* [r58]
-	  -
-	  build.vc8
-	  directory
-	  removed,
-	  sinc
-	  it
-	  is
-	  not
-	  needed
-	  for
-	  a
-	  proper
-	  build
-	  on
-	  windows.
-	  Build
-	  on
-	  windows
-	  tested
-	  with
-	  Visual
-	  C++
-	  2008
-	  Express
-	  (VC9)
-	  and
-	  with
-	  CMake
-	  2.4
-
-2008-01-30 20:13  art
-
-	* [r57]
-	  -
-	  CMake
-	  listing
-	  changed
-	  to
-	  support
-	  osg
-	  version
-	  as
-	  option
-
-2008-01-30 19:23  art
-
-	* [r56]
-	  -
-	  Non-used
-	  makefile
-	  removed
-
-2008-01-30 15:08  art
-
-	* [r55]
-	  -
-	  UnitBypass.cpp
-	  added
-	  instead
-	  of
-	  inlined
-	  functions
-	  in
-	  UnitBypass.h
-
-2008-01-29 22:16  art
-
-	* [r54]
-	  -
-	  just
-	  come
-	  docs
-	  changed
-
-2008-01-29 22:14  art
-
-	* [r53]
-	  -
-	  just
-	  the
-	  changelog
-
-2008-01-29 22:13  art
-
-	* [r52]
-	  -
-	  Very
-	  big
-	  changes
-	  in
-	  the
-	  interface -
-	  UnitInOut
-	  has
-	  now
-	  got
-	  the
-	  components
-	  about
-	  mipmapping
-	  which
-	  were
-	  moved
-	  from
-	  Unit -
-	  Unit
-	  is
-	  now
-	  pure
-	  abstract
-	  base
-	  class -
-	  UnitBypass
-	  added
-	  which
-	  do
-	  nothing
-	  as
-	  bypass
-	  the
-	  input
-	  to
-	  the
-	  output -
-	  osgdb_ppu
-	  plugin
-	  changed
-	  to
-	  support
-	  the
-	  new
-	  unit -
-	  .ppu
-	  files
-	  from
-	  bin/Data
-	  adapted
-	  to
-	  the
-	  new
-	  interface
-
-2008-01-29 19:48  art
-
-	* [r51]
-	  -
-	  Authors/Contributors
-	  list
-	  added
-	  to
-	  the
-	  svn.
-	  The
-	  authors
-	  are
-	  not
-	  sorted
-	  in
-	  any
-	  manner.
-
-2008-01-29 19:33  art
-
-	* [r50]
-	  -
-	  Licence
-	  text
-	  in
-	  all
-	  headers
-	  and
-	  source
-	  files
-	  changed -
-	  Now
-	  the
-	  LGPL
-	  should
-	  be
-	  seen
-	  everywhere -
-	  Readme
-	  file
-	  get
-	  new
-	  content
-	  about
-	  the
-	  osgPPU
-	  plugin
-	  to
-	  osg
-
-2008-01-29 19:07  art
-
-	* [r49]
-	  -
-	  New
-	  plugin
-	  for
-	  reading
-	  and
-	  writing
-	  the
-	  ppu
-	  pipelines
-	  is
-	  now
-	  activated
-	  in
-	  the
-	  code -
-	  New
-	  example
-	  application
-	  "viewer"
-	  is
-	  actiaved -
-	  Viewer
-	  allows
-	  a
-	  simple
-	  viewing
-	  of
-	  pipelines
-	  by
-	  loading
-	  them
-	  from
-	  files
-
-2008-01-29 16:02  art
-
-	* [r48]
-	  -
-	  Currently
-	  disabling
-	  the
-	  viewer
-	  application
-	  because
-	  a
-	  proper
-	  ppu
-	  loading
-	  system
-	  is
-	  required
-
-2008-01-29 15:52  art
-
-	* [r47]
-	  -
-	  CMake
-	  FindOSG
-	  macro
-	  changed
-	  a
-	  little
-	  bit
-	  to
-	  be
-	  able
-	  to
-	  find
-	  osg
-	  on
-	  non
-	  standard
-	  installation
-	  paths
-
-2008-01-29 15:38  art
-
-	* [r46]
-	  -
-	  ChangeLog
-	  commited
-
-2008-01-29 15:37  art
-
-	* [r45]
-	  -
-	  osgdb_ppu
-	  Plugin
-	  added -
-	  You
-	  are
-	  now
-	  capable
-	  of
-	  storing
-	  and
-	  loading
-	  osgPPU
-	  pipelines
-	  directly
-	  from
-	  files. -
-	  The
-	  functionality
-	  is
-	  under
-	  heavy
-	  testing,
-	  hence
-	  it
-	  is
-	  not
-	  activated
-	  currently
-
-2008-01-29 15:34  art
-
-	* [r44]
-	  -
-	  Moved
-	  one
-	  unit
-	  per
-	  one
-	  source
-	  and
-	  header
-	  file -
-	  Cleaned
-	  up
-	  the
-	  code
-	  a
-	  little
-	  bit -
-	  Added
-	  META_Object
-	  for
-	  each
-	  of
-	  the
-	  unit -
-	  Processor
-	  does
-	  now
-	  check
-	  whenever
-	  Unit
-	  has
-	  a
-	  valid
-	  State
-	  associated
-	  if
-	  not
-	  it
-	  would
-	  be
-	  added
-	  in
-	  the
-	  setPipeline
-	  method -
-	  Shader
-	  is
-	  now
-	  capable
-	  of
-	  setting
-	  up
-	  Uniforms
-	  directly
-	  by
-	  giving
-	  Uniform*
-	  or
-	  RefUniformPair
-	  into
-	  osgPPU::Shader::add
-	  method -
-	  3
-	  PPU
-	  pipelines
-	  as
-	  files
-	  added
-	  (hdr
-	  pipeline,
-	  simple
-	  bypass
-	  pipeline
-	  and
-	  gauss
-	  blur
-	  pipeline) -
-	  Pipelines
-	  can
-	  be
-	  readed
-	  from
-	  files
-	  directly
-
-2008-01-29 15:31  art
-
-	* [r43]
-	  -
-	  Non-used
-	  Makefile
-	  removed
-
-2008-01-29 15:30  art
-
-	* [r42]
-	  -
-	  HDR
-	  example
-	  moved
-	  into
-	  own
-	  directory -
-	  Viewer
-	  example
-	  moved
-	  into
-	  "viewer"
-	  directory -
-	  HDR
-	  example
-	  now
-	  writes
-	  its
-	  pipeline
-	  into
-	  Data/hdr.ppu
-	  file
-
-2008-01-29 15:28  art
-
-	* [r41]
-	  -
-	  New
-	  example
-	  added -
-	  Viewer
-	  allows
-	  to
-	  read
-	  ppu
-	  pipeline
-	  from
-	  file
-	  and
-	  test
-	  it
-	  on
-	  an
-	  scene
-	  graph
-
-2008-01-28 23:20  art
-
-	* [r40]
-	  From
-	  "Bob
-	  Kuhne"
-	  :
-	  
-	  -
-	  Changes
-	  to
-	  the
-	  shader
-	  code
-	  to
-	  solve
-	  very
-	  strict
-	  compiler
-	  settings
-
-2008-01-23 16:53  art
-
-	* [r39]
-	  -
-	  Change
-	  log
-	  replaced
-	  and
-	  svn
-	  up
-	  added
-
-2008-01-23 16:38  art
-
-	* [r38]
-	  -
-	  Small
-	  changes
-	  in
-	  the
-	  interface,
-	  Units
-	  are
-	  now
-	  not
-	  dependent
-	  of
-	  the
-	  Processor -
-	  Processor::Pipeline
-	  moved
-	  out
-	  as
-	  a
-	  stand
-	  alone
-	  class
-	  derived
-	  from
-	  osg::Object -
-	  osgPPU::Pipeline
-	  can
-	  be
-	  written
-	  to
-	  the
-	  files -
-	  Writing
-	  to
-	  files
-	  (.ppu)
-	  does
-	  work
-	  properly -
-	  Reading
-	  of
-	  .ppu
-	  files
-	  is
-	  in
-	  development -
-	  All
-	  the
-	  reading/writing
-	  methods
-	  are
-	  implemented
-	  in
-	  the
-	  way
-	  like
-	  osg
-	  plugins
-	  does,
-	  hence
-	  simple
-	  including
-	  into
-	  the
-	  .osg
-	  format
-	  is
-	  possible -
-	  Small
-	  changes
-	  in
-	  the
-	  example
-	  application,
-	  now
-	  user
-	  sees
-	  a
-	  texture
-	  in
-	  the
-	  PictureInPicture
-	  ppu
-	  before
-	  switching
-
-2008-01-21 16:42  art
-
-	* [r37]
-	  -
-	  Started
-	  development
-	  of
-	  osgdb_ppu
-	  Plugin
-	  to
-	  write
-	  and
-	  read
-	  pipeline
-	  to/from
-	  a
-	  file -
-	  CMake
-	  changes
-	  to
-	  support
-	  new
-	  building
-	  target
-	  (plugin) -
-	  Currently
-	  this
-	  is
-	  in
-	  development,
-	  hence
-	  it
-	  is
-	  disable
-	  in
-	  the
-	  svn
-	  
-
-2008-01-21 13:40  art
-
-	* [r36]
-	  -
-	  Just
-	  one
-	  script
-	  file
-	  to
-	  create
-	  changelogs
-	  from
-	  the
-	  svn
-
-2008-01-21 13:33  art
-
-	* [r35]
-	  -
-	  Uninstall
-	  rule
-	  to
-	  the
-	  CMake
-	  system
-	  added
-
-2008-01-17 14:27  art
-
-	* [r34]
-	  -
-	  ChangeLog
-	  file
-	  added
-
-2008-01-17 13:25  art
-
-	* [r33]
-	  Make
-	  directory
-	  removed
-
-2008-01-17 13:25  art
-
-	* [r32]
-	  Couple
-	  of
-	  old
-	  Makefiles
-	  removed
-
-2008-01-17 13:24  art
-
-	* [r31]
-	  CMake
-	  install
-	  module
-	  added
-
-2008-01-17 13:23  art
-
-	* [r30]
-	  From
-	  "Stephane
-	  Lamoliatte"
-	  -
-	  CMake
-	  build
-	  system
-	  to
-	  support
-	  builds
-	  on
-	  multiple
-	  platforms.
-	  
-	  -
-	  CMake
-	  configured
-	  in
-	  the
-	  way
-	  that
-	  this
-	  compiles
-	  under
-	  Windows
-	  Visual
-	  Studio
-	  8
-	  
-	  -
-	  Bug
-	  fix
-	  in
-	  the
-	  PostProcess.cpp
-	  which
-	  cause
-	  segfault
-	  on
-	  Windows.
-	  
-
-2008-01-13 01:06  art
-
-	* [r29]
-	  -
-	  Naming
-	  convention
-	  changed -
-	  Example
-	  application
-	  ow
-	  runs
-	  two
-	  times
-	  faster
-
-2008-01-11 14:27  art
-
-	* [r28]
-	  -
-	  CFLAGS
-	  changed
-	  from
-	  -g
-	  
-	  to
-	  -O2,
-	  now
-	  example
-	  runs
-	  with
-	  around
-	  400FPS
-	  (cessnafire.osg)
-
-2008-01-11 14:26  art
-
-	* [r27]
-	  -
-	  Example:
-	  FPS-Counter
-	  added
-	  back,
-	  on
-	  nVidia
-	  GeForce
-	  8800Ultra
-	  the
-	  run
-	  of
-	  ./osgppu
-	  Data/cessnafire.osg
-	  gives
-	  around
-	  350FPS
-
-2008-01-11 14:21  art
-
-	* [r26]
-	  -
-	  Text
-	  Wrapper
-	  class
-	  removed.
-	  PPUText
-	  is
-	  now
-	  derived
-	  directly
-	  from
-	  osgText::Text
-
-2008-01-09 18:53  art
-
-	* [r25]
-	  -
-	  Some
-	  hacks
-	  commented
-	  out
-	  for
-	  now,
-	  maybe
-	  commit
-	  a
-	  patch
-	  to
-	  osg
-	  to
-	  support
-	  them
-	  through
-	  StateSets
-
-2008-01-09 15:47  art
-
-	* [r24]
-	  -
-	  Some
-	  bugs
-	  and
-	  issues
-	  with
-	  the
-	  new
-	  driver
-	  corrected -
-	  In
-	  example
-	  changed
-	  all
-	  the
-	  occurencies
-	  of
-	  texture2DLod
-	  to
-	  texture2D
-	  
-	  Due
-	  to
-	  some
-	  bugs
-	  either
-	  in
-	  the
-	  driver
-	  or
-	  somewhere
-	  else
-	  texture2D
-	  
-	  do
-	  not
-	  read
-	  from
-	  the
-	  level
-	  0
-	  per
-	  default.
-	  -
-	  Therefor
-	  had
-	  to
-	  add
-	  glTexParameteri
-	  to
-	  change
-	  the
-	  base
-	  level
-	  of
-	  the
-	  texture
-	  
-	  
-	  for
-	  input
-	  textures
-	  in
-	  the
-	  PPUInOut.cpp -
-	  Maybe
-	  some
-	  patch
-	  to
-	  osg
-	  is
-	  required
-	  to
-	  control
-	  this
-	  by
-	  the
-	  stateset -
-	  Eye
-	  Adaption
-	  still
-	  do
-	  not
-	  work
-	  as
-	  one
-	  might
-	  expected,
-	  however
-	  the
-	  code
-	  is
-	  correct
-	  now. -
-	  I
-	  am
-	  not
-	  sure
-	  but
-	  better
-	  to
-	  check
-	  if
-	  ComputeLuminance
-	  mipmapshader
-	  does
-	  work
-	  properly
-
-2008-01-09 00:34  art
-
-	* [r23]
-	  -
-	  g_MimapLevel
-	  changed
-	  into
-	  float -
-	  g_MipmapLevelNum
-	  uniform
-	  added
-
-2008-01-09 00:32  art
-
-	* [r22]
-	  -
-	  Bugfixes
-	  with
-	  the
-	  new
-	  nVidia
-	  driver
-	  167.07
-	  corrected -
-	  Shader
-	  source
-	  for
-	  the
-	  example
-	  application
-	  corrected
-	  to
-	  support
-	  Shader
-	  Model
-	  3.0 -
-	  Structure
-	  of
-	  the
-	  example
-	  ppus
-	  changed.
-	  Now
-	  there
-	  is
-	  two
-	  offline
-	  ppus
-	  which
-	  
-	  do
-	  compute
-	  the
-	  adapted
-	  luminance
-	  value. -
-	  TODO:
-	  Adapted
-	  luminance
-	  value
-	  seems
-	  to
-	  have
-	  some
-	  problems.
-	  Will
-	  be
-	  corrected
-	  soon.
-
-2008-01-08 14:37  art
-
-	* [r21]
-	  -
-	  Small
-	  changes
-	  to
-	  the
-	  readme
-	  file
-
-2008-01-07 15:53  art
-
-	* [r20]
-	  -
-	  Hack
-	  with
-	  unbounded
-	  textures
-	  is
-	  solved -
-	  Shaders
-	  and
-	  ppus
-	  seems
-	  to
-	  work
-	  now
-	  fine,
-	  my
-	  another
-	  application
-	  (refEiko),
-	  works
-	  now
-	  also
-	  fine
-	  with
-	  osgPPU -
-	  example
-	  application
-	  slightly
-	  changed
-
-2008-01-07 13:00  art
-
-	* [r19]
-	  -
-	  small
-	  changes
-	  in
-	  the
-	  example
-	  application -
-	  small
-	  changes
-	  in
-	  the
-	  interface
-	  of
-	  PostProcess
-	  and
-	  PostProcessUnit -
-	  small
-	  addings
-	  in
-	  the
-	  documentation
-	  -
-	  footer.html
-	  added
-	  to
-	  generate
-	  doxygen
-	  documentation
-
-2008-01-07 11:25  art
-
-	* [r18]
-	  -
-	  Documentation
-	  changes
-
-2008-01-07 11:10  art
-
-	* [r17]
-	  -
-	  UniformMap
-	  type
-	  removed
-	  from
-	  PostProcessUnit -
-	  META_Object()
-	  get
-	  an
-	  semicolon
-	  afterwars,
-	  so
-	  that
-	  doxygen
-	  is
-	  able
-	  to
-	  parse
-
-2008-01-07 11:05  art
-
-	* [r16]
-	  -
-	  Documentation
-	  changed -
-	  A
-	  lot
-	  of
-	  methods
-	  were
-	  inlined -
-	  Some
-	  slightly
-	  changes
-	  in
-	  the
-	  interface
-
-2008-01-07 09:52  art
-
-	* [r15]
-	  -
-	  example:
-	  Setup
-	  material
-	  of
-	  teapot
-	  instead
-	  of
-	  direct
-	  call
-	  of
-	  glColor
-
-2008-01-07 09:48  art
-
-	* [r14]
-	  -
-	  PPUInOut.cpp
-	  g_TextureWidth
-	  and
-	  g_TextureHeight
-	  changed
-	  into
-	  g_ViewportWidth
-	  and
-	  g_ViewportHeight -
-	  example
-	  shaders
-	  changed
-	  from
-	  Shader
-	  Model
-	  4
-	  to
-	  Shader
-	  Model
-	  3,
-	  exampel
-	  application
-	  should
-	  now
-	  also
-	  work
-	  on
-	  GeForce
-	  6xxx -
-	  example:
-	  Teapot
-	  as
-	  default
-	  model
-	  added
-
-2008-01-07 00:39  art
-
-	* [r13]
-	  -
-	  Documentaion
-	  through
-	  doxygen
-	  added -
-	  Licence
-	  header
-	  changed -
-	  Small
-	  bugfixes -
-	  Example
-	  application
-	  includes
-	  some
-	  more
-	  features
-
-2008-01-06 19:04  art
-
-	* [r12]
-	  -
-	  osgppu
-	  Example
-	  is
-	  now
-	  almost
-	  complete.
-	  It
-	  shows
-	  how
-	  to
-	  use
-	  osgPPU
-	  to
-	  setup
-	  
-	  
-	  
-	  a
-	  proper
-	  HDR
-	  rendering
-	  pipeline -
-	  some
-	  minor
-	  bugfixes
-	  in
-	  PPUs -
-	  There
-	  are
-	  still
-	  some
-	  problems
-	  with
-	  ppu
-	  which
-	  do
-	  use
-	  textures
-	  and
-	  shader
-	  
-	  Textures
-	  has
-	  to
-	  be
-	  bound
-	  manually
-	  by
-	  hand,
-	  stateset
-	  semms
-	  not
-	  to
-	  settted
-	  up
-	  properly
-
-2008-01-05 00:35  art
-
-	* [r11]
-	  -
-	  Example
-	  application
-	  created -
-	  some
-	  changes
-	  in
-	  the
-	  PPUText
-	  done -
-	  PostProcess
-	  can
-	  now
-	  be
-	  used
-	  in
-	  the
-	  osg
-	  graph
-	  by
-	  specifying
-	  the
-	  camera
-	  drawcallback
-	  method -
-	  some
-	  bugfixes
-
-2008-01-04 12:14  art
-
-	* [r10]
-	  problems
-	  with
-	  blending
-	  corrected PPUText
-	  were
-	  added Text
-	  class
-	  as
-	  wrapper
-	  was
-	  also
-	  added
-
-2008-01-03 16:16  art
-
-	* [r9]
-	  Shader
-	  class
-	  included errors
-	  were
-	  corrected all
-	  things
-	  works
-	  fine
-	  for
-	  now there
-	  are
-	  still
-	  some
-	  problems
-	  with
-	  blending
-	  of
-	  ppu's
-
-2007-12-21 13:52  art
-
-	* [r8]
-	  
-
-2007-12-20 17:13  art
-
-	* [r7]
-	  
-
-2007-12-19 18:06  art
-
-	* [r6]
-	  
-
-2007-12-19 10:43  art
-
-	* [r5]
-	  CMake
-	  removed Simple
-	  Makefiles
-	  added Now
-	  you
-	  are
-	  able
-	  to
-	  make,
-	  install
-	  and
-	  uninstall
-	  gracefully
-
-2007-12-18 15:07  art
-
-	* [r4]
-	  
-
-2007-12-18 13:11  art
-
-	* [r3]
-	  
-
-2007-12-18 13:08  art
-
-	* [r2]
-	  
-
-2007-12-18 13:07  art
-
-	* [r1]
-	  
+commit 89e05bbae49e9ca0c375e8eeb867b1a8b93510e7
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Nov 18 00:00:58 2011 +0100
 
+    From Alexander Irion: Fixed crash in UnitTexture, when external texture has no image.
+
+commit 0f4de1b9b7ed918ee87f3efbccae53ce768e93b5
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 7 17:37:19 2011 +0000
+
+    From Alexander Irion: Please find attached fix for osgPPU::Unit that prevents it's geode from be taken into account for near far computation.
+
+commit f7dfb42943637ecc6f891b4bdfbd10c5b1ee1d34
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Apr 17 22:45:35 2011 +0000
+
+commit 3c3196a02e5fc726d515db4d6cf2d86318150270
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Apr 17 22:27:42 2011 +0000
+
+commit 0f98204e1ac6a57eca4ae874f59f27d50ef508ab
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Apr 17 22:17:16 2011 +0000
+
+commit 7dcd28b5fb9e44fcf80a58ee42362fab0121e0f9
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Apr 17 22:13:04 2011 +0000
+
+commit 94984cc6aa32aaf182130aba8c2f1ea000e066ce
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Apr 17 22:12:39 2011 +0000
+
+commit bbb11fde4d32d3ed97d1bc29e0f42b67ee146156
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 22 00:37:29 2010 +0000
+
+    - UnitBypassRepeat removed and replaced by UnitInOutRepeat, this make ssure that a reapeat subgraph cannot render to itself
+    - lenna images changed to rgb format, for out of the box support on windows
+
+commit ce64bc9d145e971e6e361ae30472293d2c98202d
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Apr 20 13:44:52 2010 +0000
+
+    - added support for dynamic resizing
+    - examples changed to support resizing
+    - new wrapper class Camera and FrameBufferObject for proper resizing workaround
+
+commit a31a09fd3477c308cbd2c63f0c2a923b9384f0e5
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Apr 19 18:03:47 2010 +0000
+
+    - resizing support implemented through a hacky code to overcome issues with OSG
+
+commit 275df1feb34d01feb6be7502d2d5166c6590c15c
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Apr 16 21:17:40 2010 +0000
+
+    - resizing support for viewer (to be tested)
+
+commit 1b7292bceb9ffee7041a9e3d0533cf0f0d2b8192
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 15 21:36:41 2010 +0000
+
+    - just forget to change back :)
+
+commit 37e8144c83d8bf81982bd1a7629183743810e344
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 15 21:36:03 2010 +0000
+
+    - solved bug with findUnit method which prevents of looking for units in an unitialized pipeline
+    - solved some strange bugs when reading .ppu files
+
+commit 7fd12a4a68087e804d21db9519f9fe82becfc2e4
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 15 20:40:35 2010 +0000
+
+    From Allen Saucier:
+    an example on how to blur a scene and how to turn that blurring effect on and off
+
+commit 210e7e4b5b57edf30fe7b1a1584785717e5ca82f
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 29 14:47:18 2010 +0000
+
+    - motionblur ppu changed mix method for an inline (on some GPUs mix seems to work wrong)
+
+commit f9020659ee57c7b4b8acbdd63295651ca4202e74
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 29 14:42:41 2010 +0000
+
+    - motionblur example changed to support fix framerate
+
+commit 6dd90a48171e40c78b70849b336354476005afca
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 29 14:05:59 2010 +0000
+
+    - MotionBlur example changed to show cow.osg instead of teapot
+
+commit ca24dfa719c230c8ca18fb2204f989ccb1e7b1fc
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 29 13:59:30 2010 +0000
+
+commit 64d02e463d447558c4859f850b67dd73a9471f02
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 29 13:58:36 2010 +0000
+
+commit bd24f2ade0ca466c639d58a7b1c95e1b552afec1
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 29 13:53:06 2010 +0000
+
+    - small changes to support cuda on x64 builds
+
+commit aceca42a9c90198e2669b48b3ff85eb026e26bda
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 22 10:28:15 2010 +0000
+
+    - changed support for the osgDB in osg v2.9.7
+    - first try to implement an osgPPU cpack package within the built
+
+commit e8b44007a3f07ca3ebc89555609e96d327fd1c66
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 26 15:06:25 2010 +0000
+
+    From Christian Richardt:
+    -  fix a few shaders in order to get it working on my ATI card.
+
+commit d54deed3a4648e40f5798ee5f9de2dff3332b93f
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 5 07:54:33 2010 +0000
+
+    From Bryan Thrall:
+    - The last two paths in OSG_SEARCH_PATHS in osgPPU's FindOSG.cmake don't properly escape backslashes, causing CMake (I'm using version 2.6) to error when trying to configure on Windows and osgPPU is not right next to OSG:
+
+commit 9617b8db609c2e2cbae63fed3ce7ff528f658a17
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Dec 17 10:24:07 2009 +0000
+
+    - changed list of contributors
+
+commit ea00446ad5ad97ae991f5d42436cd1a521dfcc25
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Dec 17 10:23:04 2009 +0000
+
+    From Paul Martz:
+     - modified the FindOSG.cmake script so that it looks in MS Windows standard OSG install locations
+
+commit e6bfc64cc3d8f68bedd661243116b4a1bacd8dfd
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Dec 4 13:29:34 2009 +0000
+
+commit 567f47f849deda067e674b42d248bbb3d814b367
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Dec 4 13:20:19 2009 +0000
+
+    From J.P. Delport:
+     - Implementing TextureRectangle support for osgPPU, as we use them in other non-osgPPU stages of our pipeline. The main difference is the setup of the quad to be rendered: if the input texture is a rect, then the quad coords must be set up correctly.
+
+commit de5c8e08a093f3f4d3c32e45ff5bf96ecdff9cdf
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Dec 3 13:15:41 2009 +0000
+
+commit 6e09c78c034073a0e33a35eb405c4e1e9b8f7f95
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Dec 1 15:08:09 2009 +0000
+
+    - changes to reflect current osg svn repository (mostly gl..EXT has been removed by (gl..)
+
+commit 5136753e38e4a398f3547113ce520517183d6eb0
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Nov 4 20:50:31 2009 +0000
+
+    - bugs in capture unit solved
+    - can now capture just one frame
+
+commit 8fcd89b79c290f96476b8304092584cd2ba45718
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 30 18:53:35 2009 +0000
+
+    - HDR example almost supports resizing (it seems that OSG has a bug when resizing camera's FBO texture, have to proove that later)
+    - small bugfixes
+    - UnitInResampleOut should resize correctly even if it was marked as dirty in several frames. Before it has recized itself every time with resize factor and could cause to multiple resizement when multiple times marked as dirty
+
+commit aa440bd67f77cd91a6996e853f74abacb845acb4
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Oct 27 08:57:26 2009 +0000
+
+    - improve the onViewportChange functionality in the processor
+    - dynamic resizing of osgppu pipeline do almost work now
+    - HDR example don't work with resizing
+
+commit 4036ec0827678b1047f21358c96a03aec96b432f
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 26 15:28:49 2009 +0000
+
+    - unneeded visitors removed
+    - Changes in UnitBypassRepeat iterative traversion (there was a bug)
+
+commit efab263dadec7d492723797f8bfeb12cc8c787f7
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 26 11:07:36 2009 +0000
+
+    - added error message if file not found
+
+commit 8f352a9a7f5b9d1cf82bb52d425d87695a9e8dbf
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 23 19:29:10 2009 +0000
+
+    - UnitInHistoryOut warnings added that currently not implemented
+
+commit 60b92cbe6c9a01fc9e967cd8e550ef436f8efdf6
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 23 19:23:52 2009 +0000
+
+    - window title in examples added
+    - new example showing UnitBypassRepeat in action (diffusion)
+    - motionblur example, simpel motionblur by loading .ppu file
+    - a lot of bug fixes
+    - new images of Lenna
+
+commit a207b680f9a20e9ced4e81fbc11b89442b164aad
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 23 19:22:45 2009 +0000
+
+    - new unit: UnitBypassRepeat which can iteratively repeat its subgraph (very usefull for iterative algrithms)
+    - a lot of bug fixes
+    - comment fixes
+
+commit 5fb1077e67cc3615edf624c282059e7ac303a5af
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 23 15:03:30 2009 +0000
+
+    - when looking for CUDA installation first look in lib64 then lib directories. Just assume, that on 32bit system there is no lib64. On 64bit systems there are both, hence first one should be used.
+
+commit 170dad895b3e79cc93d0b2372c0bd7a044c56a76
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Oct 23 12:44:12 2009 +0000
+
+    From J.P. Delport:
+     - CMake path changes to support Debian64 (lib64 added)
+
+commit b37567853e508b686b36d0abc8db10f6b6f6dfe2
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Oct 13 17:55:04 2009 +0000
+
+    - reenable multithreading in hdr example
+
+commit 94e3a2f78ab06f44718612ee1f16d14c31e80ccf
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Oct 13 17:46:35 2009 +0000
+
+    - handling of mipmaps was wrong in previous version
+    - rewritten the units handling with mipmaps in order to be visible when running in debug mode as also to render correctly
+    - hdr example should work now more correct then before
+
+commit e944a1ef470b2c1c2edf6f89819f6e957cd26338
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 12 12:43:13 2009 +0000
+
+    - support for osg 2.9.6
+    - small changes in glow example
+
+commit eac8d7264ec1e2e7b227c372fc932ffe30a0bfbd
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Aug 11 16:42:42 2009 +0000
+
+    - Units are now handling FBO support by them self
+    - This is a neccessary step to allow an inbetween computation of Units in the scene graph
+    - see thread "Running the processor between pre-render and main render" on the mailing list or forum
+
+commit 328d0bbe5edf9fdeb3c319b0028bb9de414f45fb
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Aug 10 11:26:38 2009 +0000
+
+    - UnitInHistoryOut: class is not used now, however error when compiling, hence corrected this error
+
+commit abbb0b9634764da90476e106c9a39816c095e0da
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 14 23:35:34 2009 +0000
+
+commit c55258192175e540f80ab985391a9651210645cf
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu May 21 09:56:45 2009 +0000
+
+    - glow example changed to support depth
+
+commit bcfe092560898765a365e5720505de91a43ac38c
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu May 21 00:09:33 2009 +0000
+
+    - added history class
+    - changed glow example to support depth values, however still in progress
+
+commit 8448b4db35fe613909b77292ffc5a26ef76015f1
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Mar 27 12:02:37 2009 +0000
+
+commit f63b0a3d14678778d582bd4ce871e8da84c9abb0
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 17:38:29 2009 +0000
+
+    - so now policy should be handled properly
+
+commit 12bc882d45b25bb5b73f071e3dd3d45fa23ec82b
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 17:30:48 2009 +0000
+
+    - removed the policy, because it doesn't work on older version of CMake (TODO: correct policy!!!)
+
+commit e76b0e2f47af43f7a450d63092e52ebe66a08471
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 17:29:13 2009 +0000
+
+    - changes to the CMake system to support package building
+    - also now includes the Config.h intoi installation path
+
+commit 12ac69c21a0d737df13d0c97053364a9b16bfc44
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 15:47:05 2009 +0000
+
+    - small changed to FindCUDA to support linux non-cuda environment
+
+commit 2ede35321422439d73ff1daadfb7107ac4170c8a
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 15:32:35 2009 +0000
+
+    - first try to setup packaging support as for openscenegraph
+
+commit 8471ddd3d27523938a523385088a9252413cbc0f
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 14:03:58 2009 +0000
+
+    - corrected the osgversion command execution
+
+commit 90c563f0e5180dbfe0c621e60bf109e17338a8fb
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 13:59:50 2009 +0000
+
+    - corrected the osgversion command execution
+
+commit f51ec6da313922cce425084e59e8210cd01afc4d
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 26 13:39:44 2009 +0000
+
+    - changed CMake files to remove all unneccesary stuff
+    - removed cuda util libraries, because they are curently not needed
+
+commit 7a2865a5429bac0f96ca23f894d7a6a117f25715
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Mar 25 17:48:23 2009 +0000
+
+    From Oleg Dedkow:
+    
+    1) You have to add the following value
+    
+    -ccbin "$(VCInstallDir)bin" -DWIN32
+    
+    to the CUDA_NVCC_FLAGS variable.
+    
+    2) The auto-generated "cudakernel" project does not contain the
+    "Export.h" file.
+    
+    3) The "cudakernel" project does not contain references to the following
+    needed libraries:
+    
+    "osg.lib", "OpenThreads.lib" and "osgPPU.lib"
+    (Debug: "osgd.lib", "OpenThreadsd.lib" and "osgPPUd.lib")
+
+commit dc88fb8bc01952819b0b3941d86ffb01e68c0970
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Mar 25 14:22:42 2009 +0000
+
+    - changes to test on a Windows machine if cuda examples compiles correctly
+
+commit 6c395f6516c17a7a95b8f6fb560f4fd620855620
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 23 14:50:43 2009 +0000
+
+    - contributor list and changelog changes
+
+commit 52698d57acf95ebf2a95fa26790f92f62abdec0f
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 23 14:46:12 2009 +0000
+
+    - small bugfixes in the examples
+
+commit fe90970493115a373431218a67f2e2a09094da28
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Mar 23 14:45:56 2009 +0000
+
+    From Oleg Dedkow:
+    The recent NVCC version (V2.1 beta for 64-Bit Windows Vista) cannot be used from VS 2008 environment to compile "cu" files containing both CUDA functions and C++ classes.
+    The file "kernel.cu" has been splitted in two parts: CUDA and C++ respectively. This should solve the problem of compiling the cuda example on 64Bit Windows systems.
+
+commit 07991cea1d5c76281e456237f7e234fbcd036a94
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 23 19:26:01 2009 +0000
+
+    - full support for osg 2.8
+    - New Modules:
+       -- UnitInOutModule processing units can now be loaded from .so/.dll modules
+       -- UnitCamera - bring additional cameras into the osgppu pipeline (usefull for multiple cameras being processed by osgPPU)
+    
+    - deprecated class "Shader" removed (use ShaderAttribute instead)
+    - small build fixes (changed Cmake files)
+    - examples do build now with osgppu_ prefix
+    - support for .so version build extensions (i.e. libosgPPU.so.0.4.0)
+    - new examples:
+       -- ssao - simple screen space ambient occlusion
+       -- glow - simple example shows how to use osgPPU to let certain objects glow)
+       -- cuda - shows how to compile and use CUDA kernels together in ppu pipeline
+       -- CUDA support - bring cuda kernels into osgPPU pipeline, by loading CUDA-kernel through UnitInOutModule unit (CUDA kernels has to be compiled externally into an .so/.dll file)
+    
+    - full support for "NodeKit" definition ;)
+
+commit 185ed38fe0f6d220a15846b54a721b5c25e4b57e
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 23 19:14:14 2009 +0000
+
+    - cuda workaround for broken compilers added
+    - IO support for UnitInOutModule added
+    - new .ppu file which does just load a CUDA kernel module
+
+commit 330a39cb7cd2a60350a56f257ef562f673c08494
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 23 18:17:03 2009 +0000
+
+    - remove deprecated classes compeltly
+
+commit e7b40d56e2a3f106787bc43ddb6b1cf89b656812
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Feb 5 01:00:15 2009 +0000
+
+    - example showing glow effect complete
+    - maybe we could add more functionality into this effect, however it is not relly needed ;)
+
+commit c41b496f96e723a154bf5bd839112d19270ebcd1
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Feb 5 00:10:44 2009 +0000
+
+    - new example showing glow effect in action
+    - an object is rendered by a slave camera and blurred by gauss blur function
+    - example is still not complete and has to be completed soon
+
+commit 736326881268f84acc9391126d40f5171f77e5a7
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 2 15:29:49 2009 +0000
+
+    - append so versioned dll names as in the main osg cmake file
+
+commit c7d8a1f67ec034d694771c9312a79fbb4d4c675e
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 2 15:13:52 2009 +0000
+
+    - prevent warnings in windows cmake 2.6
+    - project is now compilable and usable under windows
+
+commit fa4920dfd7cf3782832ea5664baea4d357399895
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 30 21:46:37 2009 +0000
+
+commit 42d8a995fe0072658e42376fc7969909d019cd3f
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 30 21:44:06 2009 +0000
+
+    - warning about possible wrong parentheses corrected
+
+commit bcab142307f9e9ebd7b05361686565ac42faa3a0
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 29 15:44:06 2009 +0000
+
+    - renamed execution files of exampels with osgppu_ prefix
+    - error caused to hang when loading .ppu files is fixed
+    - error messages added to the examples to let the user know, that files where not loaded
+    - .ppu pipeline files updates
+
+commit e34daac1ac665f6195b3d42e62c11743b3451d82
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 29 14:56:01 2009 +0000
+
+    - enable Device mode for cuda compilation per default, only if cuda compiler was found
+
+commit 254b735eea5fe43dbcae69a638872317a81fd21f
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 29 13:34:15 2009 +0000
+
+    - move authors.txt to contributors.txt
+    - added soversion to the libosgppu shared library
+
+commit 85fb50c3e420b87f3f9e6088d1f23397b030e240
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 14 11:06:36 2009 +0000
+
+    From Valery Bickov:
+       - modified OsgPPUMacroUtils.cmake for correct variable names
+
+commit 998e1a310c2cbc14017fe1f9d88e5ffcc0391085
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 2 17:43:09 2009 +0000
+
+    From Bob Kuehne:
+    "this brings it in-sync with the out-of-source stuff that i helped osg do a while ago"
+
+commit d5a329888603076c06543e350673593d946a7afd
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Dec 28 16:58:00 2008 +0000
+
+    - include cstring in Base.cpp of osgPlugins osgPPU
+
+commit df23731880ed57daad01bd3a62baf47abc3095b9
+Author: Art Tevs <art@tevs.eu>
+Date:   Sat Dec 20 10:07:46 2008 +0000
+
+    - just changed the resolution slightly to increase the performance
+
+commit 7e85876e233733b432866d290181803977425251
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Dec 19 15:06:42 2008 +0000
+
+    - SSAO added simple example
+
+commit d4eda9d146421100764df07db0ee8fb7b483bfe8
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Dec 17 10:21:33 2008 +0000
+
+    - Each visitor do now returns its name as a string
+    - Solve the problem of unit cycles which come from some undefined visitor running over the pipeline
+
+commit 66f235c54a990c35c6e1f4cf38212a9868373f1a
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Dec 4 22:42:57 2008 +0000
+
+    - Small change in the UnitCaputre, the results were broken
+
+commit a5ef699332e29a44c6028129cc2a478ff5c870ef
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Dec 3 22:42:45 2008 +0000
+
+    - UnitBypass small changes
+
+commit 72651472823719097bf1711cb07dee1ed0d67dc3
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Dec 3 22:39:56 2008 +0000
+
+    - merge sandbox with trunk
+    - now support for CUDA implemented
+    - using PixelDataBufferObjects to map OpenGL textures into the buffer
+    - buffer can be then used in an external modules loaded by UnitInOutModule
+    - CUDA 2.0 example showing how to create and load an osgPPU Module to run a simple blur-cuda kernel on the input
+
+commit 79fbec1fc1953bff4ef0471733f8f35a269c6fe2
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Nov 19 16:05:19 2008 +0000
+
+    - UnitCamera - new unit to bring an external camera into the pipeline
+
+commit 832409f00ab91a136660514149a970ee83ac32ec
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Nov 19 15:44:07 2008 +0000
+
+    - camera attachment bypass added
+    - now one can specify any camera to bring it into the osgppu pipeline
+
+commit a27007c403286e348646d561d7f8717687e82153
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Nov 11 15:44:20 2008 +0000
+
+    - SSAO example deactivated
+
+commit 8f05bb2a5b2e63ecd6ee16da4f5477555f0e5d18
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Nov 11 15:42:22 2008 +0000
+
+    From Jean-Sebastien Guay:
+    On Windows, we need to have the 'd' suffix on the plugin DLL too, and the code in CMakeModules/OsgPPUMacroUtils.cmake (SETUP_PLUGIN) just removed the suffix in the NOT MSVC case, but never added it in the else... so I added that.
+
+commit 0ff4e218da2118ed98b811e58960c369a7fde2f0
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 27 15:34:34 2008 +0000
+
+    - make child units of the texture unit dirty after the texture was applied. This will force the child units to reload the input texture and to resetup its properties
+
+commit 4623ec43c27f1e67e1d0db23698f67485f84106c
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 20 11:59:51 2008 +0000
+
+    - critical bug in visitor corrected which hasn't incremented render bin numbers
+
+commit 2d7d501bdeaeb07e09d61bb01410c1e1e3565328
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 13 10:14:38 2008 +0000
+
+    - From "Doug McCorkle":
+       specify enabling/disabling of color clamping function in the processor. This is usefull in environments where color clamping is not supported or is not liked to be used.
+
+commit 411cb5a2d189ec1367cf201e1ef63043fc0d3d90
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Oct 9 21:59:18 2008 +0000
+
+    - v0.3 tagged
+
+commit 71d73ce0e6534e7d3286f6004fe16dd2927d9663
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Oct 9 16:05:00 2008 +0000
+
+    - RemoveUnit procedure corrected. Now the remove process is correct and can be safely used
+
+commit d10a72927586416f59c54a975c7c865ba5682a0e
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Oct 9 00:14:06 2008 +0000
+
+    - just little bit more Debug information when requested
+
+commit 500444aab1038641f2a0b1abbc72a0ea20f94bf0
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Oct 7 20:27:47 2008 +0000
+
+    - remove M_LN2 constant out from the Mipmap Units and replaced by a direct computation
+
+commit 6fb2978ad1900ca9b4a22b4941b7cfaf7c9584c6
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Oct 7 13:45:27 2008 +0000
+
+    - removed one of the deprecated messages
+
+commit 07333d85b54ebea7d17011ffc81eea567e9977b5
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 6 19:17:05 2008 +0000
+
+    - Some small changes before v0.3
+    - shaders for SSAO added however the example isn't activated at now
+
+commit a66f9478d2a750731239e337d2288de5af6e081a
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Oct 6 09:41:40 2008 +0000
+
+    - Windows-Build fixes (was missing OpenThreads library)
+    - Visitor with OSGPPU_EXPORT exported (is needed for win32 build)
+    - Shaders corrected for very strict drivers
+
+commit 8a88c08b2bafaa5d8d87024c00ec0c7f00b70370
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Oct 5 23:51:16 2008 +0000
+
+    - Multithreading issues corrected
+    - new Visitor types defined, for simpler access
+    - new example SSAO (however not fully implemented)
+    - all problems in examples corrected
+
+commit 8a36266fed481ddd683359ee3b89eb488686faf2
+Author: Art Tevs <art@tevs.eu>
+Date:   Sat Oct 4 12:25:27 2008 +0000
+
+    - viewer run in single threaded mode
+
+commit 37f5d15c20a1cddf2fc3141ed19d18f212ae11ed
+Author: Art Tevs <art@tevs.eu>
+Date:   Sat Oct 4 09:04:59 2008 +0000
+
+    From Adrian Egli:
+    added parentheses in ShaderAttribute.cpp to reflect correct behaviour
+
+commit f8e4ca4254f213a9d84f6f322fabd4ded64b62e4
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Oct 2 14:08:26 2008 +0000
+
+    - new class UniCameraAttachmentBypass added, which brings different camera attachment sinto the pipeline
+    - UnitDepthbuffeerBypass was reimplemented as derived class from UnitCamerAttachmentBypass
+    - new example for Screen-Space Ambient Occlusion is in progress (it still doesn';t work properly)
+
+commit b24871a498d138a905380cbb22f567374c1386d9
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Sep 19 10:03:24 2008 +0000
+
+commit fe68efa9a109e966b71ae2618a29a12f944a5973
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Sep 18 09:45:35 2008 +0000
+
+commit d6a6e343d5fe7e50ac329db27e04891902f51d60
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Sep 10 11:18:00 2008 +0000
+
+    - From: Christian Heine - includes files to improve compatibility with new compiler version
+
+commit a1ea267c2fa7fec1581bc54757d0b9ab6c63efc8
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Aug 27 18:31:32 2008 +0000
+
+    - ChangeLog
+
+commit f841f754a1d5347f41f67a1fe1a9ccfc9aa28834
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Aug 27 18:31:00 2008 +0000
+
+commit 86c4ee509fbb4d99ab2ac3b546b9474cfcccd3e1
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Aug 27 18:16:52 2008 +0000
+
+    - video processing example added
+    - UnitInOut : subloadCallback slightly changed to support also empty modes
+
+commit 93d4b29ec455adc5ddd14fcd879fcb7890ffaee8
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Aug 5 18:34:24 2008 +0000
+
+    - completlye change on ShaderAttribute is done now
+    - Shader is deprecated and shouldn't be used anymore
+    - next release is coming soon
+
+commit 6493258a628fc0623cbefbc612b4ee7dd02965a5
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Aug 4 19:27:49 2008 +0000
+
+    - osgPPU::Shader is deprecated now
+    - osgPPU::ShaderAttribute now works fine. Some tests required.
+    - all *.ppu files were updated
+    - all examples were updated
+
+commit ea3ede9aa47c87e44a5ee5301b197362d4fa5c25
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Jul 27 15:35:15 2008 +0000
+
+    - ShaderAttribute continued work on it
+
+commit 4f6c8d75668304eef4df1cdd232615dcf0347747
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jul 21 18:06:41 2008 +0000
+
+    - ShaderAttribute class (in development) added
+
+commit 413c42a1ac6e4f27215a5827301090282dae71d0
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 15 12:43:13 2008 +0000
+
+    - small changes in MRT support. Now no use of GLenums anymore but direct setting up through Camera::BufferAttachment
+
+commit bc1a7af214199300bbae74f0ddfe53850b1fd199
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jul 14 14:03:19 2008 +0000
+
+    - Render-to-3d-texture corrected
+    - mrt support should be now correct
+
+commit 4ef1b7f3d933e5dab0487f80fdb9fe3fc190630b
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jul 9 13:40:06 2008 +0000
+
+    - Support for MRT for 3D textures as output textures added. The supprot should be tested!
+
+commit 83f813b554d8cf1ba1dc75d31568483c3a7101bb
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 8 19:21:01 2008 +0000
+
+    - forgot to add the Image ;)
+
+commit a1b53e56d3d33fb007b24a14e2f7c786090abdd6
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 8 19:20:33 2008 +0000
+
+    - Render-to-Cubemap/3DTexture parameters to the osgPPU .ppu Plugin added.
+
+commit b9c5a1043e170c09ff985c4104f8d45d02d7c648
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 8 19:14:48 2008 +0000
+
+    - forgott to add the files ;)
+
+commit 6738b13412e1e617339d16956d9935175c7c309b
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 8 19:14:26 2008 +0000
+
+    - Render-to-3D-texture support added.
+    - Simple example demonstrating how to use osgPPU to render to certain slices of the 3D texture is shown.
+
+commit 0271ec8a1c4e5936487be2cc189dabfa1f135c8c
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 8 17:29:47 2008 +0000
+
+    - cubemap example missing Data added
+
+commit 31262536cf22195d601052f63aa66968a1daaf54
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 8 12:25:18 2008 +0000
+
+    - Render-to-CubeMap example added
+    - the example should be extended to really changed the color values of hte input cubemap texture. However this requires transformation of texel coordinates from the cubespace into 2d space. Hence this is just a color example ;)
+    - UnitInOut do now support renderin to cubemaps
+
+commit e8908662c9acb3ba20403bb77021cfe87b742d74
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jul 4 12:55:35 2008 +0000
+
+    From Sean Carmody
+     - support for output to CubeMaps from out of UnitInOut units
+     - implementation was extended for future implementation of non-2d-output texture types
+     - small changes in the interface: all set-methods about output texture are now moved to UnitInOut from Unit
+
+commit e670d390f24dcb386febd628fe188aa22cd84ed3
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jul 1 11:36:45 2008 +0000
+
+    From Bob Kuehne:
+    fixed PPU to work with the new birfucated osg/include header
+    structure. three changes to a FindOSG.cmake module, and then to the
+    parent CMakeLists.txt which uses that to setup include paths.
+
+commit b32679d4f0579624bac0b1b9f4b1844436a72f3e
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 14 15:33:54 2008 +0000
+
+    - Version 0.2 tagged
+
+commit 02878decf48796ff6b36b062365d9ec06908e2df
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 14 10:28:15 2008 +0000
+
+    - Removed uneccesarry files
+    - changed the documentation little bit to deprectate the current interface of the Shader class
+
+commit b992c063b3a64a91b3268593409b80a2aa5dced9
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue May 13 09:36:56 2008 +0000
+
+    - osg::ref_ptr for the Camera object in the Processor class changed to osg::observer_ptr to overcome possible memory leaks, thanks to Stephane for that.
+    - smal doc and build fixes
+
+commit 523882e60a2fea22934f40a385296b67113ce6ba
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu May 8 11:29:25 2008 +0000
+
+    - CMake build system changed to automatically detect the installed osg version and to install the plugins under this directory.
+    - thanks to Robert Osfield for his suggestions
+
+commit 41d36f28feb20ba897ae67d06693b5f8590201b3
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 20:21:50 2008 +0000
+
+    - Disable the FBO clearing of undefined texture values, now a simple temporary image is used to upload 0 values to fresh output textures
+
+commit 4348cec2a14e47de427c3dc3c3a01d7a2adde7cf
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 19:58:42 2008 +0000
+
+commit 1b975b007337c6556d5b41142ccb551c3631d8e9
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 19:57:44 2008 +0000
+
+    From Stephane Lamoliatte:
+    - updated the main CMake file to allow the user to use the float or
+    double type for BoundingBox / BoundingSphere / Matrix / Plane.
+    - updated CMake modules to install the library in the bin directory for
+    Visual Studio (the same behaviour as OpenSceneGraph)
+    - removed compiler errors in Visual Studio 2005 (Visitor.cpp /
+    Visitor.h) using the ref_ptr<CleanTraverseMaskVisitor>
+    - updated the CMake file of the osgPPU plug'in to take into account "Base.h"
+    - updated the CMake file of the dof example to take into account "dofppu.h"
+    - modified the dof and hdr example code to center the viewer window on
+    the main screen
+    - modified the dof and hdr example code to load shader using the
+    osgbd_glsl plug'in (now add the bin directory to the OSG_FILE_PATH
+    before running example)
+    - removed the empty lib directory
+
+commit 9309df7591db95d26f066f6e41ea2c4a03ba387e
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 19:56:35 2008 +0000
+
+    - remove Data
+
+commit 5d303de9bc5e4e33910a2116a52fbbfcc037f9d0
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 19:10:23 2008 +0000
+
+    - support for FBO clearing of outpu ttexture added, however still not well tested, hence currently disabled
+
+commit b93f3cedc41e8450b25bf702b0fa69a42d72e677
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 18:02:17 2008 +0000
+
+    - UnitInOut now do allocate the output texture by itself.
+    - the output texture is filled with 0 values in the beginning preventing of getting unitialized values out of the texture
+    - TODO: implement texture clearing with FBO to support much faster creation
+    - during the initialization of UnitInOut a small stall can be percieved due to uploading of high amount of data to the GPU
+
+commit 56e5d88e09f312305dc181ca717acf56198ec415
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 17:42:02 2008 +0000
+
+    - to reflect the changes of the previous patch from bob Kuehne the Data directory is
+     now located under src/examples/Data. During hte configuration of the build process
+     all the data is copied into the bin/Data/ which
+    - lib and bin direcotries are removed, you will find them after the build process in your current build directory
+    - moved scripts to the doc directory to cleanup the main directory
+
+commit 94734d52bbfe22784626fa24082f0b092f23efbd
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 17:25:36 2008 +0000
+
+    - rearranged the Data directory
+
+commit eda3f7f2161719023066c18aece20fe027f3d3d6
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 17:16:25 2008 +0000
+
+    - mv Data directory to the src/examples/
+
+commit 8f4548914b461fc76d2d554e3874b0e75f98101e
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed May 7 08:57:36 2008 +0000
+
+    - just few changes of the Visitor to the previous version
+
+commit 275d3220e99d2e7ae05155f020242b6581327848
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue May 6 22:59:38 2008 +0000
+
+    - moved the drawImplementation method out of the Unit.h file into Unit.cpp
+
+commit c0d4273e0992dc1e02f6258e90794d146d54ced7
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue May 6 22:08:05 2008 +0000
+
+    - From Bob Kuehne:
+    the patch is to allow separation of build
+    directory and all products (objects, apps, libraries) from the source
+    directory. osg and many other related projects which use cmake work
+    this way, so as to keep the source distribution 'pure' and free of
+    generated files. please take a look, and integrate if you approve -
+    this will bring ppu to the same baseline operation as what osg
+    currently provides wrt cmake systems.
+
+commit a84cbe30db4c7c4d578552ddaab11da272f5acd3
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue May 6 21:33:14 2008 +0000
+
+    - From Stephane Lamoliatte:
+    - fix some compiler bugs that met on Visual Studio 2005 :
+    - I change the call of the round function by osg::round because there is no standard round function in Visual studio
+    - There was some encapsulation problem with the Unit class :
+        Unit has Visitor for friend. CleanMaskVisitor and
+    SetMaximumInputsVisitor were Visitor internal classes. In Visual studio
+    CleanMaskVisitor and SetMaximumInputsVisitor  cannot access to Unit
+    private variables.
+        So, with the patch, Unit has CleanMaskVisitor and
+    SetMaximumInputsVisitor for friend. And these two classes are not
+    contained by Visitor.
+    - I add some lines in FindOpenThreads.cmake to make it compatible with my environment variables (I copy/paste FindOSG.cmake).
+    - I remove some useless precompiler directive in IO_Unit.cpp
+    - I modify some boolean stuff in IO_Unit.cpp to avoid strange warnings about int/boolean conversion.
+
+commit e1f2ab654b6abdfd590d179b4d41f42473d9d2aa
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon May 5 22:25:23 2008 +0000
+
+    - updated the ReadWriterPPU to reflect the ColorAttribute support in the units
+
+commit 590017d8cd098ad8b49ec53c283a3f7a10e70121
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri May 2 16:01:33 2008 +0000
+
+    - problem with the blending correct, now any unit texture clamps to the edge
+    - TODO: correct implementation of removeUnit methods, since this one crashes
+
+commit c98e982c0b884fd0d7659fe231e17e2272499841
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri May 2 15:19:52 2008 +0000
+
+    - new StateAttribute - ColorAttribute added
+    - it allows time specific configuration of the glColor value
+    - the color is used to render the units.
+    - this allows to implement blending on the units
+    - hdr example the fadeIn/fadeOut effects added
+
+commit 5ad8f56661cd988ca3ec2dfdc7d8ab6bdd5b094a
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri May 2 09:49:56 2008 +0000
+
+    - each unit is now sorted into the same renderbin as the processor and get it sort index based on the graph counted upwards from the processor index
+    - solved problem with wrongly sorted units
+    - visitor do perform now a traversion during the initialization on units children in reverse order, which is needed for correct sorting
+    - I think there are still some problems with the sorting during hte execution, however the results seems to be correct
+
+commit 97966bd39e09427548ba10503b12e84072997058
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Apr 30 15:35:07 2008 +0000
+
+    - new method Processor::removeUnit added.
+    - from now on a unit can be removed out of the unit graph, however the method is not well tested, tests and patches are welcome
+
+commit d1216ef5cabf3bc45b83d3e1961af6020244ea55
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Apr 25 14:21:47 2008 +0000
+
+    - missing of files of DoF example added, now it should work just fine
+
+commit fccdc823da910e0d8b074976c0aa7026eeba73e8
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Apr 25 08:41:08 2008 +0000
+
+    - DoF example was not completely commited, hence deactivate it until commitment is complete
+
+commit 92e27c9e9001429266f8397e37365753b7715af2
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 24 23:27:02 2008 +0000
+
+    - Depth of Field example added
+    - The example shows a simple depth of field faked implementation, showing also the UnitDepthbufferBypass in action
+
+commit 2d8188eaf0c484300b79b830b488d680cbbd6831
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 24 20:58:36 2008 +0000
+
+    - New UnitDepthbufferBypass added
+    - The unit is capable of bypassing the depth buffer attachment of the camera to the output.
+    - It performs no rendering and therefor is very efficient
+
+commit 7fd27d41e9c27effe3b103426321fa23da3dd137
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 24 14:35:18 2008 +0000
+
+    - Offline Mode removed out of the Unit, since it is not needed anymore
+
+commit a20ee05d539fbfc7a98c4e84880276670878a262
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Apr 23 16:22:03 2008 +0000
+
+commit bc209d84cd45e31f77a741dcba18b5d3cd2966d8
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Apr 23 15:56:42 2008 +0000
+
+    - Index completely removed out of the Unit class
+    - Pipeline class removed since it seems not to be used at all
+    - Processor class does now sorted into the same bin with binnum 100, maybe this can be changed in future versions
+    - Small changes to the interface and documentation
+
+commit 0c6c0f8879844dde32188da6058350d30803d445
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Apr 23 11:25:19 2008 +0000
+
+    - small doc and interfaces fixes
+
+commit a518c7557389471c6a1ad87c73fe463e4147950f
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Apr 22 22:20:08 2008 +0000
+
+    - changelog and minor changes
+
+commit f9ce974568e9031a29f166dbaba32ce752aacb16
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Apr 22 22:17:52 2008 +0000
+
+    - sandbox merged with trunk
+    - completly changed the way how Units are managed.
+    - Unit and Processor are now derived from osg::Group which enables to combine them in a graph in an usual fashion
+    - The subgraph under the processor represents the unit pipeline
+    - No State is dierectly involved anymore, the state is acquired automatically during the rendering
+    - Each parent node do provide its output to the children
+    - Each child collects its inputs from all direct parents and hence setup itself in this way
+    - Cycles in the unit graph are allowed, giving the possibility of reusing computed data in the next frames
+    - Cycles are resolved by adding special kind of node BarrierNodes, which disables the traversion at them
+    - Processor uses now a special kind of Visitor to Setup, Initialize, Resolve Cycle, Optimize, Update and Draw the subgraph of units
+    - The .ppu files has not to contain fixed Viewports, allowing reusing of the same .ppu file for different camera resolutions
+    - New UnitTexture unit allowing passing an external texture as input into the ppu graph
+    - Shader uniforms are setted up automatically based on the input textures
+    - The .ppu file can now write and read every kind of Unit including external texture referencies
+    - All examples were updated and changed to the new interface
+
+commit 5ae1b1953ebdbbb120ee2c68ac51fc858d3e4f74
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 3 17:19:22 2008 +0000
+
+    - Depth Of Filed example just added, but it does not work at now
+    - inprogress branch directory added. I need this to work on before submitting to the trunk directory
+
+commit a5ee53af0f7081275b2355aec8a9668da59995b7
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Apr 3 17:14:24 2008 +0000
+
+commit 981e8c58c6364a61879df187f68f6e28691be3c8
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Mar 28 10:16:58 2008 +0000
+
+    - Small changes to the CMakeLists of the examples, now pthread library is linked only if static build
+
+commit fdef38171f83310fac64832b0f04d28f2e0834f0
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Mar 27 13:27:20 2008 +0000
+
+    - Simple changes in the text unit (there still some strange bugs, however for now it seems to work)
+    - Readme file changed
+    - I am gonna go now to tag a first developer release version
+
+commit dedc469b1dee2bb2e1871bc699f1b15daa2745b0
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Mar 5 17:11:54 2008 +0000
+
+    - Small change in the Unit.h
+
+commit 52bf281196f2d957fe179550c4b4396755f323c8
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Feb 29 19:52:53 2008 +0000
+
+    - changelog
+
+commit 245f0ecd550ce6a50bdde4e341fea776190c31bc
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Feb 29 19:45:46 2008 +0000
+
+    - changelog
+
+commit 383e49a2338ff8ee4bcd6bee049a91773bdfc093
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Feb 29 19:45:08 2008 +0000
+
+    - motionblur.ppu added under bin/Data/. Now you can use viewer to check this effect.
+
+commit 45a0195ccb029599a943bc3b8e9c013b7d5fdd9f
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Feb 29 19:23:06 2008 +0000
+
+    - Unit::getOrCreateOutputTexture() method added. This allows to preallocate the output texture even if the Unit was not initialiyed before.
+    - Unit::addInputPPU does now work intuitively correct. You can now also add input PPUs without initialiying them first.
+
+commit 36a3a0fff01e3ab8622b30492e78502f5568dd9e
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Feb 29 16:29:00 2008 +0000
+
+    - Small bugfixies
+
+commit e7bd7773394bf6635657f45cdf9da83908b63e4f
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Feb 28 15:14:14 2008 +0000
+
+    - Units are now executed also if no input was specified
+    - True MRT support added:
+    -- UnitInOut is now capable of rendering to all of its outputs.
+    -- The behaviour was tested by creating an only offline unit pipeline with 3d texture as output and specifying the zoffsets explicitely
+
+commit 064edfca3edb54ac8d3983f6bc0e8e11b0bc4d30
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Feb 27 17:38:56 2008 +0000
+
+    - There was a seg fault if a pipeline containing only offline units were added, this is fixed now.
+    - Some compiler warnings fixed
+    - Small bugfixes
+
+commit 83474b962032301c6d7a51ada622881b15bf052e
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 25 19:38:39 2008 +0000
+
+    - Bug with still bounded texture after a PPU run is fixed
+
+commit 6bad9423b2020e2862d0afaebb8df8630ec8b38a
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 25 17:38:36 2008 +0000
+
+    - Just a small change in UnitInOut and UnitText
+
+commit 7c1d5e00e52f851a9ba82755ee6cf2041aed02c1
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Feb 25 17:03:40 2008 +0000
+
+    - Different changes in the CMakeFiles to support static build of osgPPU
+    - Viewport of the Unit is now not applied directly but through the StateSet
+    - Some small optimizations
+
+commit 80a73dd73fa716fbb363e0fca6b5ccd3f985f60a
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 30 20:48:03 2008 +0000
+
+    - build.vc8 directory removed, sinc it is not needed for a proper build on windows. Build on windows tested with Visual C++ 2008 Express (VC9) and with CMake 2.4
+
+commit 615106d516006782a07c0aa8b298cd8ec45d76d0
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 30 20:13:29 2008 +0000
+
+    - CMake listing changed to support osg version as option
+
+commit b9bce868af22e76d562408e6f0c094957dca0ee2
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 30 19:23:10 2008 +0000
+
+    - Non-used makefile removed
+
+commit 6e6954f3694ddde0f82fee422baad2245694de8b
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 30 15:08:25 2008 +0000
+
+    - UnitBypass.cpp added instead of inlined functions in UnitBypass.h
+
+commit ac760f7b2cc528e0a9247fec4e5e83d1dedc7df2
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 22:16:57 2008 +0000
+
+    - just come docs changed
+
+commit 1e6fc05b2b8d623d3f491dda860186dc71023d3d
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 22:14:35 2008 +0000
+
+    - just the changelog
+
+commit fc4965945f72fda9f75684085d01e3a762740789
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 22:13:56 2008 +0000
+
+    - Very big changes in the interface
+    - UnitInOut has now got the components about mipmapping which were moved from Unit
+    - Unit is now pure abstract base class
+    - UnitBypass added which do nothing as bypass the input to the output
+    - osgdb_ppu plugin changed to support the new unit
+    - .ppu files from bin/Data adapted to the new interface
+
+commit 087cf862a69f897bb8d05ecb5443f660d4a73aa4
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 19:48:27 2008 +0000
+
+    - Authors/Contributors list added to the svn. The authors are not sorted in any manner.
+
+commit a598ecc6a88d746cf1606e63bb9a0bada2fa5dde
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 19:33:22 2008 +0000
+
+    - Licence text in all headers and source files changed
+    - Now the LGPL should be seen everywhere
+    - Readme file get new content about the osgPPU plugin to osg
+
+commit 53c7db17f7369dc17fedab57a00eede145442d9f
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 19:07:55 2008 +0000
+
+    - New plugin for reading and writing the ppu pipelines is now activated in the code
+    - New example application "viewer" is actiaved
+    - Viewer allows a simple viewing of pipelines by loading them from files
+
+commit 0caaf2098388b4186ebfa3353f541c1b03104c62
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 16:02:06 2008 +0000
+
+    - Currently disabling the viewer application because a proper ppu loading system is required
+
+commit 445d3d81670811b026eaff0e1130953b4ed9eff4
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:52:23 2008 +0000
+
+    - CMake FindOSG macro changed a little bit to be able to find osg on non standard installation paths
+
+commit 98bb4a1f6c7010fff6ea2c88c2d9b50e41bd08ab
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:38:07 2008 +0000
+
+    - ChangeLog commited
+
+commit 07029dc5ab9b1c29c841360cbf97655820cdf589
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:37:33 2008 +0000
+
+    - osgdb_ppu Plugin added
+    - You are now capable of storing and loading osgPPU pipelines directly from files.
+    - The functionality is under heavy testing, hence it is not activated currently
+
+commit 0d1ac4553a6fddd98d43ae30765db00ee0dcba1e
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:34:37 2008 +0000
+
+    - Moved one unit per one source and header file
+    - Cleaned up the code a little bit
+    - Added META_Object for each of the unit
+    - Processor does now check whenever Unit has a valid State associated if not it would be added in the setPipeline method
+    - Shader is now capable of setting up Uniforms directly by giving Uniform* or RefUniformPair into osgPPU::Shader::add method
+    - 3 PPU pipelines as files added (hdr pipeline, simple bypass pipeline and gauss blur pipeline)
+    - Pipelines can be readed from files directly
+
+commit 345466b92f49ba0696d79f64e07014b8df9917b2
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:31:08 2008 +0000
+
+    - Non-used Makefile removed
+
+commit 5c6b883b8848308259f13edfc08a1666177504e9
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:30:22 2008 +0000
+
+    - HDR example moved into own directory
+    - Viewer example moved into "viewer" directory
+    - HDR example now writes its pipeline into Data/hdr.ppu file
+
+commit c21ea7444f1adb50f83a773037db5483e54150df
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 29 15:28:31 2008 +0000
+
+    - New example added
+    - Viewer allows to read ppu pipeline from file and test it on an scene graph
+
+commit 8c9de6592d0fb24bb70915469ea0e88a2188306a
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 28 23:20:34 2008 +0000
+
+    From "Bob Kuhne" :
+      - Changes to the shader code to solve very strict compiler settings
+
+commit b408d129905f20d2bf1b34ca4322ebd62d06c3e0
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 23 16:53:15 2008 +0000
+
+    - Change log replaced and svn up added
+
+commit 26c2b51e32c7cb1bd3b76ab34fee89106c4f04e4
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 23 16:38:49 2008 +0000
+
+    - Small changes in the interface, Units are now not dependent of the Processor
+    - Processor::Pipeline moved out as a stand alone class derived from osg::Object
+    - osgPPU::Pipeline can be written to the files
+    - Writing to files (.ppu) does work properly
+    - Reading of .ppu files is in development
+    - All the reading/writing methods are implemented in the way like osg plugins does, hence simple including into the .osg format is possible
+    - Small changes in the example application, now user sees a texture in the PictureInPicture ppu before switching
+
+commit 97c28f48e83478d12e89bba9d366a9f69cdf19ae
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 21 16:42:01 2008 +0000
+
+    - Started development of osgdb_ppu Plugin to write and read pipeline to/from a file
+    - CMake changes to support new building target (plugin)
+    - Currently this is in development, hence it is disable in the svn
+
+commit e249771aca3e834f555c59bfc0d9c0f0605ce4bc
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 21 13:40:04 2008 +0000
+
+    - Just one script file to create changelogs from the svn
+
+commit f9f7d92f4b7f4d894dd4bde19be7378b69f0f04b
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 21 13:33:52 2008 +0000
+
+    - Uninstall rule to the CMake system added
+
+commit 8658d1d8fb851be58dbeebff303e9fae8503dcbd
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 17 14:27:34 2008 +0000
+
+    - ChangeLog file added
+
+commit 195f0ea98fd2ef050af865789a5f9718123913cb
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 17 13:25:52 2008 +0000
+
+    Make directory removed
+
+commit 40d50b9e1919e727278a5183131e66c0b71faca5
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 17 13:25:13 2008 +0000
+
+    Couple of old Makefiles removed
+
+commit 52d0845360b3bb26dcbe81c571c63f25030657e3
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 17 13:24:29 2008 +0000
+
+    CMake install module added
+
+commit 879d51107bc70b9b58779cf28b6991c0b6ce3a8f
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 17 13:23:13 2008 +0000
+
+    From "Stephane Lamoliatte"
+     - CMake build system to support builds on multiple platforms.
+     - CMake configured in the way that this compiles under Windows Visual Studio 8
+     - Bug fix in the PostProcess.cpp which cause segfault on Windows.
+
+commit dcca222e30ddbf713e004067e95c996aabe6960a
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Jan 13 01:06:02 2008 +0000
+
+    - Naming convention changed
+    - Example application ow runs two times faster
+
+commit 662708a3c8c5b5055f697572c361ba316f10082a
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 11 14:27:55 2008 +0000
+
+    - CFLAGS changed from -g  to -O2, now example runs with around 400FPS (cessnafire.osg)
+
+commit 6da8bb039d8198949e98e7efd437f0ee06969830
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 11 14:26:25 2008 +0000
+
+    - Example: FPS-Counter added back, on nVidia GeForce 8800Ultra the run of ./osgppu Data/cessnafire.osg gives around 350FPS
+
+commit 089caa3b9483b7582f5a56a8305580eb6110dc16
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 11 14:21:34 2008 +0000
+
+    - Text Wrapper class removed. PPUText is now derived directly from osgText::Text
+
+commit 17de9d8ba6784bd7873dd985e25e0446c5da5684
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 9 18:53:14 2008 +0000
+
+    - Some hacks commented out for now, maybe commit a patch to osg to support them through StateSets
+
+commit 3f8747263924b62e9afab33d0e9a23ed5346e371
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 9 15:47:57 2008 +0000
+
+    - Some bugs and issues with the new driver corrected
+    - In example changed all the occurencies of texture2DLod to texture2D
+      Due to some bugs either in the driver or somewhere else texture2D
+      do not read from the level 0 per default.
+    - Therefor had to add glTexParameteri to change the base level of the texture
+      for input textures in the PPUInOut.cpp
+    - Maybe some patch to osg is required to control this by the stateset
+    
+    - Eye Adaption still do not work as one might expected, however the code is correct now.
+    
+    - I am not sure but better to check if ComputeLuminance mipmapshader does work properly
+
+commit d7e82a089a1d011b6aa686858afcc3250a053f54
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 9 00:34:31 2008 +0000
+
+    - g_MimapLevel changed into float
+    - g_MipmapLevelNum uniform added
+
+commit 66373cc2376c79ba1a5e04562e7e000b7b74c0f2
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Jan 9 00:32:17 2008 +0000
+
+    - Bugfixes with the new nVidia driver 167.07 corrected
+    - Shader source for the example application corrected to support Shader Model 3.0
+    - Structure of the example ppus changed. Now there is two offline ppus which
+      do compute the adapted luminance value.
+    
+    - TODO: Adapted luminance value seems to have some problems. Will be corrected soon.
+
+commit 120a0a8715e9268b91aced968b5aa1c293834527
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Jan 8 14:37:09 2008 +0000
+
+    - Small changes to the readme file
+
+commit fd9050120b42f059c3a8507d18dc67de59c970a8
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 15:53:38 2008 +0000
+
+    - Hack with unbounded textures is solved
+    - Shaders and ppus seems to work now fine, my another application (refEiko), works now also fine with osgPPU
+    - example application slightly changed
+
+commit e50a103f69dc6c9ee3a57c2044a25ebb05615944
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 13:00:27 2008 +0000
+
+    - small changes in the example application
+    - small changes in the interface of PostProcess and PostProcessUnit
+    - small addings in the documentation
+    - footer.html added to generate doxygen documentation
+
+commit 2416cf00152026b964d09d234b6c9725559a1f24
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 11:25:05 2008 +0000
+
+    - Documentation changes
+
+commit 58472684de512669c5f513dddd3bd5e205d607f1
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 11:10:49 2008 +0000
+
+    - UniformMap type removed from PostProcessUnit
+    - META_Object() get an semicolon afterwars, so that doxygen is able to parse
+
+commit f529fbf7396a5b3f6754959af56aef1330f8d496
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 11:05:08 2008 +0000
+
+    - Documentation changed
+    - A lot of methods were inlined
+    - Some slightly changes in the interface
+
+commit b059ff2ec2277a1cc574e2719491ded420d7b441
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 09:52:36 2008 +0000
+
+    - example: Setup material of teapot instead of direct call of glColor
+
+commit 0d92489b14194e72a5aab5902bf28d3687251331
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 09:48:03 2008 +0000
+
+    - PPUInOut.cpp g_TextureWidth and g_TextureHeight changed into g_ViewportWidth and g_ViewportHeight
+    - example shaders changed from Shader Model 4 to Shader Model 3, exampel application should now also work on GeForce 6xxx
+    - example: Teapot as default model added
+
+commit 53e9cd3d70b6a9cea22f883fc456d012b4bbc306
+Author: Art Tevs <art@tevs.eu>
+Date:   Mon Jan 7 00:39:42 2008 +0000
+
+    - Documentaion through doxygen added
+    - Licence header changed
+    - Small bugfixes
+    - Example application includes some more features
+
+commit af43482d1153cf46216a17902b78c7c13540b61d
+Author: Art Tevs <art@tevs.eu>
+Date:   Sun Jan 6 19:04:13 2008 +0000
+
+    - osgppu Example is now almost complete. It shows how to use osgPPU to setup
+       a proper HDR rendering pipeline
+    
+    - some minor bugfixes in PPUs
+    
+    - There are still some problems with ppu which do use textures and shader
+      Textures has to be bound manually by hand, stateset semms not to settted up properly
+
+commit a1d49c7aa85174ba20aec4df418c97a6742947f1
+Author: Art Tevs <art@tevs.eu>
+Date:   Sat Jan 5 00:35:16 2008 +0000
+
+    - Example application created
+    - some changes in the PPUText done
+    - PostProcess can now be used in the osg graph by specifying the camera drawcallback method
+    - some bugfixes
+
+commit 389a1393f69b76e24c36c23d53e4dffb3f51c414
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Jan 4 12:14:53 2008 +0000
+
+    problems with blending corrected
+    PPUText were added
+    Text class as wrapper was also added
+
+commit ffa17069128ce251661422b4f6df55f27591caec
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Jan 3 16:16:41 2008 +0000
+
+    Shader class included
+    errors were corrected
+    all things works fine for now
+    there are still some problems with blending of ppu's
+
+commit 6a7e0bef787db57eb935dd24b48f6758d521d4ba
+Author: Art Tevs <art@tevs.eu>
+Date:   Fri Dec 21 13:52:01 2007 +0000
+
+commit f53ef2e175082311994ad588975f2ad29c9d66e8
+Author: Art Tevs <art@tevs.eu>
+Date:   Thu Dec 20 17:13:31 2007 +0000
+
+commit 46069e181968a89c5c04b9bb9193b6f08c3f20e2
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Dec 19 18:06:04 2007 +0000
+
+commit 315500c8cf3b9d0882b1823b7985a2cc0967a489
+Author: Art Tevs <art@tevs.eu>
+Date:   Wed Dec 19 10:43:39 2007 +0000
+
+    CMake removed
+    Simple Makefiles added
+    Now you are able to make, install and uninstall gracefully
+
+commit 34f0ad508d34f332ed7c4c38bc8339e410de3f76
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Dec 18 15:07:36 2007 +0000
+
+commit 77bc476f87444ec761b40cea84b2a4f2284754a5
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Dec 18 13:11:16 2007 +0000
+
+commit b9c88de701359bc04c191d736c9a9e6139a6a53c
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Dec 18 13:08:55 2007 +0000
+
+commit d5896cfe74a8978721435f10db8b475a59bc07e6
+Author: Art Tevs <art@tevs.eu>
+Date:   Tue Dec 18 13:07:47 2007 +0000
