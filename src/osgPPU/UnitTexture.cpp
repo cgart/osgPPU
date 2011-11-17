@@ -66,7 +66,7 @@ namespace osgPPU
         dirty();
 
         // force texture size, helps if texture was not loaded before
-        if (!_externTexture->areAllTextureObjectsLoaded())
+        if (!_externTexture->areAllTextureObjectsLoaded() && _externTexture->getImage(0))
         {
             osg::Texture1D* tex1D = dynamic_cast<osg::Texture1D*>(_externTexture.get());
             osg::Texture2D* tex2D = dynamic_cast<osg::Texture2D*>(_externTexture.get());
