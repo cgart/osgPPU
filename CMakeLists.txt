@@ -25,7 +25,7 @@ SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the
 #######################################
 SET(OSGPPU_MAJOR_VERSION 0)
 SET(OSGPPU_MINOR_VERSION 5)
-SET(OSGPPU_PATCH_VERSION 7)
+SET(OSGPPU_PATCH_VERSION 9)
 SET(OSGPPU_SOVERSION 5)
 
 SET(OSGPPU_RELEASE_CANDIDATE 0)
@@ -235,17 +235,17 @@ ENDIF(OSGPPU_MAINTAINER)
 ################################################################################
 # present the packaging option only if we have the cpack command defined (effectively >= 2.6.0)
 ################################################################################
+# names used in other cmake script to determine package component
+SET(PACKAGE_HEADERS headers)
+SET(PACKAGE_LIB libraries)
+SET(PACKAGE_DATA data)
+SET(PACKAGE_SRC source)
+SET(PACKAGE_EXAMPLES  examples)
+
 IF(CMAKE_CPACK_COMMAND)
 
 	# option to build the package target
 	OPTION(BUILD_OSGPPU_PACKAGES "Set to ON to generate CPack configuration files and packaging targets" OFF)
-
-	# names used in other cmake script to determine package component
-	SET(PACKAGE_HEADERS headers)
-	SET(PACKAGE_LIB libraries)
-	SET(PACKAGE_DATA data)
-	SET(PACKAGE_SRC  source)
-	SET(PACKAGE_EXAMPLES  examples)
 
 	# we would like to build all components
 	SET(CPACK_COMPONENTS_ALL ${PACKAGE_HEADERS} ${PACKAGE_LIB} ${PACKAGE_DATA} ${PACKAGE_SRC})

@@ -52,13 +52,13 @@ SETUP_PLUGIN(ppu)
 #-----------------------------------------------
 # Add the file to the install target
 #-----------------------------------------------
-INSTALL (
-	FILES
-		CMakeLists.txt
-		${TARGET_SRC}
-	DESTINATION src/osgPlugins/osgPPU
-	COMPONENT  ${PACKAGE_SRC}
-)
+#INSTALL (
+#	FILES
+#		CMakeLists.txt
+#		${TARGET_SRC}
+#	DESTINATION src/osgPlugins/osgPPU
+#	COMPONENT  ${PACKAGE_SRC}
+#)
 
 
 

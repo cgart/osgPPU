@@ -33,10 +33,10 @@ endif(MSVC)
 #-----------------------------------------------
 # Add the file to the install target
 #-----------------------------------------------
-INSTALL (
-	FILES
-		CMakeLists.txt
-		${TARGET_SRC}
-	DESTINATION src/examples/texture3D
-	COMPONENT  ${PACKAGE_EXAMPLES}
-)
+#INSTALL (
+#	FILES
+#		CMakeLists.txt
+#		${TARGET_SRC}
+#	DESTINATION src/examples/texture3D
+#	COMPONENT  ${PACKAGE_EXAMPLES}
+#)

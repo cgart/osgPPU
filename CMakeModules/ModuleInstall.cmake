@@ -56,38 +56,38 @@ SOURCE_GROUP(
 INSTALL(
     FILES        ${LIB_PUBLIC_HEADERS}
     DESTINATION  ${INSTALL_INCDIR}/${LIB_NAME}
-    COMPONENT    ${PACKAGE_HEADERS} 
+#    COMPONENT    ${PACKAGE_HEADERS} 
 )
 
-INSTALL(
-    FILES        ${LIB_SRC_FILES}
-    DESTINATION  ${INSTALL_SRCDIR}/${LIB_NAME}
-    COMPONENT    ${PACKAGE_SRC}
-)
+#INSTALL(
+#    FILES        ${LIB_SRC_FILES}
+#    DESTINATION  ${INSTALL_SRCDIR}/${LIB_NAME}
+#    COMPONENT    ${PACKAGE_SRC}
+#)
 
 #-----------------------------------------------------------
 # Include the build system parts to the source package
 #-----------------------------------------------------------
-INSTALL (
-	FILES
-		${PROJECT_SOURCE_DIR}/CMakeLists.txt
-		${PROJECT_SOURCE_DIR}/ChangeLog
-		${PROJECT_SOURCE_DIR}/CONTRIBUTORS.txt
-		${PROJECT_SOURCE_DIR}/LICENSE.txt
-	DESTINATION ./
-	COMPONENT  ${PACKAGE_SRC}
-)
+#INSTALL (
+#	FILES
+#		${PROJECT_SOURCE_DIR}/CMakeLists.txt
+#		${PROJECT_SOURCE_DIR}/ChangeLog
+#		${PROJECT_SOURCE_DIR}/CONTRIBUTORS.txt
+#		${PROJECT_SOURCE_DIR}/LICENSE.txt
+#	DESTINATION ./
+#	COMPONENT  ${PACKAGE_SRC}
+#)
 
-INSTALL (
-	FILES
-		${PROJECT_SOURCE_DIR}/src/CMakeLists.txt
-	DESTINATION src
-	COMPONENT  ${PACKAGE_SRC}
-)
+#INSTALL (
+#	FILES
+#		${PROJECT_SOURCE_DIR}/src/CMakeLists.txt
+#	DESTINATION src
+#	COMPONENT  ${PACKAGE_SRC}
+#)
 
-INSTALL (
-	FILES
-		${PROJECT_SOURCE_DIR}/src/osgPlugins/CMakeLists.txt
-	DESTINATION src/osgPlugins
-	COMPONENT  ${PACKAGE_SRC}
-)
+#INSTALL (
+#	FILES
+#		${PROJECT_SOURCE_DIR}/src/osgPlugins/CMakeLists.txt
+#	DESTINATION src/osgPlugins
+#	COMPONENT  ${PACKAGE_SRC}
+#)

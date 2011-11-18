@@ -34,10 +34,10 @@ endif(MSVC)
 #-----------------------------------------------
 # Add the file to the install target
 #-----------------------------------------------
-INSTALL (
-	FILES
-		CMakeLists.txt
-		${TARGET_SRC}
-	DESTINATION src/examples/cubemap
-	COMPONENT  ${PACKAGE_EXAMPLES}
-)
+#INSTALL (
+#	FILES
+#		CMakeLists.txt
+#		${TARGET_SRC}
+#	DESTINATION src/examples/cubemap
+#	COMPONENT  ${PACKAGE_EXAMPLES}
+#)

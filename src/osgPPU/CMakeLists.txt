@@ -61,7 +61,7 @@ SET(LIB_SRC_FILES
     ShaderAttribute.cpp
     UnitCamera.cpp
     UnitInOutModule.cpp
-	CMakeLists.txt
+    CMakeLists.txt
     UnitInHistoryOut.cpp
     UnitInOutRepeat.cpp
     Camera.cpp

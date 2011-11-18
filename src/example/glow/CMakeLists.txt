@@ -35,11 +35,11 @@ endif(MSVC)
 #-----------------------------------------------
 # Add the file to the install target
 #-----------------------------------------------
-INSTALL (
-	FILES
-		CMakeLists.txt
-		${TARGET_SRC}
-		${TARGET_H}
-	DESTINATION src/examples/glow
-	COMPONENT  ${PACKAGE_EXAMPLES}
-)
+#INSTALL (
+#	FILES
+#		CMakeLists.txt
+#		${TARGET_SRC}
+#		${TARGET_H}
+#	DESTINATION src/examples/glow
+#	COMPONENT  ${PACKAGE_EXAMPLES}
+#)

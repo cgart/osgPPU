@@ -83,13 +83,13 @@ endif(MSVC)
 #-----------------------------------------------
 # Add the file to the install target
 #-----------------------------------------------
-INSTALL (
-	FILES
-		CMakeLists.txt
-		${TARGET_SRC}
-		${TARGET_H}
-		${CUDA_MODULE_HEADERS}
-		${CUDA_MODULE_SRC}
-	DESTINATION src/examples/cuda
-	COMPONENT  ${PACKAGE_EXAMPLES}
-)
+#INSTALL (
+#	FILES
+#		CMakeLists.txt
+#		${TARGET_SRC}
+#		${TARGET_H}
+#		${CUDA_MODULE_HEADERS}
+#		${CUDA_MODULE_SRC}
+#	DESTINATION src/examples/cuda
+#	COMPONENT  ${PACKAGE_EXAMPLES}
+#)
