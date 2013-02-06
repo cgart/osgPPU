@@ -217,6 +217,9 @@ void Processor::placeUnitAsLast(Unit* unit, bool enable)
 //------------------------------------------------------------------------------
 void Processor::traverse(osg::NodeVisitor& nv)
 {
+	if (!mCamera)
+		return;
+
     // if not initialized before, then do it
     if (mbDirty) init();
 
@@ -247,6 +250,19 @@ void Processor::traverse(osg::NodeVisitor& nv)
         // optimize subgraph
         OptimizeUnitsVisitor ov;
         ov.run(this);
+    }
+
+    // make sure we render only our own camera
+    if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
+    {
+      osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor *>(&nv);
+      if (cv)
+      {
+        if (cv->getCurrentCamera() != getCamera())
+        {
+          return;
+        }
+      }
     }
 
     // first we need to clear traversion bit of every unit
