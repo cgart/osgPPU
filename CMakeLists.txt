@@ -19,6 +19,15 @@ SET(SOURCE_DIR ${osgPPU_SOURCE_DIR})
 SET(OSG_DIR "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path where to find the osg installation")
 SET(CUDA_DIR "${CMAKE_INSTALL_PREFIX}/cuda" CACHE STRING "Path where to find the cuda installation")
 
+IF(UNIX AND NOT WIN32 AND NOT APPLE)
+  IF(CMAKE_SIZEOF_VOID_P MATCHES "8")
+      SET(LIB_POSTFIX "64" CACHE STRING "suffix for 32/64 dir placement")
+      MARK_AS_ADVANCED(LIB_POSTFIX)
+  ENDIF()
+ENDIF()
+IF(NOT DEFINED LIB_POSTFIX)
+    SET(LIB_POSTFIX "")
+ENDIF()
 
 #######################################
 # Versions
