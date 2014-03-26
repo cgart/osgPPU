@@ -18,6 +18,7 @@
 #include <osgPPU/Processor.h>
 
 #include <osg/Texture2D>
+#include <algorithm>
 
 namespace osgPPU
 {
