@@ -9,7 +9,7 @@
  *   This library is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU Lesse General Public License for more details.                    *
+ *   GNU Lesser General Public License for more details.                    *
  *                                                                         *
  *   The full license is in LICENSE file included with this distribution.  *
  ***************************************************************************/
@@ -18,6 +18,7 @@
 #include <osgPPU/Processor.h>
 
 #include <osg/Texture2D>
+#include <algorithm>
 
 namespace osgPPU
 {
