@@ -1,4 +1,6 @@
- How to use examples
+Note: osgPPU is not developed further. The repository has moved to read-only state.
+
+How to use examples
 ===============================
 
 ATTENTION: 
